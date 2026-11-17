@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAV_Mod4_Part1</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#unit-4-video-processing-and-motion-detection">UNIT 4 – Video Processing and Motion Detection</a></li>
+<li class="toc-level-1"><a href="#1-complete-mind-map">1. Complete mind map</a></li>
+<li class="toc-level-1"><a href="#unit-4">UNIT 4</a></li>
+<li class="toc-level-1"><a href="#2-part-1-video-representation-and-temporal-sampling">2. PART 1 – Video Representation and Temporal Sampling</a></li>
+<li class="toc-level-2"><a href="#a-video-representation">A. Video Representation</a></li>
+<li class="toc-level-3"><a href="#1-introduction-to-video">1. Introduction to Video</a></li>
+<li class="toc-level-3"><a href="#2-video-representation">2. Video Representation</a></li>
+<li class="toc-level-3"><a href="#3-frame-and-frame-number">3. Frame and Frame Number</a></li>
+<li class="toc-level-3"><a href="#4-frame-rate-fps">4. Frame Rate (FPS)</a></li>
+<li class="toc-level-3"><a href="#5-frame-interval">5. Frame Interval</a></li>
+<li class="toc-level-3"><a href="#6-relationship-between-fps-frames-and-duration">6. Relationship Between FPS, Frames and Duration</a></li>
+<li class="toc-level-3"><a href="#7-spatial-dimensions-and-resolution">7. Spatial Dimensions and Resolution</a></li>
+<li class="toc-level-3"><a href="#8-video-as-a-three-dimensional-data-structure">8. Video as a Three-Dimensional Data Structure</a></li>
+<li class="toc-level-3"><a href="#9-spatial-information">9. Spatial Information</a></li>
+<li class="toc-level-3"><a href="#10-temporal-information">10. Temporal Information</a></li>
+<li class="toc-level-3"><a href="#11-spatial-vs-temporal-information">11. Spatial vs Temporal Information</a></li>
+<li class="toc-level-2"><a href="#b-temporal-sampling">B. Temporal Sampling</a></li>
+<li class="toc-level-3"><a href="#12-temporal-sampling">12. Temporal Sampling</a></li>
+<li class="toc-level-3"><a href="#13-why-temporal-sampling-is-required">13. Why Temporal Sampling Is Required</a></li>
+<li class="toc-level-3"><a href="#14-uniform-temporal-sampling">14. Uniform Temporal Sampling</a></li>
+<li class="toc-level-3"><a href="#15-sampling-interval">15. Sampling Interval</a></li>
+<li class="toc-level-3"><a href="#16-effective-frame-rate-after-sampling">16. Effective Frame Rate After Sampling</a></li>
+<li class="toc-level-3"><a href="#17-random-temporal-sampling">17. Random Temporal Sampling</a></li>
+<li class="toc-level-3"><a href="#18-keyframe-sampling">18. Keyframe Sampling</a></li>
+<li class="toc-level-3"><a href="#19-temporal-downsampling">19. Temporal Downsampling</a></li>
+<li class="toc-level-3"><a href="#20-temporal-resolution">20. Temporal Resolution</a></li>
+<li class="toc-level-3"><a href="#21-effect-of-low-temporal-sampling">21. Effect of Low Temporal Sampling</a></li>
+<li class="toc-level-3"><a href="#22-temporal-aliasing">22. Temporal Aliasing</a></li>
+<li class="toc-level-3"><a href="#23-temporal-sampling-trade-off">23. Temporal Sampling Trade-off</a></li>
+<li class="toc-level-3"><a href="#24-practical-applications">24. Practical Applications</a></li>
+<li class="toc-level-3"><a href="#25-video-representation-for-computer-vision">25. Video Representation for Computer Vision</a></li>
+<li class="toc-level-3"><a href="#26-video-metadata">26. Video Metadata</a></li>
+<li class="toc-level-1"><a href="#3-part-2-motion-detection-techniques">3. PART 2 – Motion Detection Techniques</a></li>
+<li class="toc-level-2"><a href="#a-introduction-to-motion-detection">A. Introduction to Motion Detection</a></li>
+<li class="toc-level-3"><a href="#1-what-is-motion-detection">1. What is Motion Detection?</a></li>
+<li class="toc-level-3"><a href="#2-importance-of-motion-detection">2. Importance of Motion Detection</a></li>
+<li class="toc-level-3"><a href="#3-basic-motion-detection-pipeline">3. Basic Motion Detection Pipeline</a></li>
+<li class="toc-level-3"><a href="#4-types-of-motion-detection">4. Types of Motion Detection</a></li>
+<li class="toc-level-2"><a href="#b-frame-differencing">B. Frame Differencing</a></li>
+<li class="toc-level-3"><a href="#5-frame-differencing-definition">5. Frame Differencing – Definition</a></li>
+<li class="toc-level-3"><a href="#6-numerical-example-of-frame-differencing">6. Numerical Example of Frame Differencing</a></li>
+<li class="toc-level-3"><a href="#7-difference-image">7. Difference Image</a></li>
+<li class="toc-level-3"><a href="#8-thresholding-the-difference-image">8. Thresholding the Difference Image</a></li>
+<li class="toc-level-3"><a href="#9-numerical-example-of-thresholding">9. Numerical Example of Thresholding</a></li>
+<li class="toc-level-3"><a href="#10-frame-differencing-algorithm">10. Frame Differencing Algorithm</a></li>
+<li class="toc-level-3"><a href="#11-morphological-operations">11. Morphological Operations</a></li>
+<li class="toc-level-3"><a href="#12-advantages-of-frame-differencing">12. Advantages of Frame Differencing</a></li>
+<li class="toc-level-3"><a href="#13-limitations-of-frame-differencing">13. Limitations of Frame Differencing</a></li>
+<li class="toc-level-3"><a href="#14-two-frame-vs-three-frame-differencing">14. Two-Frame vs Three-Frame Differencing</a></li>
+<li class="toc-level-2"><a href="#c-background-subtraction">C. Background Subtraction</a></li>
+<li class="toc-level-3"><a href="#15-background-subtraction-definition">15. Background Subtraction – Definition</a></li>
+<li class="toc-level-3"><a href="#16-background-and-foreground">16. Background and Foreground</a></li>
+<li class="toc-level-3"><a href="#17-difference-between-frame-differencing-and-background-subtraction">17. Difference Between Frame Differencing and Background Subtraction</a></li>
+<li class="toc-level-3"><a href="#18-static-background-model">18. Static Background Model</a></li>
+<li class="toc-level-3"><a href="#19-problems-with-static-background">19. Problems with Static Background</a></li>
+<li class="toc-level-2"><a href="#d-gaussian-mixture-model-gmm">D. Gaussian Mixture Model (GMM)</a></li>
+<li class="toc-level-3"><a href="#20-gaussian-mixture-model-definition">20. Gaussian Mixture Model – Definition</a></li>
+<li class="toc-level-3"><a href="#21-why-use-multiple-gaussians">21. Why Use Multiple Gaussians?</a></li>
+<li class="toc-level-3"><a href="#22-background-subtraction-using-gmm">22. Background Subtraction Using GMM</a></li>
+<li class="toc-level-2"><a href="#e-optical-flow">E. Optical Flow</a></li>
+<li class="toc-level-3"><a href="#23-optical-flow-definition">23. Optical Flow – Definition</a></li>
+<li class="toc-level-3"><a href="#24-optical-flow-field">24. Optical Flow Field</a></li>
+<li class="toc-level-3"><a href="#25-sparse-optical-flow">25. Sparse Optical Flow</a></li>
+<li class="toc-level-3"><a href="#26-lucas-kanade-optical-flow">26. Lucas-Kanade Optical Flow</a></li>
+<li class="toc-level-3"><a href="#27-dense-optical-flow">27. Dense Optical Flow</a></li>
+<li class="toc-level-3"><a href="#28-sparse-vs-dense-optical-flow">28. Sparse vs Dense Optical Flow</a></li>
+<li class="toc-level-2"><a href="#f-block-matching">F. Block Matching</a></li>
+<li class="toc-level-3"><a href="#29-block-matching-definition">29. Block Matching – Definition</a></li>
+<li class="toc-level-3"><a href="#30-basic-block-matching-procedure">30. Basic Block-Matching Procedure</a></li>
+<li class="toc-level-3"><a href="#31-block-matching-cost-functions">31. Block Matching Cost Functions</a></li>
+<li class="toc-level-3"><a href="#32-numerical-example-of-block-matching">32. Numerical Example of Block Matching</a></li>
+<li class="toc-level-3"><a href="#33-motion-vector">33. Motion Vector</a></li>
+<li class="toc-level-1"><a href="#4-important-comparisons-entire-unit">4. Important Comparisons – Entire Unit</a></li>
+<li class="toc-level-2"><a href="#1-frame-differencing-vs-background-subtraction-vs-gmm">1. Frame Differencing vs Background Subtraction vs GMM</a></li>
+<li class="toc-level-2"><a href="#2-frame-differencing-vs-optical-flow">2. Frame Differencing vs Optical Flow</a></li>
+<li class="toc-level-2"><a href="#3-frame-differencing-vs-block-matching">3. Frame Differencing vs Block Matching</a></li>
+<li class="toc-level-2"><a href="#4-mad-vs-mse">4. MAD vs MSE</a></li>
+<li class="toc-level-2"><a href="#5-spatial-resolution-vs-temporal-resolution">5. Spatial Resolution vs Temporal Resolution</a></li>
+<li class="toc-level-2"><a href="#6-uniform-vs-random-vs-keyframe-sampling">6. Uniform vs Random vs Keyframe Sampling</a></li>
+<li class="toc-level-1"><a href="#5-complete-motion-analysis-pipeline">5. Complete Motion Analysis Pipeline</a></li>
+<li class="toc-level-1"><a href="#6-important-challenges-in-motion-detection">6. Important Challenges in Motion Detection</a></li>
+<li class="toc-level-1"><a href="#7-choosing-the-correct-motion-detection-technique">7. Choosing the Correct Motion Detection Technique</a></li>
+<li class="toc-level-1"><a href="#8-complete-formula-sheet-unit-4">8. Complete Formula Sheet – Unit 4</a></li>
+<li class="toc-level-2"><a href="#a-video-representation-and-temporal-sampling">A. Video Representation and Temporal Sampling</a></li>
+<li class="toc-level-2"><a href="#b-motion-detection">B. Motion Detection</a></li>
+<li class="toc-level-1"><a href="#9-important-topics-to-prepare-for-exams">9. Important Topics to Prepare for Exams</a></li>
+<li class="toc-level-2"><a href="#study-checklist">Study checklist</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">IAV_Mod4_Part1</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-17</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><h1 id="unit-4-video-processing-and-motion-detection"><strong>UNIT 4 – Video Processing and Motion Detection</strong></h1><p>I have gone through both PDFs:</p><ol><li><p><strong>Unit 4 Introduction:</strong> Video Representation, Frame Concepts and Temporal Sampling (22 pages).</p></li><li><p><strong>Unit 4 Part 2:</strong> Motion Detection Techniques (25 pages).</p></li></ol><p>The two PDFs cover the fundamentals of video processing, how videos are represented as frames, how frames are sampled, and how motion is detected using different computer vision techniques.</p><p>I'll first give you the complete mind map combining both PDFs, followed by clear, concise and complete explanations of every topic, including important formulas, examples, advantages and limitations.</p><h1 id="1-complete-mind-map"><strong>1. Complete mind map</strong></h1><h1 id="unit-4"><strong>UNIT 4</strong></h1><p><strong>VIDEO PROCESSING</strong></p>PART 1<p><strong>A. Video Representation</strong></p><ul><li>Introduction to video</li><li>Video representation</li><li>Frames and frame numbers</li><li>Frame rate (FPS)</li><li>Frame interval</li><li>Spatial dimensions and resolution</li><li>3D video representation</li><li>Spatial vs temporal information</li><li>Video metadata</li></ul>PART 1<p><strong>B. Temporal Sampling</strong></p><ul><li>Introduction and need</li><li>Uniform sampling</li><li>Random sampling</li><li>Keyframe sampling</li><li>Sampling interval</li><li>Temporal downsampling</li><li>Temporal resolution</li><li>Temporal aliasing</li><li>Sampling trade-offs</li></ul>PART 2<p><strong>C. Motion Detection</strong></p><ul><li>Introduction and importance</li><li>Motion detection pipeline</li><li>Frame differencing</li><li>Difference image</li><li>Thresholding</li><li>Morphological operations</li><li>Two-frame vs three-frame differencing</li><li>Advantages and limitations</li></ul>PART 2<p><strong>D. Background Subtraction</strong></p><ul><li>Background and foreground</li><li>Background model</li><li>Static background</li><li>Problems with static background</li><li>Gaussian Mixture Model (GMM)</li><li>Background subtraction using GMM</li></ul>PART 2<p><strong>E. Optical Flow</strong></p><ul><li>Introduction</li><li>Optical flow field</li><li>Sparse optical flow</li><li>Lucas-Kanade method</li><li>Dense optical flow</li><li>Sparse vs dense comparison</li></ul>PART 2<p><strong>F. Block Matching</strong></p><ul><li>Introduction</li><li>Block-matching procedure</li><li>Search area</li><li>MAD cost function</li><li>MSE cost function</li><li>Motion vectors</li></ul>FINAL CONCEPTS<p><strong>G. Complete Motion Analysis</strong></p><ul><li><p>Comparison of motion detection techniques</p></li><li><p>CCTV motion detection pipeline</p></li><li><p>Object detection and tracking</p></li><li><p>Practical applications</p></li><li><p>Motion detection challenges</p></li><li><p>Selection of suitable techniques</p></li><li><p>Important mathematical formulas</p></li></ul><h1 id="2-part-1-video-representation-and-temporal-sampling"><strong>2. PART 1 – Video Representation and Temporal Sampling</strong></h1><h2 id="a-video-representation"><strong>A. Video Representation</strong></h2><h3 id="1-introduction-to-video"><strong>1. Introduction to Video</strong></h3><p>A digital video is a sequence of images displayed one after another at a particular speed.</p><p>Each individual image is called a <strong>frame</strong>.</p><p>An ordinary image is represented using:</p>
+
+<div class="math-display">$$
+I(x,y)
+$$</div>
+
+<p>Where:</p><ul><li><p>$x$ = horizontal position.</p></li><li><p>$y$ = vertical position.</p></li></ul><p>A video adds another dimension, time:</p>
+
+<div class="math-display">$$
+\boxed{I(x,y,t)}
+$$</div>
+
+<p>Where $t$ represents time or the frame index.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+\text{Video = Spatial Information + Temporal Information}
+$$</div>
+
+<p><strong>Example:</strong> When recording a moving car, each frame captures the car at a slightly different position.</p><h3 id="2-video-representation"><strong>2. Video Representation</strong></h3><p>A video containing $N$ frames is represented as:</p>
+
+<div class="math-display">$$
+\boxed{V=\{I_1,I_2,I_3,\ldots,I_N\}}
+$$</div>
+
+<p>Here:</p><ul><li><p>$V$ = complete video.</p></li><li><p>$I_1$ = first frame.</p></li><li><p>$I_2$ = second frame.</p></li><li><p>$I_N$ = last frame.</p></li></ul><img alt="Character walking animation frames Vector Images &amp; Graphics for Commercial Use | VectorStock" class="exported-media" src="https://images.openai.com/static-rsc-4/qtXdBqkHvS6AHEvgFUW32fcAc3_VHn1wzOJFEaekxP6Ie-xHfVcs4bx_UdTubDRJ-Rnp3jMdsW2ntIQl1WlpFyCJRmNgpKDqPYeWU4aUBQqYwSCrhQ1JuZ2f8Xp2YakvAY98rPHq6TF41de_NdWjxtJPB4YvDw9_g3QFSaG_QNY?purpose=inline"/><a href="https://www.vectorstock.com/royalty-free-vectors/character-walking-animation-frames-vectors?utm_source=chatgpt.com">vectorstock.com</a><p>When these frames are displayed sequentially at sufficient speed, we perceive continuous motion.</p><h3 id="3-frame-and-frame-number"><strong>3. Frame and Frame Number</strong></h3><p><strong>Frame:</strong> One complete image captured at a particular instant of time.</p><p>For example, consider a person walking:</p><ul><li><p>Frame 1: Person at position A.</p></li><li><p>Frame 2: Person moves slightly.</p></li><li><p>Frame 3: Person moves further.</p></li><li><p>Frame 4: Person reaches position B.</p></li></ul><p><strong>Frame number:</strong> An index used to identify the position of a frame in a video.</p><p>For a 1000-frame video:</p>
+
+<div class="math-display">$$
+I_1,I_2,I_3,\ldots,I_{1000}
+$$</div>
+
+<h3 id="4-frame-rate-fps"><strong>4. Frame Rate (FPS)</strong></h3><p>Frame rate is the number of frames captured or displayed per second.</p><p>It is measured in <strong>FPS (Frames Per Second)</strong>.</p><p>Examples:</p><table><tr><th>Frame rate</th><th>Meaning</th></tr><tr><td>15 FPS</td><td>15 frames per second</td></tr><tr><td>24 FPS</td><td>24 frames per second</td></tr><tr><td>30 FPS</td><td>30 frames per second</td></tr><tr><td>60 FPS</td><td>60 frames per second</td></tr><tr><td>120 FPS</td><td>120 frames per second</td></tr></table><p>Higher FPS generally provides smoother motion and more temporal detail.</p><h3 id="5-frame-interval"><strong>5. Frame Interval</strong></h3><p>Frame interval is the time difference between two consecutive frames.</p><p><strong>Formula:</strong></p>
+
+<div class="math-display">$$
+\boxed{\Delta t=\frac{1}{F}}
+$$</div>
+
+<p>Where $F$ = frame rate.</p><p>Example: If a video operates at 30 FPS:</p>
+
+<div class="math-display">$$
+\Delta t=\frac{1}{30}
+$$</div>
+
+<div class="math-display">$$
+\boxed{\Delta t=0.0333s=33.3ms}
+$$</div>
+
+<p>Therefore, consecutive frames are separated by approximately 33.3 milliseconds.</p><h3 id="6-relationship-between-fps-frames-and-duration"><strong>6. Relationship Between FPS, Frames and Duration</strong></h3><p>These three quantities are related.</p>
+
+<div class="math-display">$$
+\boxed{N=F\times T}
+$$</div>
+
+<div class="math-display">$$
+\boxed{F=\frac{N}{T}}
+$$</div>
+
+<div class="math-display">$$
+\boxed{T=\frac{N}{F}}
+$$</div>
+
+<p>Where:</p><ul><li><p>$N$ = number of frames.</p></li><li><p>$F$ = frame rate.</p></li><li><p>$T$ = duration in seconds.</p></li></ul><p><strong>Example:</strong></p><p>A video has 9000 frames and operates at 30 FPS.</p><p>Find its duration.</p>
+
+<div class="math-display">$$
+T=\frac{9000}{30}=300s
+$$</div>
+
+<div class="math-display">$$
+\boxed{T=5\text{ minutes}}
+$$</div>
+
+<h3 id="7-spatial-dimensions-and-resolution"><strong>7. Spatial Dimensions and Resolution</strong></h3><p>Resolution describes the number of pixels present in each frame.</p><p>Example:</p>
+
+<div class="math-display">$$
+1920\times1080
+$$</div>
+
+<p>Means:</p><ul><li><p>Width = 1920 pixels.</p></li><li><p>Height = 1080 pixels.</p></li></ul><p>A video may be described as:</p>
+
+<div class="math-display">$$
+1920\times1080,\ 30FPS
+$$</div>
+
+<p>This means every frame has 1920 × 1080 pixels and 30 frames are captured per second.</p><p><strong>Important distinction:</strong></p><ul><li><p>Resolution → Spatial detail.</p></li><li><p>FPS → Temporal detail.</p></li></ul><h3 id="8-video-as-a-three-dimensional-data-structure"><strong>8. Video as a Three-Dimensional Data Structure</strong></h3><p>A grayscale image is a two-dimensional matrix:</p>
+
+<div class="math-display">$$
+I(x,y)
+$$</div>
+
+<p>A video is a three-dimensional data structure:</p>
+
+<div class="math-display">$$
+\boxed{I(x,y,t)}
+$$</div>
+
+<img alt="動画AIの限界を突破する「TriAttention」徹底解説｜エイじー" class="exported-media" src="https://images.openai.com/static-rsc-4/1Z8QXkhx_b6LtpiNScId5ZcxGDNhX1pOaCZU9TvnfU4Thlm2VRGYIToFPNGmXp9S5PxHXF2MIKPSYvQ6PXYfGueqMYDaBIB5Gh0RlatFsIYLzuMhDNxmOTqXFF1OOk8pa7tORVFDewzw8p0ZmOJpKLt6x4HQbzFPOyW-JmUUXg8?purpose=inline"/><a href="https://note.com/eiji71/n/n74b4570a2661?utm_source=chatgpt.com">note.com</a><p>The dimensions are:</p><table><tr><th>Dimension</th><th>Meaning</th></tr><tr><td>X</td><td>Horizontal position</td></tr><tr><td>Y</td><td>Vertical position</td></tr><tr><td>T</td><td>Time</td></tr></table><p>For a color video, another dimension is added:</p>
+
+<div class="math-display">$$
+\boxed{I(x,y,t,c)}
+$$</div>
+
+<p>Here $c$ represents the color channel (Red, Green or Blue).</p><h3 id="9-spatial-information"><strong>9. Spatial Information</strong></h3><p>Spatial information describes what exists within an individual frame.</p><p>Examples:</p><ul><li><p>Edges</p></li><li><p>Corners</p></li><li><p>Objects</p></li><li><p>Shapes</p></li><li><p>Textures</p></li><li><p>Colors</p></li></ul><p><strong>Example:</strong> In a CCTV frame, a person, car, road and building are spatial information.</p><h3 id="10-temporal-information"><strong>10. Temporal Information</strong></h3><p>Temporal information describes how the scene changes over time.</p><p>Examples:</p><ul><li><p>A car moving.</p></li><li><p>A person walking.</p></li><li><p>A ball being thrown.</p></li><li><p>A door opening.</p></li><li><p>A vehicle stopping.</p></li></ul><p>Suppose a person is located at:</p>
+
+<div class="math-display">$$
+(x_1,y_1)\text{ at time }t_1
+$$</div>
+
+<p>And later:</p>
+
+<div class="math-display">$$
+(x_2,y_2)\text{ at time }t_2
+$$</div>
+
+<p>The change in position provides information about motion.</p><h3 id="11-spatial-vs-temporal-information"><strong>11. Spatial vs Temporal Information</strong></h3><table><tr><th>Spatial information</th><th>Temporal information</th></tr><tr><td>Information within a frame</td><td>Information across frames</td></tr><tr><td>Shape</td><td>Motion</td></tr><tr><td>Color</td><td>Speed</td></tr><tr><td>Texture</td><td>Direction</td></tr><tr><td>Edges</td><td>Activity</td></tr><tr><td>Object appearance</td><td>Object movement</td></tr></table><p><strong>Remember:</strong> Spatial information tells us what is present; temporal information tells us what changes.</p><h2 id="b-temporal-sampling"><strong>B. Temporal Sampling</strong></h2><h3 id="12-temporal-sampling"><strong>12. Temporal Sampling</strong></h3><p>Temporal sampling is the process of selecting particular frames from a video at specific time intervals.</p><p>Instead of processing every frame, we process only selected frames.</p><p>Example:</p><p>Original frames:</p>
+
+<div class="math-display">$$
+1,2,3,4,5,6,7,8,9,10,11,12
+$$</div>
+
+<p>Selecting every third frame:</p>
+
+<div class="math-display">$$
+\boxed{1,4,7,10}
+$$</div>
+
+<img alt="Deep Learning on Video (Part Two): The Rise of Two-Stream Architectures | by Cameron R. Wolfe, Ph.D. | TDS Archive | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/MxaXQ8p6Jj7R9WuKvYph_0VDqYoSVDsPENNJP4t-IM4n1GqyrSmAUT1OoFUyWw6bE2utyntdepPfNGBGsnY_32UZt1eQaGhKa-aOUuLWYOZMfT8Sak2FUUmE6W_zwBJvi4BMn8GZu1mYYfOfjYitUxYedCUiAntqJU5LxJSWPXo?purpose=inline"/><a href="https://medium.com/data-science/deep-learning-on-video-part-two-the-rise-of-two-stream-architectures-f830d5c655d0?utm_source=chatgpt.com">medium.com</a><h3 id="13-why-temporal-sampling-is-required"><strong>13. Why Temporal Sampling Is Required</strong></h3><p>A video may contain thousands or millions of frames.</p><p>Processing every frame requires significant computational resources.</p><p>Temporal sampling helps to:</p><ol><li><p>Reduce computation.</p></li><li><p>Reduce memory requirements.</p></li><li><p>Reduce processing time.</p></li><li><p>Reduce storage requirements.</p></li><li><p>Select representative frames.</p></li><li><p>Make large-scale video analysis efficient.</p></li></ol><p><strong>Example:</strong></p><p>A 60-second video recorded at 30 FPS:</p>
+
+<div class="math-display">$$
+N=30\times60=1800
+$$</div>
+
+<p>If every third frame is selected:</p>
+
+<div class="math-display">$$
+N_s=\frac{1800}{3}=600
+$$</div>
+
+<p>Therefore:</p><ul><li><p>Without sampling: 1800 frames.</p></li><li><p>With sampling: 600 frames.</p></li></ul><h3 id="14-uniform-temporal-sampling"><strong>14. Uniform Temporal Sampling</strong></h3><p>Uniform sampling selects frames at equal time intervals.</p><p>Example: A video contains 20 frames and we select every fourth frame.</p><p>Selected frames:</p>
+
+<div class="math-display">$$
+1,5,9,13,17
+$$</div>
+
+<p>The sampling interval remains constant.</p><p><strong>Advantages:</strong></p><ul><li><p>Simple to implement.</p></li><li><p>Predictable frame selection.</p></li><li><p>Reduces computation.</p></li></ul><p><strong>Limitation:</strong> Important events occurring between selected frames may be missed.</p><h3 id="15-sampling-interval"><strong>15. Sampling Interval</strong></h3><p>The sampling interval $k$ represents how frequently frames are selected.</p><table><tr><th>Sampling interval</th><th>Selected frames</th></tr><tr><td>$k=1$</td><td>1, 2, 3, 4, 5...</td></tr><tr><td>$k=2$</td><td>1, 3, 5, 7, 9...</td></tr><tr><td>$k=3$</td><td>1, 4, 7, 10, 13...</td></tr><tr><td>$k=5$</td><td>1, 6, 11, 16, 21...</td></tr></table><p>As $k$ increases, fewer frames are processed.</p><h3 id="16-effective-frame-rate-after-sampling"><strong>16. Effective Frame Rate After Sampling</strong></h3><p>The effective frame rate is the frame rate after temporal sampling.</p><p><strong>Formula:</strong></p>
+
+<div class="math-display">$$
+\boxed{F_s=\frac{F}{k}}
+$$</div>
+
+<p>Where:</p><ul><li><p>$F_s$ = effective sampling rate.</p></li><li><p>$F$ = original frame rate.</p></li><li><p>$k$ = sampling interval.</p></li></ul><p>Example:</p><p>Original FPS = 30</p><p>Sampling interval = 3</p>
+
+<div class="math-display">$$
+F_s=\frac{30}{3}
+$$</div>
+
+<div class="math-display">$$
+\boxed{F_s=10FPS}
+$$</div>
+
+<h3 id="17-random-temporal-sampling"><strong>17. Random Temporal Sampling</strong></h3><p>Random sampling selects frames randomly instead of at fixed intervals.</p><p>Example:</p><p>Original frames:</p>
+
+<div class="math-display">$$
+1,2,3,4,5,6,7,8,9,10
+$$</div>
+
+<p>Randomly selected:</p>
+
+<div class="math-display">$$
+2,5,9
+$$</div>
+
+<p><strong>Advantages:</strong></p><ul><li><p>Provides different temporal portions during model training.</p></li><li><p>Avoids always selecting the same fixed positions.</p></li></ul><p><strong>Limitation:</strong> Important events may be missed if sampling is too sparse.</p><h3 id="18-keyframe-sampling"><strong>18. Keyframe Sampling</strong></h3><p>A keyframe is a frame selected because it represents important information or a significant scene.</p><p>Example:</p><table><tr><th>Frames</th><th>Scene</th></tr><tr><td>1–40</td><td>Empty road</td></tr><tr><td>41</td><td>Person enters</td></tr><tr><td>42–80</td><td>Person walking</td></tr><tr><td>81</td><td>Car enters</td></tr><tr><td>82–120</td><td>Car moving</td></tr></table><p>Representative keyframes:</p><ul><li><p>Frame 1 → Road.</p></li><li><p>Frame 41 → Person enters.</p></li><li><p>Frame 81 → Car enters.</p></li></ul><img alt="Scene Summarization - VFRAME" class="exported-media" src="https://images.openai.com/static-rsc-4/GnWDD8k_7mcjGISnZdlJIWRTAvfcLAjtGyjTkE7yIyu8GXKclSFpaWVdjVbwih1JrZmzuhqe1ImYWlh585fcdaPBJWm0NZEyzu3CvtV_wfjZgba0MfQG_GEptuvjyBHauL0SDihc1K33yk2G20G3bP3tZZwQkPAenPga74gsY7A?purpose=inline"/><a href="https://vframe.io/scene-summarization/?utm_source=chatgpt.com">vframe.io</a><p><strong>Applications:</strong></p><ul><li><p>Video summarization.</p></li><li><p>Video browsing.</p></li><li><p>Video indexing.</p></li><li><p>Content analysis.</p></li></ul><h3 id="19-temporal-downsampling"><strong>19. Temporal Downsampling</strong></h3><p>Temporal downsampling means reducing the number of frames in a video.</p><p>Example:</p>
+
+<div class="math-display">$$
+30FPS\rightarrow10FPS
+$$</div>
+
+<p>This can be achieved by selecting every third frame.</p><p><strong>Advantages:</strong></p><ul><li><p>Less computation.</p></li><li><p>Less storage.</p></li><li><p>Faster processing.</p></li></ul><p><strong>Disadvantage:</strong> Temporal resolution decreases, and motion information may be lost.</p><h3 id="20-temporal-resolution"><strong>20. Temporal Resolution</strong></h3><p>Temporal resolution describes how frequently changes over time are captured.</p><p>Higher FPS generally means higher temporal resolution.</p><p>Example:</p><ul><li><p>15 FPS camera → Captures fewer temporal details.</p></li><li><p>120 FPS camera → Captures much finer temporal changes.</p></li></ul><p><strong>Applications:</strong></p><ul><li><p>Sports analysis.</p></li><li><p>Fast-moving objects.</p></li><li><p>Explosions.</p></li><li><p>Industrial machinery.</p></li><li><p>Scientific experiments.</p></li></ul><h3 id="21-effect-of-low-temporal-sampling"><strong>21. Effect of Low Temporal Sampling</strong></h3><p>When sampling is too low, intermediate motion information is lost.</p><p>Example: A fast-moving ball may appear in frame 1 and then frame 4, without capturing its intermediate positions.</p><p>Consequences:</p><ul><li><p>Motion details are lost.</p></li><li><p>Fast events may be missed.</p></li><li><p>Motion estimation becomes less accurate.</p></li></ul><h3 id="22-temporal-aliasing"><strong>22. Temporal Aliasing</strong></h3><p>Temporal aliasing occurs when the sampling rate is insufficient to represent actual motion correctly.</p><p><strong>Example: Wagon-wheel effect</strong></p><img alt="PPT - Lecture 2: Edge detection and resampling PowerPoint Presentation - ID:2949711" class="exported-media" src="https://images.openai.com/static-rsc-4/s-u6YnuTyoIqmHovxgmzvCb9t401VF4Tz4HC0t0dcKecNtiT6OlzwciBrhwwFpTr5CDPx1oJIvbemRqkfpw2jKfWaN6kD88tA5s-fPaL91jf5zq7Vtkaq96nBXal2S8WIO_9GuPAJvuARndfN7Q1zxDqQfuOZJXiwQnuuPEcn9g?purpose=inline"/><a href="https://www.slideserve.com/selena/lecture-2-edge-detection-and-resampling?utm_source=chatgpt.com">slideserve.com</a><p>A rotating wheel may appear to:</p><ul><li><p>Rotate slowly.</p></li><li><p>Remain stationary.</p></li><li><p>Rotate in the opposite direction.</p></li></ul><p>This happens because the camera captures the rotating wheel at unsuitable time intervals.</p><h3 id="23-temporal-sampling-trade-off"><strong>23. Temporal Sampling Trade-off</strong></h3><table><tr><th>High sampling rate</th><th>Low sampling rate</th></tr><tr><td>More motion information</td><td>Less motion information</td></tr><tr><td>More computation</td><td>Less computation</td></tr><tr><td>More memory</td><td>Less memory</td></tr><tr><td>Better for fast objects</td><td>May miss fast events</td></tr><tr><td>More processing time</td><td>Faster processing</td></tr></table><p><strong>Conclusion:</strong> Select the sampling rate according to the application.</p><h3 id="24-practical-applications"><strong>24. Practical Applications</strong></h3><p><strong>CCTV surveillance</strong></p><p>A CCTV camera operates at 30 FPS. If the system only detects people entering a building, it may process every third frame (10 FPS), reducing computation.</p><p>However, vehicle accidents require higher sampling rates.</p><p><strong>Sports video</strong></p><p>Cricket and tennis require high temporal resolution because the ball moves very quickly.</p><p>High-speed cameras help analyze:</p><ul><li><p>Ball trajectory.</p></li><li><p>Player movement.</p></li><li><p>Impact.</p></li><li><p>Swing.</p></li><li><p>Speed.</p></li></ul><h3 id="25-video-representation-for-computer-vision"><strong>25. Video Representation for Computer Vision</strong></h3><p>Video analysis can be performed at four levels:</p><ol><li><p>Individual frames: $I_1,I_2,\ldots,I_N$.</p></li><li><p>Frame sequence: $V=\{I_1,I_2,\ldots,I_N\}$.</p></li><li><p>Spatiotemporal data: $I(x,y,t)$.</p></li><li><p>Semantic information: Objects → Motion → Activities → Events.</p></li></ol><p>This progression helps computer vision systems understand not only the appearance of a scene but also its activities and events.</p><h3 id="26-video-metadata"><strong>26. Video Metadata</strong></h3><p>Metadata is additional information describing a video.</p><p>Important metadata includes:</p><ul><li><p>Frame rate.</p></li><li><p>Resolution.</p></li><li><p>Duration.</p></li><li><p>Codec.</p></li><li><p>Color format.</p></li><li><p>Audio information.</p></li><li><p>Number of frames.</p></li></ul><p>The most important parameters for video analysis are resolution, FPS, duration and number of frames.</p><h1 id="3-part-2-motion-detection-techniques"><strong>3. PART 2 – Motion Detection Techniques</strong></h1><h2 id="a-introduction-to-motion-detection"><strong>A. Introduction to Motion Detection</strong></h2><h3 id="1-what-is-motion-detection"><strong>1. What is Motion Detection?</strong></h3><p>Motion detection is the process of identifying changes in the position or appearance of objects between different video frames.</p><p>Consider two consecutive frames:</p>
+
+<div class="math-display">$$
+I_{t-1}(x,y),\quad I_t(x,y)
+$$</div>
+
+<p>If an object moves, the pixels associated with that object generally change between frames.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+\boxed{\text{Motion}\approx\text{Change in image information over time}}
+$$</div>
+
+<p><strong>Example:</strong> In CCTV footage, if a person moves from the left side to the right side, the motion detection system identifies the changed region.</p><h3 id="2-importance-of-motion-detection"><strong>2. Importance of Motion Detection</strong></h3><p>Motion detection is used in:</p><ol><li><p>Surveillance systems.</p></li><li><p>Traffic monitoring.</p></li><li><p>Pedestrian detection.</p></li><li><p>Vehicle detection.</p></li><li><p>Sports analysis.</p></li><li><p>Human activity analysis.</p></li><li><p>Industrial monitoring.</p></li><li><p>Security systems.</p></li><li><p>Video conferencing.</p></li><li><p>Intelligent transportation systems.</p></li></ol><h3 id="3-basic-motion-detection-pipeline"><strong>3. Basic Motion Detection Pipeline</strong></h3><p><strong>Video</strong></p><p><strong>Frame Acquisition</strong></p><p><strong>Preprocessing</strong></p><p><strong>Compare Frames</strong></p><p><strong>Motion Estimation</strong></p><p><strong>Thresholding / Decision</strong></p><p><strong>Motion Region</strong></p><p><strong>Object Detection / Tracking</strong></p><p><strong>Explanation of stages:</strong></p><ul><li><p>Frame acquisition: Extract frames from the video.</p></li><li><p>Preprocessing: Prepare frames for analysis.</p></li><li><p>Compare frames: Identify pixel changes.</p></li><li><p>Motion estimation: Estimate the movement.</p></li><li><p>Thresholding: Separate significant changes from noise.</p></li><li><p>Motion region: Identify moving regions.</p></li><li><p>Object detection/tracking: Identify and follow objects.</p></li></ul><h3 id="4-types-of-motion-detection"><strong>4. Types of Motion Detection</strong></h3><p>The five main techniques covered in the PDF are:</p><ol><li><p>Frame Differencing.</p></li><li><p>Background Subtraction.</p></li><li><p>Optical Flow.</p><ul><li><p>Sparse Optical Flow.</p></li><li><p>Dense Optical Flow.</p></li></ul></li><li><p>Block Matching.</p></li><li><p>Gaussian Mixture Model (GMM).</p></li></ol><h2 id="b-frame-differencing"><strong>B. Frame Differencing</strong></h2><h3 id="5-frame-differencing-definition"><strong>5. Frame Differencing – Definition</strong></h3><p>Frame differencing is a motion detection technique that detects motion by calculating the pixel-wise difference between two or more consecutive video frames.</p><p>Consider:</p><ul><li><p>Previous frame: $I_{t-1}(x,y)$</p></li><li><p>Current frame: $I_t(x,y)$</p></li></ul><p>The absolute difference is:</p>
+
+<div class="math-display">$$
+\boxed{D_t(x,y)=|I_t(x,y)-I_{t-1}(x,y)|}
+$$</div>
+
+<p>Where:</p><ul><li><p>$D_t$ = difference image.</p></li><li><p>$I_t$ = current frame.</p></li><li><p>$I_{t-1}$ = previous frame.</p></li></ul><p>Interpretation:</p><ul><li><p>Small difference → Pixel has changed very little.</p></li><li><p>Large difference → Pixel may belong to a moving region.</p></li></ul><h3 id="6-numerical-example-of-frame-differencing"><strong>6. Numerical Example of Frame Differencing</strong></h3><p>Suppose a pixel has the following intensity values.</p><p><strong>Case 1:</strong></p><p>Previous frame = 80</p><p>Current frame = 85</p>
+
+<div class="math-display">$$
+D=|85-80|=5
+$$</div>
+
+<p>This is a small change.</p><p><strong>Case 2:</strong></p><p>Previous frame = 80</p><p>Current frame = 190</p>
+
+<div class="math-display">$$
+D=|190-80|=110
+$$</div>
+
+<p>This is a large change and could indicate motion.</p><p><strong>Important:</strong> A large difference does not always mean object motion. It can also be caused by lighting changes or noise.</p><h3 id="7-difference-image"><strong>7. Difference Image</strong></h3><p>When the difference is calculated for every pixel, a difference image is generated.</p>
+
+<div class="math-display">$$
+D_t(x,y)=|I_t(x,y)-I_{t-1}(x,y)|
+$$</div>
+
+<img alt="Vision-based Fall Detection System - How it Works.pdf" class="exported-media" src="https://images.openai.com/static-rsc-4/ooVl2x9LyhfFCMSt0Q11sgj9MtT6Fy5b8JIjT5K07weod41iHjutetvyVswXNbcCFlk7BnzQUt5dGJbBzFvvI-et6jkHWx8KMFyfFWe5_2GBURbucPWei9JQfbQlkeksOutoMZ75H1pcV2hEh7u2Z-fC9TPCFPdzm34X2r-mByE?purpose=inline"/><a href="https://www.slideshare.net/slideshow/vision-based-fall-detection-system-how-it-works-pdf/274116062?utm_source=chatgpt.com">slideshare.net</a><p>The bright regions indicate locations where significant changes occurred.</p><h3 id="8-thresholding-the-difference-image"><strong>8. Thresholding the Difference Image</strong></h3><p>The difference image may contain small changes due to noise.</p><p>Thresholding is used to decide whether a pixel represents motion.</p><p>The motion mask is:</p>
+
+<div class="math-display">$$
+\boxed{
+M(x,y)=
+\begin{cases}
+1 & D_t(x,y)>T\\
+0 & D_t(x,y)\leq T
+\end{cases}
+}
+$$</div>
+
+<p>Where:</p><ul><li><p>$M(x,y)$ = motion mask.</p></li><li><p>$D_t(x,y)$ = difference value.</p></li><li><p>$T$ = threshold.</p></li></ul><p>Interpretation:</p><ul><li><p>1 → Motion detected.</p></li><li><p>0 → No motion detected.</p></li></ul><h3 id="9-numerical-example-of-thresholding"><strong>9. Numerical Example of Thresholding</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=30
+$$</div>
+
+<p><strong>Case 1:</strong></p>
+
+<div class="math-display">$$
+D=10
+$$</div>
+
+<p>Since:</p>
+
+<div class="math-display">$$
+10<30
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+M=0
+$$</div>
+
+<p>No motion is detected.</p><p><strong>Case 2:</strong></p>
+
+<div class="math-display">$$
+D=80
+$$</div>
+
+<p>Since:</p>
+
+<div class="math-display">$$
+80>30
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+M=1
+$$</div>
+
+<p>Motion is detected.</p><h3 id="10-frame-differencing-algorithm"><strong>10. Frame Differencing Algorithm</strong></h3><p>The complete procedure is:</p><ol><li><p>Read the previous frame $I_{t-1}$.</p></li><li><p>Read the current frame $I_t$.</p></li><li><p>Calculate the absolute difference.</p></li><li><p>Apply a threshold.</p></li><li><p>Generate the binary motion mask.</p></li><li><p>Optionally apply morphological operations.</p></li><li><p>Find connected components or contours.</p></li><li><p>Draw bounding boxes around detected motion regions.</p></li></ol><p><strong>Frame Differencing Block Diagram</strong></p>Previous FrameCurrent FrameAbsolute DifferenceThresholdingBinary Motion MaskMorphological ProcessingMotion Regions<h3 id="11-morphological-operations"><strong>11. Morphological Operations</strong></h3><p>Morphological operations are image-processing techniques used to improve binary motion masks.</p><p>A motion mask may contain:</p><ul><li><p>Small noise.</p></li><li><p>Holes.</p></li><li><p>Disconnected pixels.</p></li><li><p>Small unwanted regions.</p></li></ul><p>Two important operations are:</p><p><strong>A. Opening</strong></p><p>Opening = Erosion followed by Dilation.</p><p>Purpose:</p><ul><li><p>Removes small noise.</p></li><li><p>Removes unwanted small foreground regions.</p></li></ul><p><strong>B. Closing</strong></p><p>Closing = Dilation followed by Erosion.</p><p>Purpose:</p><ul><li><p>Fills small gaps.</p></li><li><p>Fills small holes.</p></li><li><p>Connects nearby foreground regions.</p></li></ul><img alt="【python】OpenCV—Blur, Threshold, Gradient, Morphology（2）_opencv blur-CSDN博客" class="exported-media" src="https://images.openai.com/static-rsc-4/1YEtEyyVEBt-jbYrFFSW-1ItbwVi3wQxJfn48tLSJlFnYfQnjqKpQ0nHudztlrn_QJVK4WrpmtzY4htTX2tHkfHF73Gml1W3CffSvl-ozJE5dGWT1WYS5efgWDpU6PtV8zJruCOItaWfI7zGYUcdqxMIs-0mKG7YWYb4HbbnvSQ?purpose=inline"/><a href="https://blog.csdn.net/bryant_meng/article/details/83410637?utm_source=chatgpt.com">blog.csdn.net</a><p>Remember:</p><table><tr><th>Operation</th><th>Main purpose</th></tr><tr><td>Opening</td><td>Remove small noise</td></tr><tr><td>Closing</td><td>Fill small gaps and holes</td></tr></table><h3 id="12-advantages-of-frame-differencing"><strong>12. Advantages of Frame Differencing</strong></h3><ol><li><p>Simple to understand and implement.</p></li><li><p>Fast processing.</p></li><li><p>Low computational complexity.</p></li><li><p>Suitable for real-time applications.</p></li><li><p>Does not require an explicit background model.</p></li></ol><h3 id="13-limitations-of-frame-differencing"><strong>13. Limitations of Frame Differencing</strong></h3><ol><li><p><strong>Slow-moving objects:</strong> Pixel differences may be too small.</p></li><li><p><strong>Stationary objects:</strong> When an object stops, it may disappear from the motion mask.</p></li><li><p><strong>Camera motion:</strong> Camera movement can change almost the entire image.</p></li><li><p><strong>Illumination changes:</strong> Sudden lighting changes may be detected as motion.</p></li><li><p><strong>Shadows:</strong> Moving shadows may be detected as objects.</p></li><li><p><strong>Noise:</strong> Sensor noise can produce false motion.</p></li></ol><h3 id="14-two-frame-vs-three-frame-differencing"><strong>14. Two-Frame vs Three-Frame Differencing</strong></h3><p><strong>Two-frame differencing</strong></p><p>Compares two consecutive frames:</p>
+
+<div class="math-display">$$
+D_t=|I_t-I_{t-1}|
+$$</div>
+
+<p>It is simple and fast.</p><p><strong>Three-frame differencing</strong></p><p>Uses three consecutive frames:</p>
+
+<div class="math-display">$$
+D_1=|I_t-I_{t-1}|
+$$</div>
+
+<div class="math-display">$$
+D_2=|I_{t+1}-I_t|
+$$</div>
+
+<p>The results can be combined using logical operations, such as intersection:</p>
+
+<div class="math-display">$$
+\boxed{D=D_1\cap D_2}
+$$</div>
+
+<p>This helps identify regions that show consistent changes across both comparisons.</p><p><strong>Difference:</strong></p><ul><li><p>Two-frame: Uses two frames to detect changes.</p></li><li><p>Three-frame: Uses three frames and combines two difference results to help reduce some false detections.</p></li></ul><h2 id="c-background-subtraction"><strong>C. Background Subtraction</strong></h2><h3 id="15-background-subtraction-definition"><strong>15. Background Subtraction – Definition</strong></h3><p>Background subtraction is a motion detection technique that identifies moving or foreground objects by comparing the current frame with a background model.</p><p>Unlike frame differencing, which compares consecutive frames, background subtraction compares the current frame with the background.</p><p>Let:</p><ul><li><p>$B(x,y)$ = background image.</p></li><li><p>$I_t(x,y)$ = current frame.</p></li></ul><p>The difference is:</p>
+
+<div class="math-display">$$
+\boxed{D(x,y)=|I_t(x,y)-B(x,y)|}
+$$</div>
+
+<p>The foreground mask is:</p>
+
+<div class="math-display">$$
+\boxed{
+M(x,y)=
+\begin{cases}
+1 & D(x,y)>T\\
+0 & D(x,y)\leq T
+\end{cases}
+}
+$$</div>
+
+<p>The resulting mask identifies possible foreground objects.</p><h3 id="16-background-and-foreground"><strong>16. Background and Foreground</strong></h3><img alt="使用OpenCV MOG/MOG2/GMG算法实现视频静态背景分割-开发者社区-阿里云" class="exported-media" src="https://images.openai.com/static-rsc-4/WyOSs6NK3m474YBdGr8y-7-XE7fBQGoimXo5S70-NogJC_WBBGl5RpTIMNV4XXYH-Zi36YxM5UgiXM7WjdQuBcR2kzxAAKd08Cxg4taI6KMujo-KBvtRDowTG1pkAR9iZnCEhfpz1e7vOhq7pQF_eLQzBis9jzN086iOrzBNBH0?purpose=inline"/><a href="https://developer.aliyun.com/article/1390816?utm_source=chatgpt.com">developer.aliyun.com</a><p><strong>Background:</strong> The relatively stationary part of the scene.</p><p>Examples:</p><ul><li><p>Building.</p></li><li><p>Road.</p></li><li><p>Wall.</p></li><li><p>Trees (if stationary in the scene).</p></li></ul><p><strong>Foreground:</strong> Objects that differ from the background.</p><p>Examples:</p><ul><li><p>Person.</p></li><li><p>Car.</p></li><li><p>Animal.</p></li></ul><p>In CCTV surveillance, the building and road may be background, while a person entering the scene is foreground.</p><h3 id="17-difference-between-frame-differencing-and-background-subtraction"><strong>17. Difference Between Frame Differencing and Background Subtraction</strong></h3><table><tr><th>Frame Differencing</th><th>Background Subtraction</th></tr><tr><td>Compares consecutive frames</td><td>Compares current frame with background</td></tr><tr><td>No explicit background required</td><td>Requires background model</td></tr><tr><td>Simple method</td><td>More sophisticated</td></tr><tr><td>Detects changes between frames</td><td>Detects foreground relative to background</td></tr><tr><td>Slow objects may be missed</td><td>Can detect stationary foreground depending on model</td></tr><tr><td>Computationally inexpensive</td><td>Usually more computationally involved</td></tr></table><p><strong>Important exam point:</strong> Frame differencing detects changes; background subtraction identifies foreground objects relative to a background.</p><h3 id="18-static-background-model"><strong>18. Static Background Model</strong></h3><p>A static background model assumes that the background remains constant.</p><p>Example:</p><ul><li><p>Frame 1 → Empty road.</p></li><li><p>Frame 2 → Empty road.</p></li><li><p>Frame 3 → Empty road.</p></li></ul><p>These frames can be used to construct a background image.</p><p>Then:</p>
+
+<div class="math-display">$$
+\text{New Frame}
+\rightarrow
+\text{Compare with Background}
+\rightarrow
+\text{Difference}
+\rightarrow
+\text{Foreground}
+$$</div>
+
+<p><strong>Works well when:</strong></p><ul><li><p>Camera is stationary.</p></li><li><p>Lighting is stable.</p></li><li><p>Background does not change significantly.</p></li></ul><h3 id="19-problems-with-static-background"><strong>19. Problems with Static Background</strong></h3><p>Real-world environments are not completely static.</p><p>Examples:</p><ul><li><p>Tree leaves move.</p></li><li><p>Water moves.</p></li><li><p>Shadows change.</p></li><li><p>Lights turn on or off.</p></li><li><p>Weather changes.</p></li><li><p>Camera noise occurs.</p></li></ul><p>Therefore, a fixed background model may generate false detections.</p><p>This motivates adaptive background models such as GMM.</p><h2 id="d-gaussian-mixture-model-gmm"><strong>D. Gaussian Mixture Model (GMM)</strong></h2><h3 id="20-gaussian-mixture-model-definition"><strong>20. Gaussian Mixture Model – Definition</strong></h3><p>A Gaussian Mixture Model is a statistical model that represents a background using multiple Gaussian probability distributions.</p><p>Instead of assuming that a pixel always has one fixed intensity or color value, GMM models different possible values of that pixel.</p><p>The probability distribution is:</p>
+
+<div class="math-display">$$
+\boxed{
+P(X)=\sum_{k=1}^{K}\pi_k\mathcal{N}(X;\mu_k,\Sigma_k)
+}
+$$</div>
+
+<p>Where:</p><table><tr><th>Symbol</th><th>Meaning</th></tr><tr><td>$K$</td><td>Number of Gaussian components</td></tr><tr><td>$\pi_k$</td><td>Weight of component $k$</td></tr><tr><td>$\mu_k$</td><td>Mean</td></tr><tr><td>$\Sigma_k$</td><td>Covariance</td></tr><tr><td>$\mathcal N$</td><td>Gaussian distribution</td></tr><tr><td>$X$</td><td>Observed pixel value</td></tr></table><h3 id="21-why-use-multiple-gaussians"><strong>21. Why Use Multiple Gaussians?</strong></h3><p>Consider a pixel belonging to a tree.</p><p>Its color may change because:</p><ul><li><p>Leaves move.</p></li><li><p>Sunlight changes.</p></li><li><p>Shadows occur.</p></li></ul><p>A single Gaussian may not represent all these variations.</p><p>A mixture of Gaussians can represent several common states of the same background pixel.</p><img alt="Mixture Models and EM · Javid Dadashkarimi" class="exported-media" src="https://images.openai.com/static-rsc-4/A1OXiGkPcF1fTAyM582HB3SZqcZqw8yAqjGNpNOuVVF3GTh16fw0j7SBXYbz9s681rYv58oRkmxB_Q9Xqyy51ojNUUYMIKv8pNR8cKMU3rTNn0uaQFA8ermub5wACYnTICbgAAEC0SVRCnNnYmvWj_YjX_4OUyE6z8ayYb0Ynlk?purpose=inline"/><a href="https://dadashkarimi.github.io/blogs/mixture-2021.html?utm_source=chatgpt.com">dadashkarimi.github.io</a><p><strong>Example:</strong></p><p>For a pixel in a tree:</p><ul><li><p>Gaussian 1 → Normal sunlight.</p></li><li><p>Gaussian 2 → Shadow.</p></li><li><p>Gaussian 3 → Different leaf position.</p></li></ul><p>Therefore, GMM is more flexible than a single fixed background value.</p><h3 id="22-background-subtraction-using-gmm"><strong>22. Background Subtraction Using GMM</strong></h3><p>The general procedure is:</p><p><strong>Input Video</strong></p><p><strong>Extract Frames</strong></p><p><strong>For Each Pixel: Build / Update Gaussian Mixture</strong></p><p><strong>Compare Current Pixel with Model</strong></p><p><strong>Determine Background or Foreground</strong></p><p><strong>Generate Foreground Mask</strong></p><p><strong>Object Detection / Tracking</strong></p><p><strong>Advantages:</strong></p><ul><li><p>Handles dynamic backgrounds better than a simple static model.</p></li><li><p>Models multiple possible pixel values.</p></li><li><p>Useful for outdoor surveillance.</p></li></ul><p><strong>Limitations:</strong></p><ul><li><p>More computationally expensive than simple frame differencing.</p></li><li><p>Requires parameter selection.</p></li><li><p>May still struggle with sudden lighting changes, shadows and complex scenes.</p></li></ul><h2 id="e-optical-flow"><strong>E. Optical Flow</strong></h2><h3 id="23-optical-flow-definition"><strong>23. Optical Flow – Definition</strong></h3><p>Optical flow is a technique used to estimate the apparent motion of pixels or visual features between consecutive video frames.</p><p>Frame differencing asks:</p><p>"Did this pixel change?"</p><p>Optical flow asks:</p><p>"In which direction and by how much did the visual pattern move?"</p><p>The motion is represented using a velocity vector:</p>
+
+<div class="math-display">$$
+\boxed{\vec v=(u,v)}
+$$</div>
+
+<p>Where:</p><ul><li><p>$u$ = horizontal motion.</p></li><li><p>$v$ = vertical motion.</p></li></ul><img alt="Robot readable world" class="exported-media" src="https://images.openai.com/static-rsc-4/hgnjmcyDk9Mex0uvrJFG8kjsP-iIEKKoWO5DpnOt8dQCTZhSKRUa8MNPCeW7_Xd0L6BH1iUvP1JzNqCpkv7mt8H1PCn1LB36ul5_Hag4oX32UeATSTjFOpzlzSi4gIQTjO3d8j7KDZUz_Uix42eUx7QXYhehvVvibd1ml8pISFo?purpose=inline"/><a href="https://www.elasticspace.com/2012/02/robot-readable-world?utm_source=chatgpt.com">elasticspace.com</a><p>For example, if a car moves towards the right, the optical flow vectors indicate rightward movement.</p><h3 id="24-optical-flow-field"><strong>24. Optical Flow Field</strong></h3><p>An optical flow field represents the estimated motion vectors across an image.</p>
+
+<div class="math-display">$$
+\boxed{\vec v(x,y)=[u(x,y),v(x,y)]}
+$$</div>
+
+<p>Each vector describes the apparent movement at a particular image location.</p><p>Applications:</p><ul><li><p>Motion analysis.</p></li><li><p>Object tracking.</p></li><li><p>Activity recognition.</p></li><li><p>Video understanding.</p></li></ul><h3 id="25-sparse-optical-flow"><strong>25. Sparse Optical Flow</strong></h3><p>Sparse optical flow estimates motion only for selected points in an image.</p><p>These points are usually distinctive features such as corners.</p><img alt="Optical Flow - Learning OpenCV [Book]" class="exported-media" src="https://images.openai.com/static-rsc-4/loE44rV696uXFPFGT7pd4rbEytZOtXDoumQ1rguivd1ueJ9avvtrQxGcd_GJume0ehcI1exd7-tAQ3EZNgstJ1LB75F6adMWbEExla5uUY6_UVkRaRDqhoUWuHrO_lRJ1Uv5hsAmU8j8G7cZfTGNpwG59XDMEHLXNkQN4jcnX4w?purpose=inline"/><a href="https://www.oreilly.com/library/view/learning-opencv/9780596516130/ch10s05.html?utm_source=chatgpt.com">oreilly.com</a><p><strong>Working:</strong></p><ol><li><p>Detect important feature points.</p></li><li><p>Identify these points in consecutive frames.</p></li><li><p>Track their new positions.</p></li><li><p>Calculate their displacement.</p></li><li><p>Generate motion vectors.</p></li></ol><p><strong>Example:</strong> Tracking the corners of a moving car rather than calculating motion for every pixel.</p><p><strong>Advantages:</strong></p><ul><li><p>Computationally efficient.</p></li><li><p>Requires fewer motion vectors.</p></li><li><p>Useful for feature tracking.</p></li></ul><p><strong>Limitation:</strong> It does not provide motion information for every pixel.</p><h3 id="26-lucas-kanade-optical-flow"><strong>26. Lucas-Kanade Optical Flow</strong></h3><p>Lucas-Kanade is a classical method used for sparse optical flow.</p><p>It estimates the motion of selected feature points between consecutive frames.</p><p><strong>Assumptions:</strong></p><ol><li><p>Brightness remains approximately constant.</p></li><li><p>Motion between frames is small.</p></li><li><p>Nearby pixels have similar motion.</p></li></ol><p>The basic optical flow constraint equation is:</p>
+
+<div class="math-display">$$
+\boxed{I_xu+I_yv+I_t=0}
+$$</div>
+
+<p>Where:</p><table><tr><th>Symbol</th><th>Meaning</th></tr><tr><td>$I_x$</td><td>Spatial intensity derivative in X direction</td></tr><tr><td>$I_y$</td><td>Spatial intensity derivative in Y direction</td></tr><tr><td>$I_t$</td><td>Temporal intensity derivative</td></tr><tr><td>$u$</td><td>Horizontal velocity</td></tr><tr><td>$v$</td><td>Vertical velocity</td></tr></table><p><strong>Important concept:</strong></p><p>There is one equation but two unknowns ($u,v$). Therefore, additional local constraints are used.</p><p>Lucas-Kanade assumes nearby pixels have similar motion and uses a local neighborhood to estimate the motion.</p><p><strong>Advantages:</strong></p><ul><li><p>Efficient.</p></li><li><p>Suitable for tracking feature points.</p></li><li><p>Useful in real-time computer vision applications.</p></li></ul><p><strong>Limitations:</strong></p><ul><li><p>Assumes small motion.</p></li><li><p>Can struggle with large displacement.</p></li><li><p>Depends on reliable feature points.</p></li></ul><h3 id="27-dense-optical-flow"><strong>27. Dense Optical Flow</strong></h3><p>Dense optical flow estimates motion for most or all pixels in an image.</p><img alt="A tutorial on Motion Estimation with Optical Flow with Python Implementation - Amir Masoud Sefidian - Sefidian Academy" class="exported-media" src="https://images.openai.com/static-rsc-4/AyT8vKrYQkGH1AMMnJeb2uwLhzgMxJH-QfWLjgRiKWMyQFBnBMwQld4OwfD39hr3P0KvZtMX1P5bTQzMU4IkguhwgFXONAnKWa0yUq5KnUBgXIQoN2WyuCAsCMhlM5x7LAsQmoRoyfMc7qn7nW9tsJVxFhI_iK0UZaw2-ch7xgU?purpose=inline"/><a href="https://iamirmasoud.com/2019/12/16/a-tutorial-on-motion-estimation-with-optical-flow-with-python-implementation/?utm_source=chatgpt.com">iamirmasoud.com</a><p>Unlike sparse optical flow, which tracks selected points, dense optical flow provides a detailed motion field across the image.</p><p><strong>Example:</strong> Estimating the motion of every pixel in a moving human body.</p><p>A method mentioned in the PDF is <strong>Farnebäck optical flow</strong>.</p><p><strong>Advantages:</strong></p><ul><li><p>Detailed motion information.</p></li><li><p>Captures movement across the entire image.</p></li><li><p>Useful for detailed motion analysis.</p></li></ul><p><strong>Limitations:</strong></p><ul><li><p>Computationally expensive.</p></li><li><p>Requires more processing resources.</p></li></ul><h3 id="28-sparse-vs-dense-optical-flow"><strong>28. Sparse vs Dense Optical Flow</strong></h3><table><tr><th>Sparse Optical Flow</th><th>Dense Optical Flow</th></tr><tr><td>Tracks selected points</td><td>Estimates motion across the image</td></tr><tr><td>Fewer vectors</td><td>Many vectors</td></tr><tr><td>Computationally efficient</td><td>More computationally expensive</td></tr><tr><td>Good for feature tracking</td><td>Good for detailed motion analysis</td></tr><tr><td>Example: Lucas-Kanade</td><td>Example: Farnebäck</td></tr><tr><td>Useful for object tracking</td><td>Useful for motion-field analysis</td></tr></table><p><strong>Easy way to remember:</strong></p><ul><li><p>Sparse = Selected points.</p></li><li><p>Dense = Almost every pixel.</p></li></ul><h2 id="f-block-matching"><strong>F. Block Matching</strong></h2><h3 id="29-block-matching-definition"><strong>29. Block Matching – Definition</strong></h3><p>Block Matching is a motion estimation technique that estimates movement by comparing small blocks of pixels between consecutive video frames.</p><p>Instead of comparing individual pixels independently, the image is divided into blocks.</p><img alt="Block Matching Image Compression at Jorge Holyfield blog" class="exported-media" src="https://images.openai.com/static-rsc-4/iM8Of356ooSjJIqWRtbndW2l4ayhWPGpXUTKtXdiV1LMyfJg0HVdnQlVnaycRIWubsjlO0arVjcPr0NqIt-uD0_aSEJ5BhkvZqcbUS-q5Z1AbbMW1DeGeLH4OCxfFL10TDTGATKP-TbnrR8gX0s8WbgKrU7hx2V5pvo-rGVNXgc?purpose=inline"/><a href="https://storage.googleapis.com/dsxrskfysupwne/block-matching-image-compression.html?utm_source=chatgpt.com">storage.googleapis.com</a><p>For example, a frame may be divided into:</p>
+
+<div class="math-display">$$
+\begin{matrix}
+B_1&B_2&B_3\\
+B_4&B_5&B_6\\
+B_7&B_8&B_9
+\end{matrix}
+$$</div>
+
+<p>Each block is searched for in a neighboring region of another frame.</p><h3 id="30-basic-block-matching-procedure"><strong>30. Basic Block-Matching Procedure</strong></h3><p>Suppose a block is located at position:</p>
+
+<div class="math-display">$$
+(x,y)
+$$</div>
+
+<p>in the current frame.</p><p>The algorithm searches for the most similar block in a search area in the previous frame.</p><p><strong>Steps:</strong></p><ol><li><p>Divide the frame into small blocks.</p></li><li><p>Select a block in the current frame.</p></li><li><p>Define a search area in the previous frame.</p></li><li><p>Compare the selected block with candidate blocks.</p></li><li><p>Calculate the matching cost.</p></li><li><p>Select the candidate with the lowest cost.</p></li><li><p>Calculate displacement.</p></li><li><p>Generate a motion vector.</p></li></ol><p>The displacement is:</p>
+
+<div class="math-display">$$
+\boxed{\vec d=(\Delta x,\Delta y)}
+$$</div>
+
+<h3 id="31-block-matching-cost-functions"><strong>31. Block Matching Cost Functions</strong></h3><p>Cost functions determine how similar two blocks are.</p><p>Two important measures are:</p><p><strong>A. Mean Absolute Difference (MAD)</strong></p><p>MAD calculates the average absolute difference between corresponding pixels of two blocks.</p>
+
+<div class="math-display">$$
+\boxed{MAD=\frac{1}{N}\sum_{i=1}^{N}|A_i-B_i|}
+$$</div>
+
+<p>Where:</p><ul><li><p>$A_i$ = pixel value in block A.</p></li><li><p>$B_i$ = pixel value in block B.</p></li><li><p>$N$ = total number of pixels.</p></li></ul><p><strong>Interpretation:</strong></p><ul><li><p>Smaller MAD → Better match.</p></li><li><p>Larger MAD → Poorer match.</p></li></ul><p><strong>B. Mean Squared Error (MSE)</strong></p><p>MSE calculates the average squared difference between corresponding pixels.</p>
+
+<div class="math-display">$$
+\boxed{MSE=\frac{1}{N}\sum_{i=1}^{N}(A_i-B_i)^2}
+$$</div>
+
+<p><strong>Interpretation:</strong></p><ul><li><p>Smaller MSE → Better match.</p></li><li><p>Larger MSE → Poorer match.</p></li></ul><p>MSE penalizes larger differences more heavily because the differences are squared.</p><h3 id="32-numerical-example-of-block-matching"><strong>32. Numerical Example of Block Matching</strong></h3><p>Suppose the current block is:</p>
+
+<div class="math-display">$$
+B=
+\begin{bmatrix}
+10&20\\
+30&40
+\end{bmatrix}
+$$</div>
+
+<p>Candidate block A:</p>
+
+<div class="math-display">$$
+A=
+\begin{bmatrix}
+12&18\\
+29&42
+\end{bmatrix}
+$$</div>
+
+<p><strong>Step 1: Calculate absolute differences.</strong></p>
+
+<div class="math-display">$$
+|10-12|=2
+$$</div>
+
+<div class="math-display">$$
+|20-18|=2
+$$</div>
+
+<div class="math-display">$$
+|30-29|=1
+$$</div>
+
+<div class="math-display">$$
+|40-42|=2
+$$</div>
+
+<p><strong>Step 2: Add the differences.</strong></p>
+
+<div class="math-display">$$
+2+2+1+2=7
+$$</div>
+
+<p><strong>Step 3: Calculate MAD.</strong></p><p>There are four pixels.</p>
+
+<div class="math-display">$$
+MAD=\frac{7}{4}
+$$</div>
+
+<div class="math-display">$$
+\boxed{MAD=1.75}
+$$</div>
+
+<p>Therefore, the average absolute difference is 1.75.</p><p>A candidate with a smaller MAD would be a better match.</p><h3 id="33-motion-vector"><strong>33. Motion Vector</strong></h3><p>A motion vector represents the displacement of a matched block between two frames.</p>
+
+<div class="math-display">$$
+\boxed{\vec d=(d_x,d_y)}
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+\vec d=(5,-2)
+$$</div>
+
+<p>Means:</p><ul><li><p>Move 5 pixels horizontally to the right.</p></li><li><p>Move 2 pixels upward.</p></li></ul><p><strong>Applications:</strong></p><ol><li><p>Video compression.</p></li><li><p>Motion estimation.</p></li><li><p>Video analysis.</p></li><li><p>Object movement analysis.</p></li></ol><p><strong>Advantages:</strong></p><ul><li><p>Estimates object displacement.</p></li><li><p>Useful in video compression.</p></li><li><p>Provides motion vectors.</p></li></ul><p><strong>Limitations:</strong></p><ul><li><p>Computational cost increases with search area.</p></li><li><p>Repetitive patterns can cause incorrect matching.</p></li><li><p>Large displacement can make matching difficult.</p></li></ul><h1 id="4-important-comparisons-entire-unit"><strong>4. Important Comparisons – Entire Unit</strong></h1><p>These comparisons are particularly useful for examination questions.</p><h2 id="1-frame-differencing-vs-background-subtraction-vs-gmm"><strong>1. Frame Differencing vs Background Subtraction vs GMM</strong></h2><table><tr><th>Feature</th><th>Frame Differencing</th><th>Background Subtraction</th><th>GMM</th></tr><tr><td>Basic idea</td><td>Compare consecutive frames</td><td>Compare with background</td><td>Model background statistically</td></tr><tr><td>Background model</td><td>Not required</td><td>Required</td><td>Gaussian mixture</td></tr><tr><td>Complexity</td><td>Low</td><td>Medium</td><td>Higher</td></tr><tr><td>Dynamic background</td><td>Poor</td><td>Depends on model</td><td>Better handling</td></tr><tr><td>Output</td><td>Changed regions</td><td>Foreground mask</td><td>Foreground/background</td></tr><tr><td>Application</td><td>Simple motion detection</td><td>CCTV</td><td>Outdoor surveillance</td></tr></table><h2 id="2-frame-differencing-vs-optical-flow"><strong>2. Frame Differencing vs Optical Flow</strong></h2><table><tr><th>Frame Differencing</th><th>Optical Flow</th></tr><tr><td>Detects image changes</td><td>Estimates apparent motion</td></tr><tr><td>Answers: Where did the image change?</td><td>Answers: How did the visual pattern move?</td></tr><tr><td>Produces motion regions</td><td>Produces motion vectors</td></tr><tr><td>Simple and fast</td><td>More computationally demanding</td></tr><tr><td>Does not directly provide direction</td><td>Provides direction and magnitude</td></tr></table><h2 id="3-frame-differencing-vs-block-matching"><strong>3. Frame Differencing vs Block Matching</strong></h2><table><tr><th>Frame Differencing</th><th>Block Matching</th></tr><tr><td>Pixel-level difference</td><td>Block-level comparison</td></tr><tr><td>Detects changed regions</td><td>Estimates displacement</td></tr><tr><td>Simple</td><td>More computationally intensive</td></tr><tr><td>Does not directly produce motion vectors</td><td>Produces motion vectors</td></tr><tr><td>Used for motion detection</td><td>Used for motion estimation</td></tr></table><h2 id="4-mad-vs-mse"><strong>4. MAD vs MSE</strong></h2><table><tr><th>MAD</th><th>MSE</th></tr><tr><td>Mean Absolute Difference</td><td>Mean Squared Error</td></tr><tr><td>Uses absolute differences</td><td>Uses squared differences</td></tr><tr><td>Less sensitive to large errors</td><td>Penalizes large errors more</td></tr><tr><td>Easier to interpret</td><td>More sensitive to large deviations</td></tr><tr><td>Lower value indicates better match</td><td>Lower value indicates better match</td></tr></table><h2 id="5-spatial-resolution-vs-temporal-resolution"><strong>5. Spatial Resolution vs Temporal Resolution</strong></h2><table><tr><th>Spatial Resolution</th><th>Temporal Resolution</th></tr><tr><td>Number of pixels per frame</td><td>Frequency of capturing frames</td></tr><tr><td>Determines image detail</td><td>Determines temporal detail</td></tr><tr><td>Example: 1920 × 1080</td><td>Example: 60 FPS</td></tr><tr><td>Related to image quality</td><td>Related to motion representation</td></tr></table><h2 id="6-uniform-vs-random-vs-keyframe-sampling"><strong>6. Uniform vs Random vs Keyframe Sampling</strong></h2><table><tr><th>Uniform Sampling</th><th>Random Sampling</th><th>Keyframe Sampling</th></tr><tr><td>Fixed intervals</td><td>Random frames</td><td>Important frames</td></tr><tr><td>Equal time intervals</td><td>Unequal intervals possible</td><td>Based on scene importance</td></tr><tr><td>Predictable</td><td>Variable</td><td>Representative</td></tr><tr><td>May miss sudden events</td><td>May miss important events</td><td>Focuses on important scenes</td></tr><tr><td>Useful for regular sampling</td><td>Useful in model training</td><td>Useful in video summarization</td></tr></table><h1 id="5-complete-motion-analysis-pipeline"><strong>5. Complete Motion Analysis Pipeline</strong></h1><p>The following diagram connects the important techniques covered in the second PDF.</p><p><strong>VIDEO</strong></p>Frame SequencePreprocessing<p><strong>Frame Difference</strong></p><p>Motion Mask</p><p><strong>Background Model</strong></p><p>Foreground Mask</p>Motion RegionsMotion Estimation<p><strong>Optical Flow</strong></p><p>Motion field</p><p><strong>Block Matching</strong></p><p>Motion vectors</p><p><strong>GMM</strong></p><p>Foreground</p><p><strong>OBJECT TRACKING</strong></p><h1 id="6-important-challenges-in-motion-detection"><strong>6. Important Challenges in Motion Detection</strong></h1><p>The second PDF identifies the following challenges:</p><table><tr><th>Challenge</th><th>Explanation</th></tr><tr><td>Illumination variation</td><td>Changes in brightness can cause false motion</td></tr><tr><td>Shadows</td><td>Moving shadows may be detected as objects</td></tr><tr><td>Camera motion</td><td>Camera movement produces widespread image changes</td></tr><tr><td>Dynamic background</td><td>Trees, water and flags move naturally</td></tr><tr><td>Occlusion</td><td>One object hides another</td></tr><tr><td>Noise</td><td>Sensor noise creates false detections</td></tr><tr><td>Fast motion</td><td>Large displacement makes matching difficult</td></tr></table><h1 id="7-choosing-the-correct-motion-detection-technique"><strong>7. Choosing the Correct Motion Detection Technique</strong></h1><p>This table is particularly important for scenario-based questions.</p><table><tr><th>Application / Situation</th><th>Suitable technique</th></tr><tr><td>Simple motion detection</td><td>Frame Differencing</td></tr><tr><td>Stationary CCTV camera</td><td>Background Subtraction</td></tr><tr><td>Dynamic background (trees, water)</td><td>GMM</td></tr><tr><td>Tracking selected feature points</td><td>Sparse Optical Flow</td></tr><tr><td>Detailed motion across image</td><td>Dense Optical Flow</td></tr><tr><td>Motion estimation and compression</td><td>Block Matching</td></tr><tr><td>Human/vehicle movement</td><td>Combination of techniques</td></tr></table><p><strong>How to identify the technique in an exam:</strong></p><ul><li><p>If the question mentions comparing two consecutive frames → Frame Differencing.</p></li><li><p>If it mentions comparing the current frame with an empty scene → Background Subtraction.</p></li><li><p>If it mentions multiple Gaussian distributions or dynamic backgrounds → GMM.</p></li><li><p>If it mentions direction and magnitude of pixel movement → Optical Flow.</p></li><li><p>If it mentions corners or selected feature points → Sparse Optical Flow.</p></li><li><p>If it mentions motion for almost every pixel → Dense Optical Flow.</p></li><li><p>If it mentions searching for similar blocks → Block Matching.</p></li><li><p>If it mentions average absolute pixel difference → MAD.</p></li><li><p>If it mentions squared pixel differences → MSE.</p></li></ul><h1 id="8-complete-formula-sheet-unit-4"><strong>8. Complete Formula Sheet – Unit 4</strong></h1><p>These are the important mathematical formulas from both PDFs.</p><h2 id="a-video-representation-and-temporal-sampling"><strong>A. Video Representation and Temporal Sampling</strong></h2><table><tr><th>Concept</th><th>Formula</th></tr><tr><td>Video representation</td><td>$V=\{I_1,I_2,\ldots,I_N\}$</td></tr><tr><td>Video duration</td><td>$T=\frac{N}{F}$</td></tr><tr><td>Number of frames</td><td>$N=F\times T$</td></tr><tr><td>Frame rate</td><td>$F=\frac{N}{T}$</td></tr><tr><td>Frame interval</td><td>$\Delta t=\frac{1}{F}$</td></tr><tr><td>Effective sampling rate</td><td>$F_s=\frac{F}{k}$</td></tr><tr><td>Sampled frame count</td><td>$N_s\approx\frac{N}{k}$</td></tr><tr><td>Video representation with time</td><td>$I(x,y,t)$</td></tr><tr><td>Color video representation</td><td>$I(x,y,t,c)$</td></tr></table><h2 id="b-motion-detection"><strong>B. Motion Detection</strong></h2><table><tr><th>Concept</th><th>Formula</th></tr><tr><td>Frame difference</td><td>$D_t(x,y)=|I_t-I_{t-1}|$</td></tr><tr><td>Motion mask</td><td>$M(x,y)=1$ if $D_t&gt;T$, otherwise 0</td></tr><tr><td>Background difference</td><td>$D(x,y)=|I_t-B|$</td></tr><tr><td>Optical flow constraint</td><td>$I_xu+I_yv+I_t=0$</td></tr><tr><td>Motion vector</td><td>$\vec d=(d_x,d_y)$</td></tr><tr><td>MAD</td><td>$\frac{1}{N}\sum |A_i-B_i|$</td></tr><tr><td>MSE</td><td>$\frac{1}{N}\sum(A_i-B_i)^2$</td></tr><tr><td>GMM</td><td>$P(X)=\sum_{k=1}^{K}\pi_k\mathcal N(X;\mu_k,\Sigma_k)$</td></tr></table><h1 id="9-important-topics-to-prepare-for-exams"><strong>9. Important Topics to Prepare for Exams</strong></h1><p>Based on the contents of both PDFs, I recommend prioritizing these topics.</p><h2 id="study-checklist"><strong>Study checklist</strong></h2><p><strong>Part 1 – Video Representation</strong></p><p>0/6 completed</p><p><strong>0</strong><strong>%</strong></p>Video representation and frame conceptsFrame rate, frame interval and numerical problemsSpatial vs temporal informationTemporal sampling and its typesTemporal downsampling and temporal resolutionTemporal aliasing and wagon-wheel effect<p><strong>Part 2 – Motion Detection</strong></p><p>0/12 completed</p><p><strong>0</strong><strong>%</strong></p>Frame differencing with numerical problemsThresholding and motion maskMorphological opening and closingBackground subtractionGaussian Mixture Model (GMM)Sparse and dense optical flowLucas-Kanade methodBlock matching procedureMAD and MSE numerical problemsMotion vectorsComparison of all motion detection techniquesMotion detection pipeline and challenges<p><strong>My recommendation:</strong> Give special attention to Frame Differencing, Background Subtraction, GMM, Optical Flow (Lucas-Kanade), Block Matching, MAD and MSE. Understand the working steps and formulas rather than memorizing only definitions.</p><p>These topics form the mathematical and conceptual foundation of Unit 4.</p>
+<div class="references"><strong>References:</strong><ol><li><a href="https://www.vectorstock.com/royalty-free-vectors/character-walking-animation-frames-vectors?utm_source=chatgpt.com">vectorstock.com</a></li><li><a href="https://note.com/eiji71/n/n74b4570a2661?utm_source=chatgpt.com">note.com</a></li><li><a href="https://medium.com/data-science/deep-learning-on-video-part-two-the-rise-of-two-stream-architectures-f830d5c655d0?utm_source=chatgpt.com">medium.com</a></li><li><a href="https://vframe.io/scene-summarization/?utm_source=chatgpt.com">vframe.io</a></li><li><a href="https://www.slideserve.com/selena/lecture-2-edge-detection-and-resampling?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://www.slideshare.net/slideshow/vision-based-fall-detection-system-how-it-works-pdf/274116062?utm_source=chatgpt.com">slideshare.net</a></li><li><a href="https://blog.csdn.net/bryant_meng/article/details/83410637?utm_source=chatgpt.com">blog.csdn.net</a></li><li><a href="https://developer.aliyun.com/article/1390816?utm_source=chatgpt.com">developer.aliyun.com</a></li><li><a href="https://dadashkarimi.github.io/blogs/mixture-2021.html?utm_source=chatgpt.com">dadashkarimi.github.io</a></li><li><a href="https://www.elasticspace.com/2012/02/robot-readable-world?utm_source=chatgpt.com">elasticspace.com</a></li><li><a href="https://www.oreilly.com/library/view/learning-opencv/9780596516130/ch10s05.html?utm_source=chatgpt.com">oreilly.com</a></li><li><a href="https://iamirmasoud.com/2019/12/16/a-tutorial-on-motion-estimation-with-optical-flow-with-python-implementation/?utm_source=chatgpt.com">iamirmasoud.com</a></li><li><a href="https://storage.googleapis.com/dsxrskfysupwne/block-matching-image-compression.html?utm_source=chatgpt.com">storage.googleapis.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
