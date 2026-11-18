@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mod5_Part2</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#unit-5-deep-learning-for-image-and-video">Unit 5 – Deep Learning for Image and Video</a></li>
+<li class="toc-level-2"><a href="#complete-mind-map-and-topic-wise-explanation-56510">Complete Mind Map and Topic-Wise Explanation (5.6–5.10)</a></li>
+<li class="toc-level-1"><a href="#part-1-complete-mind-map">PART 1: COMPLETE MIND MAP</a></li>
+<li class="toc-level-1"><a href="#part-2-explanation-of-each-topic">PART 2: EXPLANATION OF EACH TOPIC</a></li>
+<li class="toc-level-1"><a href="#56-object-detection-using-r-cnn">5.6 – Object Detection Using R-CNN</a></li>
+<li class="toc-level-2"><a href="#1-what-is-object-detection">1. What is Object Detection?</a></li>
+<li class="toc-level-2"><a href="#2-image-classification-vs-object-detection">2. Image Classification vs Object Detection</a></li>
+<li class="toc-level-2"><a href="#3-challenges-in-object-detection">3. Challenges in Object Detection</a></li>
+<li class="toc-level-2"><a href="#4-bounding-box">4. Bounding Box</a></li>
+<li class="toc-level-2"><a href="#5-what-is-r-cnn">5. What is R-CNN?</a></li>
+<li class="toc-level-2"><a href="#6-main-components-of-r-cnn">6. Main Components of R-CNN</a></li>
+<li class="toc-level-2"><a href="#7-selective-search">7. Selective Search</a></li>
+<li class="toc-level-2"><a href="#8-complete-r-cnn-architecture">8. Complete R-CNN Architecture</a></li>
+<li class="toc-level-3"><a href="#step-by-step-working">Step-by-step working</a></li>
+<li class="toc-level-2"><a href="#9-cnn-feature-extraction">9. CNN Feature Extraction</a></li>
+<li class="toc-level-2"><a href="#10-object-classification-using-svm">10. Object Classification Using SVM</a></li>
+<li class="toc-level-2"><a href="#11-bounding-box-regression">11. Bounding Box Regression</a></li>
+<li class="toc-level-2"><a href="#12-intersection-over-union-iou">12. Intersection over Union (IoU)</a></li>
+<li class="toc-level-2"><a href="#13-non-maximum-suppression-nms">13. Non-Maximum Suppression (NMS)</a></li>
+<li class="toc-level-2"><a href="#14-training-and-inference">14. Training and Inference</a></li>
+<li class="toc-level-2"><a href="#15-evolution-of-r-cnn">15. Evolution of R-CNN</a></li>
+<li class="toc-level-2"><a href="#16-advantages-and-limitations">16. Advantages and Limitations</a></li>
+<li class="toc-level-1"><a href="#57-object-detection-using-yolo">5.7 – Object Detection Using YOLO</a></li>
+<li class="toc-level-2"><a href="#1-what-is-yolo">1. What is YOLO?</a></li>
+<li class="toc-level-2"><a href="#2-why-do-we-need-yolo">2. Why Do We Need YOLO?</a></li>
+<li class="toc-level-2"><a href="#3-one-stage-vs-two-stage-detection">3. One-Stage vs Two-Stage Detection</a></li>
+<li class="toc-level-2"><a href="#4-yolo-detection-pipeline">4. YOLO Detection Pipeline</a></li>
+<li class="toc-level-2"><a href="#5-grid-based-object-detection">5. Grid-Based Object Detection</a></li>
+<li class="toc-level-2"><a href="#6-bounding-box-prediction">6. Bounding Box Prediction</a></li>
+<li class="toc-level-2"><a href="#7-confidence-score">7. Confidence Score</a></li>
+<li class="toc-level-2"><a href="#8-class-prediction">8. Class Prediction</a></li>
+<li class="toc-level-2"><a href="#9-normalized-coordinates">9. Normalized Coordinates</a></li>
+<li class="toc-level-2"><a href="#10-multiple-object-detection">10. Multiple Object Detection</a></li>
+<li class="toc-level-2"><a href="#11-iou">11. IoU</a></li>
+<li class="toc-level-2"><a href="#12-non-maximum-suppression">12. Non-Maximum Suppression</a></li>
+<li class="toc-level-2"><a href="#13-yolo-loss-function">13. YOLO Loss Function</a></li>
+<li class="toc-level-2"><a href="#14-yolo-training-and-inference">14. YOLO Training and Inference</a></li>
+<li class="toc-level-2"><a href="#15-yolo-vs-r-cnn">15. YOLO vs R-CNN</a></li>
+<li class="toc-level-2"><a href="#16-advantages-limitations-and-applications">16. Advantages, Limitations and Applications</a></li>
+<li class="toc-level-1"><a href="#58-video-analysis-using-3d-cnns">5.8 – Video Analysis Using 3D CNNs</a></li>
+<li class="toc-level-2"><a href="#1-introduction-to-video-analysis">1. Introduction to Video Analysis</a></li>
+<li class="toc-level-2"><a href="#2-what-is-video-analysis">2. What is Video Analysis?</a></li>
+<li class="toc-level-2"><a href="#3-why-is-video-analysis-more-difficult-than-image-analysis">3. Why is Video Analysis More Difficult Than Image Analysis?</a></li>
+<li class="toc-level-2"><a href="#4-spatial-information">4. Spatial Information</a></li>
+<li class="toc-level-2"><a href="#5-temporal-information">5. Temporal Information</a></li>
+<li class="toc-level-2"><a href="#6-why-is-2d-cnn-not-sufficient-for-video">6. Why is 2D CNN Not Sufficient for Video?</a></li>
+<li class="toc-level-2"><a href="#7-what-is-a-3d-cnn">7. What is a 3D CNN?</a></li>
+<li class="toc-level-2"><a href="#8-2d-cnn-vs-3d-cnn">8. 2D CNN vs 3D CNN</a></li>
+<li class="toc-level-2"><a href="#9-understanding-3d-convolution">9. Understanding 3D Convolution</a></li>
+<li class="toc-level-2"><a href="#10-what-does-a-3d-cnn-learn">10. What Does a 3D CNN Learn?</a></li>
+<li class="toc-level-2"><a href="#11-spatio-temporal-learning">11. Spatio-Temporal Learning</a></li>
+<li class="toc-level-2"><a href="#12-video-representation">12. Video Representation</a></li>
+<li class="toc-level-2"><a href="#13-why-do-we-use-video-clips">13. Why Do We Use Video Clips?</a></li>
+<li class="toc-level-2"><a href="#14-video-preprocessing">14. Video Preprocessing</a></li>
+<li class="toc-level-2"><a href="#15-3d-pooling">15. 3D Pooling</a></li>
+<li class="toc-level-2"><a href="#16-3d-cnn-architecture-and-video-classification">16. 3D CNN Architecture and Video Classification</a></li>
+<li class="toc-level-3"><a href="#working">Working</a></li>
+<li class="toc-level-2"><a href="#17-applications">17. Applications</a></li>
+<li class="toc-level-2"><a href="#18-advantages-and-limitations">18. Advantages and Limitations</a></li>
+<li class="toc-level-1"><a href="#59-action-recognition-using-rnn">5.9 – Action Recognition Using RNN</a></li>
+<li class="toc-level-2"><a href="#1-introduction-to-action-recognition">1. Introduction to Action Recognition</a></li>
+<li class="toc-level-2"><a href="#2-why-is-action-recognition-a-sequence-problem">2. Why is Action Recognition a Sequence Problem?</a></li>
+<li class="toc-level-2"><a href="#3-what-is-an-rnn">3. What is an RNN?</a></li>
+<li class="toc-level-2"><a href="#4-basic-idea-of-rnn">4. Basic Idea of RNN</a></li>
+<li class="toc-level-2"><a href="#5-rnn-for-video">5. RNN for Video</a></li>
+<li class="toc-level-2"><a href="#6-cnn-rnn-architecture">6. CNN + RNN Architecture</a></li>
+<li class="toc-level-2"><a href="#7-example-walking">7. Example: Walking</a></li>
+<li class="toc-level-2"><a href="#8-rnn-architecture">8. RNN Architecture</a></li>
+<li class="toc-level-2"><a href="#9-unrolled-rnn">9. Unrolled RNN</a></li>
+<li class="toc-level-2"><a href="#10-hidden-state">10. Hidden State</a></li>
+<li class="toc-level-2"><a href="#11-rnn-mathematical-model">11. RNN Mathematical Model</a></li>
+<li class="toc-level-2"><a href="#12-numerical-example-of-rnn">12. Numerical Example of RNN</a></li>
+<li class="toc-level-2"><a href="#13-many-to-one-rnn">13. Many-to-One RNN</a></li>
+<li class="toc-level-2"><a href="#14-many-to-many-rnn">14. Many-to-Many RNN</a></li>
+<li class="toc-level-3"><a href="#types-of-rnn-input-output-structures">Types of RNN Input-Output Structures</a></li>
+<li class="toc-level-2"><a href="#15-action-recognition-pipeline-using-cnn-rnn">15. Action Recognition Pipeline Using CNN + RNN</a></li>
+<li class="toc-level-2"><a href="#16-how-is-rnn-trained-bptt">16. How is RNN Trained? – BPTT</a></li>
+<li class="toc-level-2"><a href="#17-vanishing-gradient-problem">17. Vanishing Gradient Problem</a></li>
+<li class="toc-level-2"><a href="#18-exploding-gradient-problem">18. Exploding Gradient Problem</a></li>
+<li class="toc-level-2"><a href="#19-cnn-rnn-vs-3d-cnn">19. CNN + RNN vs 3D CNN</a></li>
+<li class="toc-level-2"><a href="#20-advantages-and-limitations">20. Advantages and Limitations</a></li>
+<li class="toc-level-1"><a href="#510-action-recognition-using-lstm">5.10 – Action Recognition Using LSTM</a></li>
+<li class="toc-level-2"><a href="#1-introduction-to-lstm">1. Introduction to LSTM</a></li>
+<li class="toc-level-2"><a href="#2-why-do-we-need-lstm">2. Why Do We Need LSTM?</a></li>
+<li class="toc-level-2"><a href="#3-what-is-lstm">3. What is LSTM?</a></li>
+<li class="toc-level-2"><a href="#4-cell-state-and-hidden-state">4. Cell State and Hidden State</a></li>
+<li class="toc-level-2"><a href="#5-lstm-cell-architecture">5. LSTM Cell Architecture</a></li>
+<li class="toc-level-2"><a href="#6-the-three-gates-of-lstm">6. The Three Gates of LSTM</a></li>
+<li class="toc-level-2"><a href="#7-forget-gate">7. Forget Gate</a></li>
+<li class="toc-level-2"><a href="#8-input-gate">8. Input Gate</a></li>
+<li class="toc-level-2"><a href="#9-updating-the-cell-state">9. Updating the Cell State</a></li>
+<li class="toc-level-2"><a href="#10-output-gate">10. Output Gate</a></li>
+<li class="toc-level-2"><a href="#11-complete-lstm-mathematical-equations">11. Complete LSTM Mathematical Equations</a></li>
+<li class="toc-level-2"><a href="#12-easy-way-to-remember-lstm">12. Easy Way to Remember LSTM</a></li>
+<li class="toc-level-2"><a href="#13-cnn-lstm-architecture">13. CNN + LSTM Architecture</a></li>
+<li class="toc-level-2"><a href="#14-how-lstm-learns-long-term-dependencies">14. How LSTM Learns Long-Term Dependencies</a></li>
+<li class="toc-level-2"><a href="#15-rnn-vs-lstm">15. RNN vs LSTM</a></li>
+<li class="toc-level-2"><a href="#16-lstm-vs-3d-cnn">16. LSTM vs 3D CNN</a></li>
+<li class="toc-level-2"><a href="#17-advantages-of-lstm">17. Advantages of LSTM</a></li>
+<li class="toc-level-2"><a href="#18-limitations-of-lstm">18. Limitations of LSTM</a></li>
+<li class="toc-level-2"><a href="#19-applications">19. Applications</a></li>
+<li class="toc-level-1"><a href="#part-3-important-comparisons-for-examinations">PART 3: IMPORTANT COMPARISONS FOR EXAMINATIONS</a></li>
+<li class="toc-level-2"><a href="#1-r-cnn-vs-yolo">1. R-CNN vs YOLO</a></li>
+<li class="toc-level-2"><a href="#2-2d-cnn-vs-3d-cnn">2. 2D CNN vs 3D CNN</a></li>
+<li class="toc-level-2"><a href="#3-rnn-vs-lstm">3. RNN vs LSTM</a></li>
+<li class="toc-level-2"><a href="#4-3d-cnn-vs-cnn-rnnlstm">4. 3D CNN vs CNN + RNN/LSTM</a></li>
+<li class="toc-level-2"><a href="#5-object-detection-vs-action-recognition">5. Object Detection vs Action Recognition</a></li>
+<li class="toc-level-1"><a href="#part-4-how-all-five-topics-are-connected">PART 4: HOW ALL FIVE TOPICS ARE CONNECTED</a></li>
+<li class="toc-level-3"><a href="#one-example-to-understand-everything">One example to understand everything</a></li>
+<li class="toc-level-1"><a href="#part-5-important-exam-topics-what-not-to-miss">PART 5: IMPORTANT EXAM TOPICS – WHAT NOT TO MISS</a></li>
+<li class="toc-level-2"><a href="#priority-1-must-prepare-thoroughly">Priority 1 – Must prepare thoroughly</a></li>
+<li class="toc-level-2"><a href="#priority-2-important-short-answer-topics">Priority 2 – Important short-answer topics</a></li>
+<li class="toc-level-2"><a href="#priority-3-diagrams-you-should-practise">Priority 3 – Diagrams you should practise</a></li>
+<li class="toc-level-1"><a href="#final-revision-five-lines-to-remember">Final Revision – Five Lines to Remember</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">Mod5_Part2</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-18</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><h1 id="unit-5-deep-learning-for-image-and-video"><strong>Unit 5 – Deep Learning for Image and Video</strong></h1><h2 id="complete-mind-map-and-topic-wise-explanation-56510"><strong>Complete Mind Map and Topic-Wise Explanation (5.6–5.10)</strong></h2><p>You have uploaded five documents covering five important topics:</p><ol><li><p><strong>5.6 – Object Detection Using R-CNN</strong></p></li><li><p><strong>5.7 – Object Detection Using YOLO</strong></p></li><li><p><strong>5.8 – Video Analysis Using 3D CNNs</strong></p></li><li><p><strong>5.9 – Action Recognition Using RNN</strong></p></li><li><p><strong>5.10 – Action Recognition Using LSTM</strong></p></li></ol><p>The topics follow a logical progression:</p><ul><li><p>R-CNN and YOLO identify objects in images.</p></li><li><p>3D CNNs understand spatial and temporal information in videos.</p></li><li><p>RNNs understand sequences of video features.</p></li><li><p>LSTMs improve sequence learning by maintaining longer-term memory.</p></li></ul><h1 id="part-1-complete-mind-map"><strong>PART 1: COMPLETE MIND MAP</strong></h1><p><strong>UNIT 5: DEEP LEARNING FOR IMAGE AND VIDEO</strong></p><p>Object Detection • Video Analysis • Action Recognition</p><p><strong>5.6 Object Detection Using R-CNN</strong></p>Region-based detection<ul><li><p>Image Classification vs Object Detection</p></li><li><p>Challenges in Object Detection</p></li><li><p>Bounding Boxes and IoU</p></li><li><p>R-CNN Architecture</p></li><li><p>Region Proposals</p><ul><li><p>Selective Search</p></li></ul></li><li><p>CNN Feature Extraction</p></li><li><p>Object Classification using SVM</p></li><li><p>Bounding Box Regression</p></li><li><p>Training and Inference</p></li><li><p>Non-Maximum Suppression (NMS)</p></li><li><p>Advantages and Limitations</p></li><li><p>Evolution</p><ul><li><p>R-CNN</p></li><li><p>Fast R-CNN</p></li><li><p>Faster R-CNN</p></li></ul></li></ul><p><strong>5.7 Object Detection Using YOLO</strong></p>One-stage detection<ul><li><p>Introduction and Need for YOLO</p></li><li><p>One-stage vs Two-stage Detectors</p></li><li><p>YOLO Architecture and Pipeline</p></li><li><p>Grid-based Detection</p></li><li><p>Bounding Box Prediction</p></li><li><p>Confidence Score</p></li><li><p>Class Prediction</p></li><li><p>Normalized Coordinates</p></li><li><p>Multiple Object Detection</p></li><li><p>Intersection over Union (IoU)</p></li><li><p>Non-Maximum Suppression (NMS)</p></li><li><p>YOLO Loss Function</p></li><li><p>Training and Inference</p></li><li><p>YOLO vs R-CNN</p></li><li><p>Advantages, Limitations and Applications</p></li></ul><p><strong>5.8 Video Analysis Using 3D CNNs</strong></p>Spatial + Temporal learning<ul><li><p>Introduction to Video Analysis</p></li><li><p>Image Analysis vs Video Analysis</p></li><li><p>Spatial Information</p></li><li><p>Temporal Information</p></li><li><p>Need for 3D CNN</p></li><li><p>2D CNN vs 3D CNN</p></li><li><p>3D Convolution</p></li><li><p>3D Pooling</p></li><li><p>Spatio-Temporal Learning</p></li><li><p>Video Representation (T × H × W × C)</p></li><li><p>Frame Extraction and Sampling</p></li><li><p>Video Preprocessing</p></li><li><p>3D CNN Architecture and Pipeline</p></li><li><p>Video Classification</p></li><li><p>Applications</p></li><li><p>Advantages and Limitations</p></li></ul><p><strong>5.9 Action Recognition Using RNN</strong></p>Sequential learning<ul><li><p>Introduction to Action Recognition</p></li><li><p>Video as a Sequence</p></li><li><p>Need for Temporal Modeling</p></li><li><p>RNN Architecture</p></li><li><p>Hidden State and Recurrent Connections</p></li><li><p>Unrolled RNN</p></li><li><p>Mathematical Model</p></li><li><p>Forward Propagation</p></li><li><p>Many-to-One and Many-to-Many</p></li><li><p>CNN + RNN Architecture</p></li><li><p>Action Recognition Pipeline</p></li><li><p>Backpropagation Through Time (BPTT)</p></li><li><p>Vanishing and Exploding Gradients</p></li><li><p>Applications</p></li><li><p>Advantages and Limitations</p></li></ul><p><strong>5.10 Action Recognition Using LSTM</strong></p>Long-term memory<ul><li><p>Introduction and Need for LSTM</p></li><li><p>Limitations of Traditional RNN</p></li><li><p>LSTM Architecture</p></li><li><p>Cell State and Hidden State</p></li><li><p>Three Gates</p><ul><li><p>Forget Gate</p></li><li><p>Input Gate</p></li><li><p>Output Gate</p></li></ul></li><li><p>Candidate Cell State</p></li><li><p>LSTM Mathematical Equations</p></li><li><p>Cell State Update</p></li><li><p>CNN + LSTM Architecture</p></li><li><p>Long-Term Dependencies</p></li><li><p>RNN vs LSTM</p></li><li><p>LSTM vs 3D CNN</p></li><li><p>Training and Applications</p></li><li><p>Advantages and Limitations</p></li></ul><h1 id="part-2-explanation-of-each-topic"><strong>PART 2: EXPLANATION OF EACH TOPIC</strong></h1><h1 id="56-object-detection-using-r-cnn"><strong>5.6 – Object Detection Using R-CNN</strong></h1><img alt="Investigations of Object Detection in Images/Videos Using Various Deep Learning Techniques and Embedded Platforms—A Comprehensive Review" class="exported-media" src="https://images.openai.com/static-rsc-4/HzS4X518A__9MeG1PeVf7AJ3Hy8hfKauLY-TF-3eEnHn5Fz9vdn1GIdxLzGaZDpDPOdknUke9D5SmaoGUIijYwfVuh6JS1vZfwynDoOdzi-7pBtRHG6pfSxjwLwCmVjQgVXjDwU7VDw95dgbloTPcw-b9aK68MERYhZUtkrLqqk?purpose=inline"/><img alt="Object Detection: An End to End Theoretical Perspective | by Rahul Agarwal | TDS Archive | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/kryo3U3brYKDgmyXEVCk_-Rv69HiQsycW37h1lIRIDNoAAjvQqdh1Vx04kVxSbA1Ps91kJkhpO5WBqEygvNmFXlOyNKxdyW3Jw0IAsp7kRSXFv3j5ZgAYj5D6v5Tn9uFbM4NKg1SgbuH6dp6_KDBFmKfwIugHJM1l4B3necD6vs?purpose=inline"/><img alt="Faster R-CNN Pedestrian and Car Detection | BigSnarf blog" class="exported-media" src="https://images.openai.com/static-rsc-4/_vYAtRQwR2ITrXld6H2ZMt9bsI0GVMLpyR5SbTU8J3DR_X7iSz0Zux3EVmlfBzUlXBGdijS3WFRXlhilUX27nEGVPaV2WqMaxZgd_T6N020cAPm8wLcMtBF35gQoDTH2TvBdK71fvsHl9yo5TvoX5AC3Tv5YczqLoxJLjhKxjwc?purpose=inline"/><h2 id="1-what-is-object-detection"><strong>1. What is Object Detection?</strong></h2><p>Object detection is the process of identifying:</p><ol><li><p>What objects are present in an image.</p></li><li><p>Where those objects are located.</p></li></ol><p>It provides:</p><ul><li><p>Object class (Car, Dog, Person).</p></li><li><p>Object location.</p></li><li><p>Bounding box.</p></li><li><p>Confidence score.</p></li></ul><p><strong>Example:</strong> If an image contains two cars and one person, an object detector identifies all three and draws separate bounding boxes around them.</p><h2 id="2-image-classification-vs-object-detection"><strong>2. Image Classification vs Object Detection</strong></h2><table><tr><th>Image Classification</th><th>Object Detection</th></tr><tr><td>Identifies the main class</td><td>Identifies multiple objects</td></tr><tr><td>Gives class label</td><td>Gives class and location</td></tr><tr><td>No bounding box required</td><td>Uses bounding boxes</td></tr><tr><td>Example: Dog</td><td>Example: Dog at a particular location</td></tr></table><p>Remember:</p><ul><li><p>Classification → What is in the image?</p></li><li><p>Detection → What is present and where is it?</p></li></ul><h2 id="3-challenges-in-object-detection"><strong>3. Challenges in Object Detection</strong></h2><p>Object detection is more difficult because of:</p><ol><li><p>Multiple objects – many objects may appear together.</p></li><li><p>Different sizes – objects may be large or very small.</p></li><li><p>Different positions – objects can appear anywhere.</p></li><li><p>Scale variation – the same object appears at different sizes.</p></li><li><p>Occlusion – one object partially hides another.</p></li><li><p>Background complexity – objects may appear against complicated backgrounds.</p></li></ol><h2 id="4-bounding-box"><strong>4. Bounding Box</strong></h2><p>A bounding box is a rectangular box drawn around an object to indicate its location.</p><p>It is represented using:</p>
+
+<div class="math-display">$$
+(x_1,y_1,x_2,y_2)
+$$</div>
+
+<p>Where:</p><ul><li><p>$x_1,y_1$ = top-left coordinates.</p></li><li><p>$x_2,y_2$ = bottom-right coordinates.</p></li></ul><img alt="Dipping into YOLO inference. YOLO, also known as You Only Look Once… | by Patsatya | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/YC7RZulC9huY1oArQy_IeuVzuURSlTPK6RJAh7iVaOV2z4rPFCl4-2TaktGMMDCVX-sDy3Sm08md4izJA3oX3viDRh5op9ujh4xiTHXFRH8-8HptPbUxowfTmpQxoWuZWh1BWGbYmVS-7DBfoJgIH5RC-at0Gmz4sFjlu2p-m7w?purpose=inline"/><a href="https://medium.com/%40patsatya3/dipping-into-yolo-inference-e94c4fac1bee?utm_source=chatgpt.com">medium.com</a><p>A bounding box identifies the object's location, not its exact shape.</p><h2 id="5-what-is-r-cnn"><strong>5. What is R-CNN?</strong></h2><p>R-CNN stands for <strong>Regions with Convolutional Neural Networks</strong>.</p><p>It is a deep-learning-based object detection method.</p><p>Its main idea is:</p><p>Instead of applying a CNN to the entire image only once, R-CNN first generates possible object regions and then applies a CNN to each region.</p><h2 id="6-main-components-of-r-cnn"><strong>6. Main Components of R-CNN</strong></h2><p>There are three major components.</p><p><strong>1. Region Proposal Generation</strong></p><p>Finds possible regions that may contain objects.</p><p><strong>2. CNN Feature Extraction</strong></p><p>Extracts important visual features from each region.</p><p><strong>3. Classification and Bounding Box Regression</strong></p><ul><li><p>Classification determines what object is present.</p></li><li><p>Regression adjusts the bounding box to fit the object more accurately.</p></li></ul><h2 id="7-selective-search"><strong>7. Selective Search</strong></h2><p>Selective Search is a traditional computer vision technique used in original R-CNN to generate region proposals.</p><p>It groups visually similar regions using:</p><ul><li><p>Colour</p></li><li><p>Texture</p></li><li><p>Size</p></li><li><p>Shape</p></li><li><p>Spatial similarity</p></li></ul><p>For example, an image containing a car and a person may generate approximately 2,000 candidate regions.</p><p>These are possible object locations, not confirmed detections.</p><h2 id="8-complete-r-cnn-architecture"><strong>8. Complete R-CNN Architecture</strong></h2>Input ImageSelective SearchRegion Proposals (e.g. 2000)Crop and Resize Each RegionCNN Feature Extraction<p><strong>SVM</strong></p><p>Object classification</p><p><strong>Regression</strong></p><p>Box refinement</p>NMS – Remove Duplicate BoxesFinal Detected Objects<h3 id="step-by-step-working"><strong>Step-by-step working</strong></h3><ol><li><p>Input image is given to the system.</p></li><li><p>Selective Search generates region proposals.</p></li><li><p>Each proposal is cropped and resized to a fixed size.</p></li><li><p>CNN extracts features from each region.</p></li><li><p>SVM classifies each region into an object class.</p></li><li><p>Bounding box regression improves the predicted location.</p></li><li><p>NMS removes duplicate detections.</p></li><li><p>Final detected objects are produced.</p></li></ol><h2 id="9-cnn-feature-extraction"><strong>9. CNN Feature Extraction</strong></h2><p>CNN extracts important visual information from the image.</p><ul><li><p>Early layers: edges, lines and corners.</p></li><li><p>Middle layers: textures, shapes and object parts.</p></li><li><p>Deep layers: semantic features such as car, person and dog.</p></li></ul><p>The output is a feature vector representing the region.</p><h2 id="10-object-classification-using-svm"><strong>10. Object Classification Using SVM</strong></h2><p>SVM stands for Support Vector Machine.</p><p>Original R-CNN uses class-specific SVM classifiers to identify the object represented by the CNN feature vector.</p><p>Example:</p><ul><li><p>Car classifier → Car</p></li><li><p>Person classifier → Person</p></li><li><p>Dog classifier → Dog</p></li></ul><h2 id="11-bounding-box-regression"><strong>11. Bounding Box Regression</strong></h2><p>The proposed bounding box may not accurately surround the object.</p><p>Bounding box regression learns to adjust the box by changing its position and dimensions.</p><p>For example:</p><ul><li><p>Initial box is too large.</p></li><li><p>Regression shifts the coordinates and reduces its size.</p></li><li><p>Final box fits the object better.</p></li></ul><h2 id="12-intersection-over-union-iou"><strong>12. Intersection over Union (IoU)</strong></h2><p>IoU measures the overlap between a predicted bounding box and the ground-truth bounding box.</p><p><strong>Formula:</strong></p>
+
+<div class="math-display">$$
+IoU=\frac{\text{Area of Intersection}}
+{\text{Area of Union}}
+$$</div>
+
+<p>Example:</p><ul><li><p>Intersection area = 80</p></li><li><p>Union area = 100</p></li></ul>
+
+<div class="math-display">$$
+IoU=\frac{80}{100}=0.8
+$$</div>
+
+<div class="math-display">$$
+IoU=80\%
+$$</div>
+
+<img alt="Edge AI Engineering - Object Detection: Fundamentals" class="exported-media" src="https://images.openai.com/static-rsc-4/_7VWcuhDpZIauH-GTdQ_sRfOr6otBA_-KoHICHvAwoxv24qR7Qa51ulFng-nejNbWNPYJgIcdzdwVMtmcEwabHDSrfK80NGFmkWo98e321vUHoEj-rgQuQwzjjbLh3e3nHv4lWDb35e1s8jepgQnMNTzfimFGFND-3cmXKlXeM0?purpose=inline"/><a href="https://mjrovai.github.io/EdgeML_Made_Ease_ebook/raspi/object_detection/object_detection_fundamentals.html?utm_source=chatgpt.com">mjrovai.github.io</a><p>Higher IoU means better overlap.</p><h2 id="13-non-maximum-suppression-nms"><strong>13. Non-Maximum Suppression (NMS)</strong></h2><p>NMS removes duplicate bounding boxes that identify the same object.</p><p><strong>Steps:</strong></p><ol><li><p>Sort detections according to confidence score.</p></li><li><p>Select the box with the highest confidence.</p></li><li><p>Calculate IoU with the remaining boxes.</p></li><li><p>Suppress boxes having excessive overlap.</p></li><li><p>Repeat until the remaining detections are processed.</p></li></ol><p>Example:</p><table><tr><th>Detection</th><th>Confidence</th></tr><tr><td>Car A</td><td>95%</td></tr><tr><td>Car B</td><td>89%</td></tr><tr><td>Car C</td><td>72%</td></tr></table><p>If A and B overlap significantly and represent the same car, NMS retains A and suppresses B, depending on the IoU threshold.</p><h2 id="14-training-and-inference"><strong>14. Training and Inference</strong></h2><p><strong>Training:</strong></p><ol><li><p>Prepare labelled images.</p></li><li><p>Generate region proposals.</p></li><li><p>Extract CNN features.</p></li><li><p>Train class-specific SVM classifiers.</p></li><li><p>Train bounding-box regressors.</p></li></ol><p><strong>Inference (testing):</strong></p><ol><li><p>Give an image.</p></li><li><p>Generate region proposals.</p></li><li><p>Crop and resize.</p></li><li><p>Extract CNN features.</p></li><li><p>Predict object classes.</p></li><li><p>Refine bounding boxes.</p></li><li><p>Apply NMS.</p></li><li><p>Produce final detections.</p></li></ol><h2 id="15-evolution-of-r-cnn"><strong>15. Evolution of R-CNN</strong></h2><img alt="[딥러닝] Object detection (2)(R-CNN / Fast R-CNN / Faster R-CNN 총정리)" class="exported-media" src="https://images.openai.com/static-rsc-4/Ucvd2oH2y0Y8aoboRLcQfZIpGXmFGpnTj8HX-dDpYLligRVtE8PTvAZk2AmHUyHnGMIRwdwGXI96blWSR75mww_o8PnvHnhzIf9d934niARcGKr51ofBhWZ8yjV4LSCCEgroEM4Gm5xuXqYgMYTC0KqgItTwrutZXI49kbalN-o?purpose=inline"/><a href="https://bigdaheta.tistory.com/60?utm_source=chatgpt.com">bigdaheta.tistory.com</a><table><tr><th>Model</th><th>Main idea</th><th>Improvement</th></tr><tr><td>R-CNN</td><td>CNN separately for each region</td><td>Original region-based detection</td></tr><tr><td>Fast R-CNN</td><td>CNN processes entire image once</td><td>Reduces repeated CNN computation</td></tr><tr><td>Faster R-CNN</td><td>Uses Region Proposal Network (RPN)</td><td>Learns region proposals</td></tr></table><p><strong>Fast R-CNN:</strong> Uses RoI (Region of Interest) Pooling to obtain fixed-size region features from the shared feature map.</p><p><strong>Faster R-CNN:</strong> Uses an RPN to generate region proposals within the deep-learning pipeline.</p><h2 id="16-advantages-and-limitations"><strong>16. Advantages and Limitations</strong></h2><p><strong>Advantages</strong></p><ul><li><p>Good detection accuracy.</p></li><li><p>Uses powerful CNN features.</p></li><li><p>Detects and localizes multiple objects.</p></li><li><p>Flexible for different detection tasks.</p></li></ul><p><strong>Limitations</strong></p><ul><li><p>Slow because many regions are processed separately.</p></li><li><p>Requires large storage for features.</p></li><li><p>Multi-stage training is complicated.</p></li><li><p>Original R-CNN is unsuitable for many real-time applications.</p></li></ul><p><strong>Applications:</strong> Autonomous vehicles, surveillance, healthcare, agriculture, retail and manufacturing.</p><h1 id="57-object-detection-using-yolo"><strong>5.7 – Object Detection Using YOLO</strong></h1><img alt="Object Detection with YOLO: Hands-on Tutorial" class="exported-media" src="https://images.openai.com/static-rsc-4/zeN45LvmCHaYGiL9fc0e0d4QaVUUKBjJizwLePVmfxIs02Hso-kG5ZQS9WgrlLesfRakyYyEtxIMOvSGDaxFhoO45gxNd0ZaB3Fo_8fe7NMkvxBZ07K5GuSX6vRwzslgCr5AjGAs9muUJjudRTvWjxwdxzu23xIauSRoym_55_M?purpose=inline"/><img alt="История YOLO – самой известной архитектуры компьютерного зрения | Data Secrets" class="exported-media" src="https://images.openai.com/static-rsc-4/MLfsD3lLawG7A5NTNL6nu5WEh93oqZjseEUPNOpg_yi0hOV8M3BRFAnk75MUIZ_zvn0qj9aPDaV7pZg8fX0k4nB7fGoSGJMyR0MC3k1p6ymhD2BcqZEtbzum9jxAzm8tN3_80tm4Yh5kOF0055-0-YU6EbzcKTgOuoMO7VdRZf8?purpose=inline"/><img alt="You Only Look Once: Unified, Real-Time Object Detection | PDF" class="exported-media" src="https://images.openai.com/static-rsc-4/nNQn8EoDywDfiwbS2VJdBCPAILq4jPtnxyy5rHkDOBzY5g20CWqqdIU4_rHioo4R0aFEjeaIO6auGMHbC122kxScs4kjApLWZP6qxbkhhEcd7bVL8YBRFAgdkyEanZ2w9O5OGi_ao2sA_Ouy--OhFfUO0GlmUVq29VUJ_DGlIFc?purpose=inline"/><h2 id="1-what-is-yolo"><strong>1. What is YOLO?</strong></h2><p>YOLO stands for <strong>You Only Look Once</strong>.</p><p>It is a deep-learning-based object detection approach that detects objects using one integrated prediction process.</p><p>Its central idea is:</p><p>The entire image is processed by a neural network in one forward pass to predict object classes and bounding boxes.</p><h2 id="2-why-do-we-need-yolo"><strong>2. Why Do We Need YOLO?</strong></h2><p>Original R-CNN processes many region proposals separately.</p><p>This requires many CNN computations and makes detection slow.</p><p>YOLO solves this problem by predicting objects directly from the complete image using a single integrated network.</p><h2 id="3-one-stage-vs-two-stage-detection"><strong>3. One-Stage vs Two-Stage Detection</strong></h2><table><tr><th>Two-stage detector</th><th>One-stage detector</th></tr><tr><td>First generates region proposals</td><td>Directly predicts detections</td></tr><tr><td>Then classifies and refines regions</td><td>Predicts boxes and classes together</td></tr><tr><td>Generally more computational steps</td><td>Generally faster</td></tr><tr><td>Example: R-CNN family</td><td>Example: YOLO</td></tr></table><h2 id="4-yolo-detection-pipeline"><strong>4. YOLO Detection Pipeline</strong></h2>Input ImageResize and PreprocessingYOLO Neural NetworkFeature Extraction<p><strong>Boxes</strong></p><p>Location</p><p><strong>Scores</strong></p><p>Confidence</p><p><strong>Classes</strong></p><p>Object type</p>Confidence FilteringNon-Maximum SuppressionFinal Object Detection<h2 id="5-grid-based-object-detection"><strong>5. Grid-Based Object Detection</strong></h2><p>In the original YOLO formulation, the image is divided into a grid.</p><p>Each grid cell is responsible for predicting objects whose centre lies inside that cell.</p><img alt="深度學習-物件偵測:You Only Look Once (YOLO) | by Tommy Huang | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/zGA7_fXz3fppE6uon7uExS18e7QDSkn8lMtGJAOtC23SjBHUOXQ4Bnrop52ErJ-hJylca0TtmuHFZWfGrpH-K3jmyLRHef4YaIec0jxgqgb93OOuDHalLP5TUaIGZy4BoJbgJevnFUuhpbIkv7hrquT9Sc2S_GvLDqX2nmw06D8?purpose=inline"/><a href="https://chih-sheng-huang821.medium.com/%E6%B7%B1%E5%BA%A6%E5%AD%B8%E7%BF%92-%E7%89%A9%E4%BB%B6%E5%81%B5%E6%B8%AC-you-only-look-once-yolo-4fb9cf49453c?utm_source=chatgpt.com">chih-sheng-huang821.medium.com</a><p><strong>Why use a grid?</strong></p><p>It provides a structured way to predict object locations across the image.</p><p>For example, if the centre of a car is inside a particular cell, that cell becomes responsible for predicting the car.</p><p>Note: This grid explanation describes the original YOLO formulation; later YOLO versions use different detection-head designs.</p><h2 id="6-bounding-box-prediction"><strong>6. Bounding Box Prediction</strong></h2><p>YOLO predicts the bounding box using four values:</p>
+
+<div class="math-display">$$
+(x,y,w,h)
+$$</div>
+
+<p>Where:</p><ul><li><p>$x$ = horizontal centre position.</p></li><li><p>$y$ = vertical centre position.</p></li><li><p>$w$ = width.</p></li><li><p>$h$ = height.</p></li></ul><p>These values describe the object's position and dimensions.</p><h2 id="7-confidence-score"><strong>7. Confidence Score</strong></h2><p>Confidence represents how strongly the model believes that:</p><ul><li><p>An object is present.</p></li><li><p>The predicted box corresponds to an object.</p></li></ul><p>Example:</p>
+
+<div class="math-display">$$
+\text{Car confidence}=0.92
+$$</div>
+
+<p>This indicates a high-confidence detection.</p><h2 id="8-class-prediction"><strong>8. Class Prediction</strong></h2><p>YOLO also predicts the class of the detected object.</p><p>Example:</p><table><tr><th>Class</th><th>Class score</th></tr><tr><td>Person</td><td>0.05</td></tr><tr><td>Car</td><td>0.85</td></tr><tr><td>Dog</td><td>0.03</td></tr><tr><td>Bicycle</td><td>0.07</td></tr></table><p>The highest class score is Car.</p><p>A complete detection contains:</p>
+
+<div class="math-display">$$
+\text{Bounding Box}+\text{Confidence}+\text{Class}
+$$</div>
+
+<h2 id="9-normalized-coordinates"><strong>9. Normalized Coordinates</strong></h2><p>Coordinates can be represented relative to the image dimensions.</p><p>Their values generally lie between 0 and 1.</p><p>For example:</p><ul><li><p>$x=0.5$: horizontal centre is halfway across the image.</p></li><li><p>$y=0.5$: vertical centre is halfway down the image.</p></li></ul><p>This makes coordinate representation independent of absolute image size.</p><h2 id="10-multiple-object-detection"><strong>10. Multiple Object Detection</strong></h2><p>YOLO can detect several objects in the same image.</p><p>Example:</p><ul><li><p>Person</p></li><li><p>Car</p></li><li><p>Dog</p></li><li><p>Bicycle</p></li></ul><p>However, early grid-based YOLO had limitations when multiple object centres appeared in the same cell, especially for small and closely positioned objects.</p><p>Later generations introduced improvements to handle these cases.</p><h2 id="11-iou"><strong>11. IoU</strong></h2><p>IoU measures the overlap between predicted and ground-truth bounding boxes.</p>
+
+<div class="math-display">$$
+IoU=\frac{Intersection}{Union}
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+IoU=\frac{80}{100}=0.8=80\%
+$$</div>
+
+<p>Higher IoU indicates better localization.</p><p><strong>Important distinction:</strong></p><ul><li><p>Confidence → How confident is the detection?</p></li><li><p>IoU → How accurately do the boxes overlap?</p></li></ul><h2 id="12-non-maximum-suppression"><strong>12. Non-Maximum Suppression</strong></h2><p>YOLO may predict several overlapping boxes for the same object.</p><p>NMS removes redundant detections.</p><p>Steps:</p><ol><li><p>Sort boxes by confidence.</p></li><li><p>Select the highest-confidence box.</p></li><li><p>Calculate IoU with other boxes.</p></li><li><p>Suppress boxes whose overlap exceeds the threshold.</p></li><li><p>Repeat.</p></li></ol><h2 id="13-yolo-loss-function"><strong>13. YOLO Loss Function</strong></h2><p>YOLO learns to predict accurate bounding boxes, object confidence and class probabilities.</p><p>Its loss conceptually combines:</p><ol><li><p>Localization loss – measures bounding-box position and size errors.</p></li><li><p>Confidence/objectness loss – measures errors in object-presence confidence.</p></li><li><p>Classification loss – measures errors in class prediction.</p></li></ol><p>The model adjusts its parameters during training to reduce the overall loss.</p><p>The exact loss formulation varies between YOLO versions.</p><h2 id="14-yolo-training-and-inference"><strong>14. YOLO Training and Inference</strong></h2><p><strong>Training:</strong></p><ol><li><p>Collect labelled images.</p></li><li><p>Resize and preprocess images.</p></li><li><p>Provide ground-truth bounding boxes and classes.</p></li><li><p>Perform forward propagation.</p></li><li><p>Calculate prediction errors using the loss function.</p></li><li><p>Update model weights using backpropagation and optimization.</p></li></ol><p><strong>Inference:</strong></p><ol><li><p>Give a new image.</p></li><li><p>Perform one network forward pass.</p></li><li><p>Predict bounding boxes, confidence and classes.</p></li><li><p>Remove low-confidence predictions.</p></li><li><p>Apply NMS.</p></li><li><p>Produce final detections.</p></li></ol><h2 id="15-yolo-vs-r-cnn"><strong>15. YOLO vs R-CNN</strong></h2><table><tr><th>Feature</th><th>R-CNN</th><th>YOLO</th></tr><tr><td>Approach</td><td>Region-based</td><td>Single-stage</td></tr><tr><td>Region proposals</td><td>Yes</td><td>No separate proposal stage</td></tr><tr><td>CNN processing</td><td>Separately for each region</td><td>Integrated prediction</td></tr><tr><td>Speed</td><td>Slow in original R-CNN</td><td>Generally fast</td></tr><tr><td>Real-time detection</td><td>Not suitable in original form</td><td>Designed for real-time use</td></tr><tr><td>Output</td><td>Class and bounding box</td><td>Class and bounding box</td></tr></table><h2 id="16-advantages-limitations-and-applications"><strong>16. Advantages, Limitations and Applications</strong></h2><p><strong>Advantages</strong></p><ul><li><p>Fast object detection.</p></li><li><p>Detects multiple objects.</p></li><li><p>Processes the complete image.</p></li><li><p>Suitable for real-time applications.</p></li></ul><p><strong>Limitations</strong></p><ul><li><p>Small objects can be difficult to detect.</p></li><li><p>Closely located objects can be challenging.</p></li><li><p>Localization may be less accurate in some situations than region-based approaches.</p></li></ul><p><strong>Applications</strong></p><ul><li><p>Autonomous driving.</p></li><li><p>CCTV surveillance.</p></li><li><p>Agriculture.</p></li><li><p>Manufacturing.</p></li><li><p>Sports analysis.</p></li><li><p>Robotics.</p></li></ul><h1 id="58-video-analysis-using-3d-cnns"><strong>5.8 – Video Analysis Using 3D CNNs</strong></h1><img alt="Local Light Field Fusion - by Cameron R. Wolfe, Ph.D." class="exported-media" src="https://images.openai.com/static-rsc-4/HJfCMq8W86hnhJ78Jf9cbS4DUjPAGJlflJKH-rumkpD_PaszCq0NBMUsNOtBPMa8P338rbevfXrlyEGg4PigLPAG6RzlohE8FL1MaguBWHkdPpYe9bncACIcgmQ8GcyqvKe11JFTYsFnK5VXKQb_MSSR8UNG1q0mnC7fYKL6oCU?purpose=inline"/><img alt="Human Activity Classification Using the 3DCNN Architecture | MDPI" class="exported-media" src="https://images.openai.com/static-rsc-4/M0keSiD_IeLCRxZplmNz1gpiMI2XiaJCXR3oCbwc3N5n0aMkzttbAowiY8LNQopUj9nYGtwdNnKYjKFFi71iRSJkGd2QzOcCzNeFVla7HgDe-68rg4eMpM8zxtC-gR1VU5jtQpAMLVePbm-ePSctjKm0y7V0FeSpRaHxNJqm9HQ?purpose=inline"/><img alt="Abaka AI - AI Data Annotation &amp; Solution - Your Data Partner In The AI Industry" class="exported-media" src="https://images.openai.com/static-rsc-4/YY3NSjZvYcrbUok5Vq2-h-I-uCNh3Z-o892CKmzUaDDD0ctYTyorqNgg7yzdksVZptwLY7VlQPUjVYZ8-MBXyoTsQcrn5fZeZAaJ9ldnmgB20EG-8mPhomy4qlyXuoMObif900tVJ9ZIqmiN8670MvpzCAXT0WGuDAks_qD8ugA?purpose=inline"/><h2 id="1-introduction-to-video-analysis"><strong>1. Introduction to Video Analysis</strong></h2><p>A video is a sequence of images called <strong>frames</strong>, captured over time.</p><p>Example:</p><p>Person standing → Person raising hand → Person waving → Person lowering hand.</p><p>Each frame contains spatial information, while the complete sequence contains temporal information.</p><p>Therefore:</p><ul><li><p>Image analysis → Understands what is present in one image.</p></li><li><p>Video analysis → Understands what is happening across multiple frames.</p></li></ul><h2 id="2-what-is-video-analysis"><strong>2. What is Video Analysis?</strong></h2><p>Video analysis is the process of extracting meaningful information from a sequence of video frames.</p><p>It can identify:</p><ul><li><p>Objects present in a video.</p></li><li><p>Object movements.</p></li><li><p>Human activities.</p></li><li><p>Abnormal activities.</p></li><li><p>Events occurring over time.</p></li></ul><p>Examples: walking, running, jumping, swimming, fighting and falling.</p><h2 id="3-why-is-video-analysis-more-difficult-than-image-analysis"><strong>3. Why is Video Analysis More Difficult Than Image Analysis?</strong></h2><p>An image contains:</p>
+
+<div class="math-display">$$
+Height \times Width \times Channels
+$$</div>
+
+<p>A video contains:</p>
+
+<div class="math-display">$$
+Time \times Height \times Width \times Channels
+$$</div>
+
+<p>For example:</p>
+
+<div class="math-display">$$
+16 \times 112 \times 112 \times 3
+$$</div>
+
+<p>This means:</p><ul><li><p>16 frames.</p></li><li><p>Each frame has 112 × 112 pixels.</p></li><li><p>3 colour channels (RGB).</p></li></ul><p>Video analysis is more difficult because it must understand both image content and changes across time.</p><h2 id="4-spatial-information"><strong>4. Spatial Information</strong></h2><p>Spatial information describes what is present in an individual frame.</p><p>Examples:</p><ul><li><p>Person</p></li><li><p>Car</p></li><li><p>Ball</p></li><li><p>Building</p></li><li><p>Tree</p></li></ul><p>A conventional CNN is effective at extracting spatial features.</p><h2 id="5-temporal-information"><strong>5. Temporal Information</strong></h2><p>Temporal information describes how the content changes over time.</p><p>Example:</p><p>Frame 1 → Person standing</p><p>Frame 2 → Person moving</p><p>Frame 3 → Person running</p><p>Frame 4 → Person falling</p><p>The sequence provides information about movement and actions.</p><p><strong>Remember this distinction</strong></p><p><strong>Spatial</strong></p><p>What is present?</p><p>Person, car, ball</p><p><strong>Temporal</strong></p><p>How does it change?</p><p>Walking, running, falling</p><h2 id="6-why-is-2d-cnn-not-sufficient-for-video"><strong>6. Why is 2D CNN Not Sufficient for Video?</strong></h2><p>A conventional 2D CNN performs convolution over:</p><ul><li><p>Height</p></li><li><p>Width</p></li></ul><p>It processes spatial information in an image but does not directly learn motion across time.</p><p>For example, if we provide four frames separately to a 2D CNN, it can recognize the person in each frame, but it does not inherently model the movement sequence.</p><p>Therefore, we use 3D convolution to learn relationships across frames.</p><h2 id="7-what-is-a-3d-cnn"><strong>7. What is a 3D CNN?</strong></h2><p>A 3D CNN stands for <strong>Three-Dimensional Convolutional Neural Network</strong>.</p><p>It is a neural network that performs convolution across three dimensions:</p><ol><li><p>Height</p></li><li><p>Width</p></li><li><p>Time</p></li></ol><p>Unlike a 2D CNN, a 3D CNN can process multiple consecutive video frames together.</p>
+
+<div class="math-display">$$
+3D\ CNN = Time + Height + Width
+$$</div>
+
+<p>It learns spatial features and temporal patterns jointly.</p><h2 id="8-2d-cnn-vs-3d-cnn"><strong>8. 2D CNN vs 3D CNN</strong></h2><table><tr><th>Feature</th><th>2D CNN</th><th>3D CNN</th></tr><tr><td>Input</td><td>Image</td><td>Video clip</td></tr><tr><td>Convolution</td><td>2D</td><td>3D</td></tr><tr><td>Dimensions</td><td>Height × Width</td><td>Time × Height × Width</td></tr><tr><td>Spatial learning</td><td>Yes</td><td>Yes</td></tr><tr><td>Temporal learning</td><td>Not directly</td><td>Yes</td></tr><tr><td>Application</td><td>Image classification</td><td>Video classification</td></tr><tr><td>Example</td><td>Cat vs Dog</td><td>Walking vs Running</td></tr></table><h2 id="9-understanding-3d-convolution"><strong>9. Understanding 3D Convolution</strong></h2><p><strong>2D Convolution:</strong></p><p>A 2D filter moves across an image horizontally and vertically.</p><p><strong>3D Convolution:</strong></p><p>A 3D filter moves across:</p><ul><li><p>Horizontally.</p></li><li><p>Vertically.</p></li><li><p>Temporally (across video frames).</p></li></ul><img alt="Local Light Field Fusion - by Cameron R. Wolfe, Ph.D." class="exported-media" src="https://images.openai.com/static-rsc-4/HJfCMq8W86hnhJ78Jf9cbS4DUjPAGJlflJKH-rumkpD_PaszCq0NBMUsNOtBPMa8P338rbevfXrlyEGg4PigLPAG6RzlohE8FL1MaguBWHkdPpYe9bncACIcgmQ8GcyqvKe11JFTYsFnK5VXKQb_MSSR8UNG1q0mnC7fYKL6oCU?purpose=inline"/><a href="https://cameronrwolfe.substack.com/p/local-light-field-fusion?utm_source=chatgpt.com">cameronrwolfe.substack.com</a><p>Example:</p><p>Suppose a video contains 16 frames.</p>
+
+<div class="math-display">$$
+16 \times 112 \times 112 \times 3
+$$</div>
+
+<p>A conceptual 3D filter may have dimensions:</p>
+
+<div class="math-display">$$
+3 \times 3 \times 3
+$$</div>
+
+<p>Where:</p><ul><li><p>First 3 = temporal depth.</p></li><li><p>Second 3 = height.</p></li><li><p>Third 3 = width.</p></li></ul><p>It observes a small spatial region across three consecutive frames and learns motion-related patterns.</p><h2 id="10-what-does-a-3d-cnn-learn"><strong>10. What Does a 3D CNN Learn?</strong></h2><p>Different layers learn different types of features.</p><table><tr><th>Layer</th><th>Features learned</th></tr><tr><td>Early layers</td><td>Edges, textures and simple motion</td></tr><tr><td>Middle layers</td><td>Body-part movements and direction</td></tr><tr><td>Deep layers</td><td>Walking, running, jumping, swimming</td></tr></table><p>The learning process can be represented as:</p>
+
+<div class="math-display">$$
+Pixels + Frames
+$$</div>
+
+<div class="math-display">$$
+\downarrow
+$$</div>
+
+<div class="math-display">$$
+Spatial\ Features
+$$</div>
+
+<div class="math-display">$$
+\downarrow
+$$</div>
+
+<div class="math-display">$$
+Motion\ Patterns
+$$</div>
+
+<div class="math-display">$$
+\downarrow
+$$</div>
+
+<div class="math-display">$$
+Action/Event
+$$</div>
+
+<h2 id="11-spatio-temporal-learning"><strong>11. Spatio-Temporal Learning</strong></h2><p>Spatio-temporal means combining:</p><ul><li><p>Spatial = Where things are.</p></li><li><p>Temporal = How things change with time.</p></li></ul><p>Example: Running.</p><ul><li><p>Frame 1: Left leg forward.</p></li><li><p>Frame 2: Right leg forward.</p></li><li><p>Frame 3: Left leg forward.</p></li><li><p>Frame 4: Right leg forward.</p></li></ul><p>An individual frame may not be enough to identify running. The sequence of movements reveals the action.</p><p>This is called spatio-temporal learning.</p><h2 id="12-video-representation"><strong>12. Video Representation</strong></h2><p>A video is represented as a tensor:</p>
+
+<div class="math-display">$$
+T \times H \times W \times C
+$$</div>
+
+<p>Where:</p><ul><li><p>T = Number of frames.</p></li><li><p>H = Height.</p></li><li><p>W = Width.</p></li><li><p>C = Number of colour channels.</p></li></ul><p>Example:</p>
+
+<div class="math-display">$$
+16 \times 112 \times 112 \times 3
+$$</div>
+
+<p>Represents 16 RGB frames, each with a resolution of 112 × 112.</p><h2 id="13-why-do-we-use-video-clips"><strong>13. Why Do We Use Video Clips?</strong></h2><p>Processing an entire long video at once is computationally expensive.</p><p>Therefore, videos are divided into smaller clips.</p><p>Example:</p><p><strong>Full Video (100 frames)</strong></p><p>1</p><p>2</p><p>3</p><p>4</p><p>5</p><p>6</p><p>7</p><p>8</p><p>9</p><p>10</p><p><strong>Divide into smaller clips</strong></p><p>Clip 1</p><p>Frames 1–16</p><p>Clip 2</p><p>Frames 17–32</p><p>Clip 3</p><p>Frames 33–48</p><p>Illustrative grouping; actual clip lengths depend on the model.</p><p>Each clip is independently processed by the model.</p><h2 id="14-video-preprocessing"><strong>14. Video Preprocessing</strong></h2><p>Before providing video to a 3D CNN, preprocessing is required.</p><p><strong>Raw Video</strong></p><p><strong>Frame Extraction</strong></p><p><strong>Frame Sampling</strong></p><p><strong>Resize Frames</strong></p><p><strong>Normalize Pixel Values</strong></p><p><strong>Create Video Clips</strong></p><p><strong>3D CNN</strong></p><p><strong>Frame Extraction:</strong> Extract individual frames from the video.</p><p><strong>Frame Sampling:</strong> Select only some frames instead of processing every frame. For example, select 16 frames from a 300-frame video.</p><p><strong>Resizing:</strong> Convert frames to a common resolution.</p><p><strong>Normalization:</strong> Scale pixel values to a suitable numerical range.</p><p><strong>Clip Creation:</strong> Group selected frames into smaller video clips.</p><h2 id="15-3d-pooling"><strong>15. 3D Pooling</strong></h2><p>Pooling reduces the dimensions of feature maps and helps reduce computational requirements.</p><p>In 3D CNNs, pooling operates across three dimensions:</p><ul><li><p>Time</p></li><li><p>Height</p></li><li><p>Width</p></li></ul><p>It reduces feature-map size while retaining important information.</p><p>For example, a 3D max-pooling operation selects the maximum value within a small 3D region.</p><h2 id="16-3d-cnn-architecture-and-video-classification"><strong>16. 3D CNN Architecture and Video Classification</strong></h2>Video Clip Input3D ConvolutionActivation Function (ReLU)3D PoolingFeature ExtractionFully Connected LayerClassification / SoftmaxAction Prediction: Running<h3 id="working"><strong>Working</strong></h3><ol><li><p>Input video is divided into clips.</p></li><li><p>Frames are sampled and preprocessed.</p></li><li><p>3D convolution extracts spatial and temporal features.</p></li><li><p>ReLU introduces non-linearity.</p></li><li><p>3D pooling reduces feature dimensions.</p></li><li><p>Fully connected layers combine learned features.</p></li><li><p>Classification predicts the action.</p></li></ol><h2 id="17-applications"><strong>17. Applications</strong></h2><ul><li><p>Surveillance – Detect fighting, falling and intrusion.</p></li><li><p>Sports – Identify player movements and game events.</p></li><li><p>Healthcare – Fall detection, gait analysis and rehabilitation monitoring.</p></li><li><p>Autonomous systems – Pedestrian behaviour and traffic events.</p></li><li><p>Video classification – Identify activities in video clips.</p></li></ul><h2 id="18-advantages-and-limitations"><strong>18. Advantages and Limitations</strong></h2><p><strong>Advantages</strong></p><ol><li><p>Learns spatial and temporal features jointly.</p></li><li><p>Suitable for video processing.</p></li><li><p>Automatically extracts features.</p></li><li><p>Supports end-to-end learning.</p></li><li><p>Effective for local motion patterns.</p></li></ol><p><strong>Limitations</strong></p><ol><li><p>High computational cost.</p></li><li><p>Large memory requirements.</p></li><li><p>Expensive training.</p></li><li><p>Requires labelled video datasets.</p></li><li><p>Standard short-clip models may struggle with very long-term temporal relationships.</p></li></ol><p><strong>Important additional concept – Receptive Field:</strong></p><p>The receptive field is the portion of the input that influences a particular feature.</p><p>In a 3D CNN, it represents a spatio-temporal region.</p><p>For example:</p>
+
+<div class="math-display">$$
+3\ frames \times 5 \times 5\ pixels
+$$</div>
+
+<p>means that a feature can depend on a 5 × 5 spatial region across three frames.</p><h1 id="59-action-recognition-using-rnn"><strong>5.9 – Action Recognition Using RNN</strong></h1><img alt="The 3W’s of RNN — What, Why, and Working" class="exported-media" src="https://images.openai.com/static-rsc-4/EPd6CNdy7FmmuKAMkdRoCf_FTeC4GpUO4cP6bVrEPZeGsh8tAAoFgw5E0YKgQV8YLqoA8Ur56hQpOWaoL1sx2yZ_keGenLCB68zG-hkRSK1n2v7KKGwFsDmYMpc6U0Oxqcx2i0-T1db4u8Xwmzuwg_OAMISyUhpPp6Yn1Thg7KI?purpose=inline"/><img alt="I3D | CSY's blog" class="exported-media" src="https://images.openai.com/static-rsc-4/VY4DXLE7sQXrWDNShk9TdzFzZMYBIeCWUwW6jGdj4LBznZz-Ef_NzWm8KJjuViuOcKYm7A19W4ADYc1ICFfg3EbGxl5skSw1eJAorkhvOLov-m9gkZ7uCPjgWP8102ke3aZmIoOiA_6T0MZQ-v_kP_D8DOmksvHcksJ0XoGa0Rc?purpose=inline"/><img alt="Human Action Recognition UCF101 using LSTM and CNN | CNN-LSTM | by Jaykumaran R | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/2gQ6VJMTuAAToxte59eyVq4GAx2gu3eEA5vbFqh91fAg-MgBhzWnqB1QNX0pnPWG_uOGISK7Urb5CAk147coiKm10fyyNh9bFb717VbWz_hJP2CYMW1In4jEJI2IKOfr64hvtigy_lsLZfvd8LOo2xpwtj6gBKw5KquE8_9ybKc?purpose=inline"/><h2 id="1-introduction-to-action-recognition"><strong>1. Introduction to Action Recognition</strong></h2><p>Action recognition is the process of identifying an activity being performed in a video.</p><p>Examples:</p><ul><li><p>Walking</p></li><li><p>Running</p></li><li><p>Jumping</p></li><li><p>Swimming</p></li><li><p>Clapping</p></li><li><p>Waving</p></li><li><p>Falling</p></li><li><p>Playing football</p></li></ul><p>A single frame may not clearly distinguish walking from running.</p><p>Therefore, the sequence of frames is important.</p><h2 id="2-why-is-action-recognition-a-sequence-problem"><strong>2. Why is Action Recognition a Sequence Problem?</strong></h2><p>Consider a walking video:</p>
+
+<div class="math-display">$$
+Frame_1 \rightarrow Frame_2 \rightarrow Frame_3
+\rightarrow Frame_4
+$$</div>
+
+<p>Each frame contains spatial information, but the order of the frames tells us about movement.</p><p>Therefore, action recognition requires temporal sequence understanding.</p><h2 id="3-what-is-an-rnn"><strong>3. What is an RNN?</strong></h2><p>RNN stands for <strong>Recurrent Neural Network</strong>.</p><p>It is a neural network designed to process sequential data.</p><p>Examples of sequential data:</p><ul><li><p>Text</p></li><li><p>Speech</p></li><li><p>Time-series data</p></li><li><p>Sensor data</p></li><li><p>Stock prices</p></li><li><p>Video sequences</p></li></ul><p>RNNs process information step by step while maintaining a hidden state that carries information from previous time steps.</p><h2 id="4-basic-idea-of-rnn"><strong>4. Basic Idea of RNN</strong></h2><p>A conventional neural network:</p>
+
+<div class="math-display">$$
+Input \rightarrow Network \rightarrow Output
+$$</div>
+
+<p>An RNN introduces a memory-like hidden state.</p><p>It considers:</p><ul><li><p>Current input.</p></li><li><p>Previous hidden state.</p></li></ul><p>And produces:</p><ul><li><p>New hidden state.</p></li><li><p>Output.</p></li></ul><p>Current Input $x_t$</p><p><strong>RNN Cell</strong></p><p>Previous state enters</p><p>New state exits</p><p>Hidden State $h_t$</p><p>Output $y_t$</p><h2 id="5-rnn-for-video"><strong>5. RNN for Video</strong></h2><p>Suppose a video contains five frames.</p><p>First, CNN extracts features from every frame:</p>
+
+<div class="math-display">$$
+Frame_1 \rightarrow CNN \rightarrow Feature_1
+$$</div>
+
+<div class="math-display">$$
+Frame_2 \rightarrow CNN \rightarrow Feature_2
+$$</div>
+
+<p>The same process is performed for all frames.</p><p>Then the RNN receives the feature sequence and learns how these features change over time.</p><h2 id="6-cnn-rnn-architecture"><strong>6. CNN + RNN Architecture</strong></h2><p>This is one of the most important concepts in action recognition.</p><p><strong>Input Video</strong></p><p>Frame 1</p><p>Frame 2</p><p>Frame 3</p><p>Frame 4</p><p><strong>CNN Feature Extraction</strong></p><p>F1</p><p>F2</p><p>F3</p><p>F4</p><p><strong>RNN</strong></p><p>Learns temporal relationships</p>Fully Connected LayerSoftmax → Walking / Running / Jumping<p>Roles:</p><ul><li><p>CNN → Extracts spatial features from individual frames.</p></li><li><p>RNN → Learns temporal relationships among features.</p></li><li><p>Classifier → Predicts the final action.</p></li></ul>
+
+<div class="math-display">$$
+CNN+RNN=Spatial+Temporal\ Understanding
+$$</div>
+
+<h2 id="7-example-walking"><strong>7. Example: Walking</strong></h2><p>Suppose a video contains:</p><ul><li><p>Frame 1: Left leg forward.</p></li><li><p>Frame 2: Right leg forward.</p></li><li><p>Frame 3: Left leg forward.</p></li><li><p>Frame 4: Right leg forward.</p></li></ul><p>CNN extracts the features from each frame.</p><p>RNN learns the repeating movement pattern.</p><p>Final prediction:</p><p><strong>Walking</strong></p><h2 id="8-rnn-architecture"><strong>8. RNN Architecture</strong></h2><p>At each time step:</p><ul><li><p>$x_t$ = Current input.</p></li><li><p>$h_t$ = Current hidden state.</p></li><li><p>$y_t$ = Current output.</p></li></ul><p>An RNN uses the same recurrent mechanism at every time step.</p><h2 id="9-unrolled-rnn"><strong>9. Unrolled RNN</strong></h2><p>An RNN is easier to understand when expanded across time.</p><p><strong>x</strong><strong>1</strong></p><p><strong>RNN</strong></p><p>h1</p><p><strong>x</strong><strong>2</strong></p><p><strong>RNN</strong></p><p>h2</p><p><strong>x</strong><strong>3</strong></p><p><strong>RNN</strong></p><p>h3</p><p><strong>x</strong><strong>4</strong></p><p><strong>RNN</strong></p><p>h4</p><p>The hidden state is passed from one time step to the next.</p><p>The same RNN mechanism and weights are used at every time step.</p>
+
+<div class="math-display">$$
+h_1 \rightarrow h_2 \rightarrow h_3 \rightarrow h_4
+$$</div>
+
+<p>This allows earlier frames to influence later predictions.</p><h2 id="10-hidden-state"><strong>10. Hidden State</strong></h2><p>Hidden state is the internal representation of information learned from previous inputs.</p><p>For a video:</p><ul><li><p>Frame 1 → Hidden state 1.</p></li><li><p>Frame 2 → Hidden state 2.</p></li><li><p>Frame 3 → Hidden state 3.</p></li><li><p>Frame 4 → Hidden state 4.</p></li></ul><p>Each hidden state contains information about the sequence processed so far.</p><p>An RNN does not store every previous frame separately. It maintains a learned representation that summarizes relevant information.</p><h2 id="11-rnn-mathematical-model"><strong>11. RNN Mathematical Model</strong></h2><p>The hidden state equation is:</p>
+
+<div class="math-display">$$
+h_t=\tanh(W_{xh}x_t+W_{hh}h_{t-1}+b_h)
+$$</div>
+
+<p>Where:</p><table><tr><th>Symbol</th><th>Meaning</th></tr><tr><td>$x_t$</td><td>Current input</td></tr><tr><td>$h_t$</td><td>Current hidden state</td></tr><tr><td>$h_{t-1}$</td><td>Previous hidden state</td></tr><tr><td>$W_{xh}$</td><td>Input-to-hidden weights</td></tr><tr><td>$W_{hh}$</td><td>Hidden-to-hidden weights</td></tr><tr><td>$b_h$</td><td>Bias</td></tr><tr><td>tanh</td><td>Activation function</td></tr></table><p>Output equation:</p>
+
+<div class="math-display">$$
+y_t=W_{hy}h_t+b_y
+$$</div>
+
+<p><strong>Intuition:</strong></p>
+
+<div class="math-display">$$
+Current\ State=Current\ Input+Previous\ Information
+$$</div>
+
+<h2 id="12-numerical-example-of-rnn"><strong>12. Numerical Example of RNN</strong></h2><p>Suppose:</p>
+
+<div class="math-display">$$
+x_t=2,\quad h_{t-1}=3
+$$</div>
+
+<div class="math-display">$$
+W_{xh}=0.5,\quad W_{hh}=0.2,\quad b_h=0
+$$</div>
+
+<p>Substitute in the hidden-state equation:</p>
+
+<div class="math-display">$$
+h_t=\tanh(0.5(2)+0.2(3)+0)
+$$</div>
+
+<div class="math-display">$$
+h_t=\tanh(1+0.6)
+$$</div>
+
+<div class="math-display">$$
+h_t=\tanh(1.6)
+$$</div>
+
+<div class="math-display">$$
+\boxed{h_t\approx0.922}
+$$</div>
+
+<p>The new hidden state is passed to the next time step.</p><h2 id="13-many-to-one-rnn"><strong>13. Many-to-One RNN</strong></h2><p>In many-to-one architecture, multiple inputs produce one final output.</p><p>It is commonly used for video action recognition.</p><p>Example:</p>
+
+<div class="math-display">$$
+Frame_1,Frame_2,\ldots,Frame_5
+\rightarrow RNN
+\rightarrow Running
+$$</div>
+
+<p>This means many video frames are used to predict one action.</p><h2 id="14-many-to-many-rnn"><strong>14. Many-to-Many RNN</strong></h2><p>In many-to-many architecture, the model produces an output at every time step.</p><p>Example:</p>
+
+<div class="math-display">$$
+x_1\rightarrow y_1
+$$</div>
+
+<div class="math-display">$$
+x_2\rightarrow y_2
+$$</div>
+
+<div class="math-display">$$
+x_3\rightarrow y_3
+$$</div>
+
+<p>It can be useful when we want to identify activities continuously throughout a video.</p><h3 id="types-of-rnn-input-output-structures"><strong>Types of RNN Input-Output Structures</strong></h3><table><tr><th>Structure</th><th>Input</th><th>Output</th><th>Example</th></tr><tr><td>One-to-One</td><td>One</td><td>One</td><td>Image classification</td></tr><tr><td>One-to-Many</td><td>One</td><td>Sequence</td><td>Image captioning</td></tr><tr><td>Many-to-One</td><td>Sequence</td><td>One</td><td>Action recognition</td></tr><tr><td>Many-to-Many</td><td>Sequence</td><td>Sequence</td><td>Sequence labelling</td></tr></table><h2 id="15-action-recognition-pipeline-using-cnn-rnn"><strong>15. Action Recognition Pipeline Using CNN + RNN</strong></h2>Raw VideoFrame ExtractionFrame SamplingResize and NormalizeCNN Feature ExtractionFeature SequenceRNNTemporal Feature LearningFully Connected LayerSoftmaxAction Class<h2 id="16-how-is-rnn-trained-bptt"><strong>16. How is RNN Trained? – BPTT</strong></h2><p>BPTT stands for <strong>Backpropagation Through Time</strong>.</p><p>It is the training method used for RNNs.</p><p>Working:</p><ol><li><p>Unroll the RNN across time steps.</p></li><li><p>Perform forward propagation for the sequence.</p></li><li><p>Calculate prediction error using a loss function.</p></li><li><p>Propagate gradients backward through the time steps.</p></li><li><p>Calculate gradients for shared weights.</p></li><li><p>Update weights using an optimizer.</p></li></ol><p>The objective is to reduce prediction error.</p><h2 id="17-vanishing-gradient-problem"><strong>17. Vanishing Gradient Problem</strong></h2><p>During backpropagation, gradients may become extremely small as they move through many time steps.</p><p>As a result:</p><ul><li><p>Earlier inputs receive very small learning signals.</p></li><li><p>The network struggles to learn long-term dependencies.</p></li><li><p>Important earlier information may not influence later predictions effectively.</p></li></ul><p>Example: An action starts in the first few frames but is completed much later. A traditional RNN may struggle to retain the relevant information.</p><h2 id="18-exploding-gradient-problem"><strong>18. Exploding Gradient Problem</strong></h2><p>Gradients may become extremely large during backpropagation.</p><p>This can cause:</p><ul><li><p>Unstable training.</p></li><li><p>Very large weight updates.</p></li><li><p>Difficulty in reaching convergence.</p></li></ul><p>Gradient clipping is one technique used to control exploding gradients.</p><h2 id="19-cnn-rnn-vs-3d-cnn"><strong>19. CNN + RNN vs 3D CNN</strong></h2><table><tr><th>CNN + RNN</th><th>3D CNN</th></tr><tr><td>CNN extracts frame features</td><td>Processes video clips directly</td></tr><tr><td>RNN models temporal sequences</td><td>3D convolution models local temporal patterns</td></tr><tr><td>Spatial and temporal learning are separated</td><td>Spatial and temporal learning are combined</td></tr><tr><td>Explicit recurrent memory</td><td>No explicit recurrent memory state</td></tr><tr><td>Flexible sequence modelling</td><td>Strong local motion learning</td></tr></table><h2 id="20-advantages-and-limitations"><strong>20. Advantages and Limitations</strong></h2><p><strong>Advantages</strong></p><ol><li><p>Designed for sequential data.</p></li><li><p>Learns temporal relationships.</p></li><li><p>Can handle variable-length sequences, depending on implementation.</p></li><li><p>Works effectively with CNN.</p></li><li><p>Applicable to multiple sequential problems.</p></li></ol><p><strong>Limitations</strong></p><ol><li><p>Vanishing gradients.</p></li><li><p>Exploding gradients.</p></li><li><p>Sequential processing limits parallelization.</p></li><li><p>Difficult to learn long-term dependencies.</p></li><li><p>Training can be complex.</p></li></ol><p><strong>Applications:</strong></p><ul><li><p>CCTV fall detection.</p></li><li><p>Classroom activity recognition.</p></li><li><p>Sports action recognition.</p></li><li><p>Human movement analysis.</p></li></ul><p><strong>Important distinction:</strong></p><ul><li><p>Object detection → Identifies Person, Car, Dog and their locations.</p></li><li><p>Action recognition → Identifies Running, Jumping, Walking and other activities.</p></li><li><p>Action detection → Identifies what action occurs, where it occurs and when it occurs.</p></li></ul><h1 id="510-action-recognition-using-lstm"><strong>5.10 – Action Recognition Using LSTM</strong></h1><img alt="Frontiers | Chiller Fault Diagnosis Based on Automatic Machine Learning" class="exported-media" src="https://images.openai.com/static-rsc-4/einV_jjuzwrcI2-81n7uuKXknxBQArbwBz-fgKKkxAlREeRhWKoZgv5e-bJkkMn_ffq--ujtLB-JyqqOtHTHieMp0wA8QJja_Jp7KDUm62Cf0u1NIWOB49b2Hhf_TCkU1H9-1cx3qlBCpLTEgdbK5EmxY4GYbKdf-m5p60ti8w0?purpose=inline"/><img alt="A survey of video-based human action recognition in team sports | Artificial Intelligence Review | Springer Nature Link" class="exported-media" src="https://images.openai.com/static-rsc-4/TdlT-r9Zz-evL_yMLUFswPKxzajLR95knqIGryDjZXt-WvqJamWEzLIwqCFxBvmsHiioMBh3qU5Y4JSVg_Lvd1rvgiffaAvq0O9d7HUePiBIlhSr7pAojmpQC-cN0y8Lb6FGo2pzTJAAS9XdF10W8qqeLBDnUIVGh1eqOW1icF8?purpose=inline"/><img alt="LSTM Network for the Oxygen Concentration Modeling of a Wastewater Treatment Plant | MDPI" class="exported-media" src="https://images.openai.com/static-rsc-4/yqgICEsS2LLPV_Ex2rJksHRhTu-YX546_n1JbnVPCOMHlGxZQrZJFJ1rycwaRnZn5frP4860fgg8rPBwcX5OsCV3OG0U4qMYAdr65o-_4Kg9qg2uXz1fd7DKnoty2jXYNnpIN9ZMW2vDFAgn8Rh2wft5TNaGCTKtCb3xQyrAHEg?purpose=inline"/><h2 id="1-introduction-to-lstm"><strong>1. Introduction to LSTM</strong></h2><p>LSTM stands for <strong>Long Short-Term Memory</strong>.</p><p>It is a special type of Recurrent Neural Network designed to learn long-term dependencies in sequential data.</p><p>It is useful when information from earlier time steps is important for understanding something that happens much later.</p><p>Example:</p><p>A cricket video:</p><ol><li><p>Player picks up a bat.</p></li><li><p>Player prepares.</p></li><li><p>Ball approaches.</p></li><li><p>Player swings the bat.</p></li><li><p>Ball moves away.</p></li></ol><p>To understand the final action, the model may need to remember what happened in the earlier frames.</p><h2 id="2-why-do-we-need-lstm"><strong>2. Why Do We Need LSTM?</strong></h2><p>Traditional RNNs maintain hidden states and pass information from one time step to another.</p><p>However, they can struggle to preserve information from much earlier time steps because of the vanishing gradient problem.</p><p>LSTM addresses this limitation using a controlled memory mechanism.</p><h2 id="3-what-is-lstm"><strong>3. What is LSTM?</strong></h2><p>LSTM is a recurrent neural network architecture that uses gates to control information flow.</p><p>It contains three main gates:</p><ol><li><p>Forget Gate</p></li><li><p>Input Gate</p></li><li><p>Output Gate</p></li></ol><p>It also maintains:</p><ul><li><p>Cell State.</p></li><li><p>Hidden State.</p></li></ul><p>The main idea is:</p><p><strong>Forget unnecessary information, store useful information and produce the required output.</strong></p><h2 id="4-cell-state-and-hidden-state"><strong>4. Cell State and Hidden State</strong></h2><p>An LSTM maintains two important states.</p><p><strong>1. Cell State (</strong>$C_t$<strong>)</strong></p><ul><li><p>Acts as the main memory pathway.</p></li><li><p>Carries information across time steps.</p></li><li><p>Helps preserve important information over longer sequences.</p></li></ul><p><strong>2. Hidden State (</strong>$h_t$<strong>)</strong></p><ul><li><p>Represents the current output/state.</p></li><li><p>Contains information used for the current prediction.</p></li><li><p>Is passed to the next time step.</p></li></ul><p>A useful memory trick:</p><table><tr><th>Cell State</th><th>Hidden State</th></tr><tr><td>Long-term memory pathway</td><td>Current working/output information</td></tr><tr><td>Carries information forward</td><td>Produces current output</td></tr><tr><td>Updated through gates</td><td>Controlled by output gate</td></tr></table><h2 id="5-lstm-cell-architecture"><strong>5. LSTM Cell Architecture</strong></h2><img alt="A Robust Lithium-Ion Battery Capacity Prediction Framework Using Multi-Point Voltage Temporal Features and an OOF-Trained Adaptive Gating Mechanism" class="exported-media" src="https://images.openai.com/static-rsc-4/2GJKVtR_Y-pOnAVGu6OllyhDyxD8Nrkb0j3i6qiKnRarPs_6TYei1VASsgNbbD9dzjDbKZnemYCURY9SN8cMfmQ1hv7fiZSgyPh4D9xSUoZO56jDhCrvBqZWPXJxQ6fNb28cBHt4Z9GXwpa-M66CgdE560ZlttX7UzTy6hL_R3c?purpose=inline"/><a href="https://www.mdpi.com/1996-1073/19/7/1745?utm_source=chatgpt.com">mdpi.com</a><p>At time $t$, the LSTM receives:</p><ol><li><p>Current input $x_t$.</p></li><li><p>Previous hidden state $h_{t-1}$.</p></li><li><p>Previous cell state $C_{t-1}$.</p></li></ol><p>It produces:</p><ol><li><p>Current hidden state $h_t$.</p></li><li><p>Current cell state $C_t$.</p></li></ol><h2 id="6-the-three-gates-of-lstm"><strong>6. The Three Gates of LSTM</strong></h2><p>This is the most important section in LSTM.</p><p><strong>LSTM has three main gates</strong></p><p><strong>1. Forget Gate</strong></p><p>What old information should be removed?</p><p><strong>2. Input Gate</strong></p><p>What new information should be stored?</p><p><strong>3. Output Gate</strong></p><p>What information should be produced as output?</p><p>Each gate uses the sigmoid activation function.</p>
+
+<div class="math-display">$$
+\sigma(x)=\frac{1}{1+e^{-x}}
+$$</div>
+
+<p>Its output ranges between 0 and 1.</p><ul><li><p>0 → Reject or block information.</p></li><li><p>1 → Allow or retain information.</p></li><li><p>Between 0 and 1 → Partially allow information.</p></li></ul><h2 id="7-forget-gate"><strong>7. Forget Gate</strong></h2><p>The forget gate decides what information from the previous cell state should be retained or discarded.</p><p>Formula:</p>
+
+<div class="math-display">$$
+f_t=\sigma(W_f[h_{t-1},x_t]+b_f)
+$$</div>
+
+<p>Where:</p><ul><li><p>$f_t$ = Forget gate output.</p></li><li><p>$W_f$ = Forget gate weights.</p></li><li><p>$h_{t-1}$ = Previous hidden state.</p></li><li><p>$x_t$ = Current input.</p></li><li><p>$b_f$ = Bias.</p></li></ul><p><strong>Working:</strong></p><ul><li><p>Value close to 0 → Mostly forget.</p></li><li><p>Value close to 1 → Mostly retain.</p></li></ul><p>Example:</p><p>In a football video, earlier frames show a player walking towards the ball. Later frames show the player kicking the ball.</p><p>The forget gate can reduce the influence of less relevant walking information.</p><h2 id="8-input-gate"><strong>8. Input Gate</strong></h2><p>The input gate determines what new information should be stored in the cell state.</p><p>Formula:</p>
+
+<div class="math-display">$$
+i_t=\sigma(W_i[h_{t-1},x_t]+b_i)
+$$</div>
+
+<p>The LSTM also generates candidate information:</p>
+
+<div class="math-display">$$
+\widetilde C_t=\tanh(W_C[h_{t-1},x_t]+b_C)
+$$</div>
+
+<p>Where:</p><ul><li><p>$i_t$ = Input gate output.</p></li><li><p>$\widetilde C_t$ = Candidate cell information.</p></li><li><p>$W_i,W_C$ = Trainable weights.</p></li><li><p>$b_i,b_C$ = Biases.</p></li></ul><p><strong>Working:</strong></p><p>The input gate asks:</p><p>"Is this new information important enough to store?"</p><p>Example:</p><p>In a running video:</p><p>Standing → Starting movement → Running.</p><p>The input gate controls how much new running-related information is added to memory.</p><h2 id="9-updating-the-cell-state"><strong>9. Updating the Cell State</strong></h2><p>This is an extremely important LSTM equation.</p>
+
+<div class="math-display">$$
+\boxed{C_t=f_tC_{t-1}+i_t\widetilde C_t}
+$$</div>
+
+<p>It contains two parts.</p><p><strong>First part:</strong></p>
+
+<div class="math-display">$$
+f_tC_{t-1}
+$$</div>
+
+<p>Controls how much previous memory is retained.</p><p><strong>Second part:</strong></p>
+
+<div class="math-display">$$
+i_t\widetilde C_t
+$$</div>
+
+<p>Controls how much new information is added.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+New\ Memory=Retained\ Old\ Memory+Selected\ New\ Information
+$$</div>
+
+<h2 id="10-output-gate"><strong>10. Output Gate</strong></h2><p>The output gate determines what information should be exposed as the current hidden state.</p><p>Formula:</p>
+
+<div class="math-display">$$
+o_t=\sigma(W_o[h_{t-1},x_t]+b_o)
+$$</div>
+
+<p>The hidden state is calculated using:</p>
+
+<div class="math-display">$$
+\boxed{h_t=o_t\tanh(C_t)}
+$$</div>
+
+<p>Where:</p><ul><li><p>$o_t$ = Output gate.</p></li><li><p>$h_t$ = Current hidden state.</p></li><li><p>$C_t$ = Current cell state.</p></li></ul><p>The hidden state is passed to the next time step.</p><h2 id="11-complete-lstm-mathematical-equations"><strong>11. Complete LSTM Mathematical Equations</strong></h2><p>These are the six major equations you should remember for examinations.</p><table><tr><th>Component</th><th>Formula</th></tr><tr><td>Forget Gate</td><td>$f_t=\sigma(W_f[h_{t-1},x_t]+b_f)$</td></tr><tr><td>Input Gate</td><td>$i_t=\sigma(W_i[h_{t-1},x_t]+b_i)$</td></tr><tr><td>Candidate Cell</td><td>$\widetilde C_t=\tanh(W_C[h_{t-1},x_t]+b_C)$</td></tr><tr><td>Cell State</td><td>$C_t=f_tC_{t-1}+i_t\widetilde C_t$</td></tr><tr><td>Output Gate</td><td>$o_t=\sigma(W_o[h_{t-1},x_t]+b_o)$</td></tr><tr><td>Hidden State</td><td>$h_t=o_t\tanh(C_t)$</td></tr></table><h2 id="12-easy-way-to-remember-lstm"><strong>12. Easy Way to Remember LSTM</strong></h2><p><strong>FORGET</strong></p><p>Remove unnecessary old information</p><p><strong>INPUT</strong></p><p>Select useful new information</p><p><strong>UPDATE MEMORY</strong></p><p>Combine retained and new information</p><p><strong>OUTPUT</strong></p><p>Produce current hidden state</p><h2 id="13-cnn-lstm-architecture"><strong>13. CNN + LSTM Architecture</strong></h2><p>This architecture is used for video action recognition.</p><p>CNN extracts spatial information from individual frames, and LSTM learns temporal dependencies among those features.</p><p><strong>Input Video</strong></p><p>Frame 1</p><p>Frame 2</p><p>Frame 3</p><p>Frame 4</p>CNN – Spatial Feature ExtractionFeature Sequence<p><strong>LSTM</strong></p><p>Forget • Input • Output gates</p>Temporal Feature LearningFully Connected LayerAction Prediction<h2 id="14-how-lstm-learns-long-term-dependencies"><strong>14. How LSTM Learns Long-Term Dependencies</strong></h2><p>LSTM uses a cell state that provides a pathway for carrying information across time.</p><p>The forget gate controls what information to retain, while the input gate controls what new information to add.</p><p>This allows important information from earlier frames to influence later predictions.</p><p>Example:</p><p>In a cricket video:</p><ul><li><p>Early frames: Player picks up a bat.</p></li><li><p>Middle frames: Player prepares.</p></li><li><p>Later frames: Player hits the ball.</p></li></ul><p>LSTM can preserve useful information about the earlier preparation to understand the later action.</p><h2 id="15-rnn-vs-lstm"><strong>15. RNN vs LSTM</strong></h2><table><tr><th>Feature</th><th>RNN</th><th>LSTM</th></tr><tr><td>Full form</td><td>Recurrent Neural Network</td><td>Long Short-Term Memory</td></tr><tr><td>Memory</td><td>Hidden state</td><td>Cell and hidden states</td></tr><tr><td>Gates</td><td>No separate gating mechanism in a basic RNN</td><td>Three main gates</td></tr><tr><td>Long-term dependencies</td><td>Difficult</td><td>Better suited</td></tr><tr><td>Vanishing gradient</td><td>More vulnerable</td><td>Helps mitigate</td></tr><tr><td>Complexity</td><td>Simpler</td><td>More complex</td></tr><tr><td>Parameters</td><td>Fewer</td><td>More</td></tr><tr><td>Computation</td><td>Generally lower</td><td>Generally higher</td></tr></table><h2 id="16-lstm-vs-3d-cnn"><strong>16. LSTM vs 3D CNN</strong></h2><table><tr><th>Feature</th><th>3D CNN</th><th>CNN + LSTM</th></tr><tr><td>Spatial features</td><td>3D convolution</td><td>CNN</td></tr><tr><td>Temporal features</td><td>3D convolution</td><td>LSTM</td></tr><tr><td>Input</td><td>Video clip</td><td>Frame sequence/features</td></tr><tr><td>Long-term learning</td><td>Depends on temporal receptive field</td><td>Explicit recurrent memory</td></tr><tr><td>Memory mechanism</td><td>No explicit cell state</td><td>Cell and hidden states</td></tr><tr><td>Main strength</td><td>Local motion patterns</td><td>Longer sequential dependencies</td></tr></table><h2 id="17-advantages-of-lstm"><strong>17. Advantages of LSTM</strong></h2><ol><li><p>Handles long-term dependencies better than a basic RNN.</p></li><li><p>Selective memory through gates.</p></li><li><p>Works effectively with CNN.</p></li><li><p>Useful for complex multi-stage actions.</p></li><li><p>Helps mitigate the vanishing gradient problem.</p></li></ol><h2 id="18-limitations-of-lstm"><strong>18. Limitations of LSTM</strong></h2><ol><li><p>More complex than a traditional RNN.</p></li><li><p>More trainable parameters.</p></li><li><p>Higher computational cost.</p></li><li><p>Sequential processing limits parallelization.</p></li><li><p>Requires suitable labelled training data.</p></li><li><p>Not always the best architecture for every modern video task.</p></li></ol><h2 id="19-applications"><strong>19. Applications</strong></h2><ul><li><p>Human action recognition.</p></li><li><p>Sports analysis.</p></li><li><p>CCTV activity monitoring.</p></li><li><p>Healthcare and fall detection.</p></li><li><p>Gesture recognition.</p></li><li><p>Video event understanding.</p></li></ul><h1 id="part-3-important-comparisons-for-examinations"><strong>PART 3: IMPORTANT COMPARISONS FOR EXAMINATIONS</strong></h1><p>These comparisons connect all five topics and are especially useful for 5-mark and 10-mark questions.</p><h2 id="1-r-cnn-vs-yolo"><strong>1. R-CNN vs YOLO</strong></h2><table><tr><th>Feature</th><th>R-CNN</th><th>YOLO</th></tr><tr><td>Detection type</td><td>Region-based</td><td>One-stage</td></tr><tr><td>Main approach</td><td>Region proposals</td><td>Direct prediction</td></tr><tr><td>CNN processing</td><td>Each region separately</td><td>Integrated network</td></tr><tr><td>Speed</td><td>Slow</td><td>Fast</td></tr><tr><td>NMS</td><td>Yes</td><td>Yes</td></tr><tr><td>Real-time suitability</td><td>Limited</td><td>Good</td></tr><tr><td>Main advantage</td><td>Region-based detection</td><td>Fast detection</td></tr></table><h2 id="2-2d-cnn-vs-3d-cnn"><strong>2. 2D CNN vs 3D CNN</strong></h2><table><tr><th>Feature</th><th>2D CNN</th><th>3D CNN</th></tr><tr><td>Input</td><td>Image</td><td>Video</td></tr><tr><td>Dimensions</td><td>H × W</td><td>T × H × W</td></tr><tr><td>Spatial learning</td><td>Yes</td><td>Yes</td></tr><tr><td>Temporal learning</td><td>Not directly</td><td>Yes</td></tr><tr><td>Filter movement</td><td>Horizontal and vertical</td><td>Horizontal, vertical and temporal</td></tr><tr><td>Application</td><td>Image classification</td><td>Video classification</td></tr></table><h2 id="3-rnn-vs-lstm"><strong>3. RNN vs LSTM</strong></h2><table><tr><th>Feature</th><th>RNN</th><th>LSTM</th></tr><tr><td>Architecture</td><td>Recurrent cell</td><td>Gated recurrent cell</td></tr><tr><td>Memory</td><td>Hidden state</td><td>Cell + hidden state</td></tr><tr><td>Gates</td><td>No</td><td>Three main gates</td></tr><tr><td>Long-term dependencies</td><td>Difficult</td><td>Better</td></tr><tr><td>Vanishing gradients</td><td>Major limitation</td><td>Helps mitigate</td></tr><tr><td>Complexity</td><td>Low</td><td>High</td></tr></table><h2 id="4-3d-cnn-vs-cnn-rnnlstm"><strong>4. 3D CNN vs CNN + RNN/LSTM</strong></h2><table><tr><th>Feature</th><th>3D CNN</th><th>CNN + RNN/LSTM</th></tr><tr><td>Spatial learning</td><td>3D convolution</td><td>CNN</td></tr><tr><td>Temporal learning</td><td>3D convolution</td><td>RNN/LSTM</td></tr><tr><td>Input</td><td>Video clips</td><td>Frame sequences</td></tr><tr><td>Motion learning</td><td>Local motion patterns</td><td>Sequential dependencies</td></tr><tr><td>Memory</td><td>No explicit recurrent memory</td><td>Hidden state / cell state</td></tr><tr><td>Computation</td><td>High</td><td>Can also be high</td></tr></table><h2 id="5-object-detection-vs-action-recognition"><strong>5. Object Detection vs Action Recognition</strong></h2><table><tr><th>Object Detection</th><th>Action Recognition</th></tr><tr><td>Identifies objects</td><td>Identifies activities</td></tr><tr><td>Works on images or video frames</td><td>Usually analyses video sequences</td></tr><tr><td>Detects Car, Person, Dog</td><td>Detects Walking, Running, Jumping</td></tr><tr><td>Provides bounding boxes</td><td>Provides action labels</td></tr></table><h1 id="part-4-how-all-five-topics-are-connected"><strong>PART 4: HOW ALL FIVE TOPICS ARE CONNECTED</strong></h1><p>This is the most important conceptual connection in the entire unit.</p><p><strong>DEEP LEARNING FOR IMAGE AND VIDEO</strong></p><p><strong>Image Understanding</strong></p><p>What objects are present?</p><p><strong>R-CNN</strong></p><p>Region proposals</p><p><strong>YOLO</strong></p><p>Direct object detection</p><p><strong>Video Understanding</strong></p><p>What is happening over time?</p><p><strong>3D CNN</strong></p><p>Spatial + temporal features</p><p><strong>RNN / LSTM</strong></p><p>Sequential understanding</p><p><strong>Final Goal: Understand Images, Videos, Objects and Human Actions</strong></p><h3 id="one-example-to-understand-everything"><strong>One example to understand everything</strong></h3><p>Consider a CCTV camera recording a person falling.</p><table><tr><th>Topic</th><th>What it does</th></tr><tr><td>R-CNN</td><td>Detects the person using region proposals</td></tr><tr><td>YOLO</td><td>Detects the person quickly in the video frames</td></tr><tr><td>3D CNN</td><td>Learns spatial and motion patterns across frames</td></tr><tr><td>RNN</td><td>Analyses the sequence of frame features</td></tr><tr><td>LSTM</td><td>Preserves useful information over longer sequences to recognize the fall</td></tr></table><p>This is how the five topics relate to one another.</p><h1 id="part-5-important-exam-topics-what-not-to-miss"><strong>PART 5: IMPORTANT EXAM TOPICS – WHAT NOT TO MISS</strong></h1><p>Based on the learning objectives and examination questions included in your lecture notes, prioritize the following.</p><h2 id="priority-1-must-prepare-thoroughly"><strong>Priority 1 – Must prepare thoroughly</strong></h2><p>0 of 12 completed</p>0%<p><strong>R-CNN complete architecture and working</strong></p><p>Document 5.6</p><p><strong>R-CNN vs Fast R-CNN vs Faster R-CNN</strong></p><p>Document 5.6</p><p><strong>YOLO architecture and complete detection pipeline</strong></p><p>Document 5.7</p><p><strong>IoU and NMS</strong></p><p>Document 5.6, 5.7</p><p><strong>3D CNN architecture and 3D convolution</strong></p><p>Document 5.8</p><p><strong>Spatial vs Temporal information</strong></p><p>Document 5.8</p><p><strong>CNN + RNN architecture and working</strong></p><p>Document 5.9</p><p><strong>RNN equations and BPTT</strong></p><p>Document 5.9</p><p><strong>Vanishing and exploding gradient problems</strong></p><p>Document 5.9</p><p><strong>LSTM architecture and three gates</strong></p><p>Document 5.10</p><p><strong>All six LSTM equations</strong></p><p>Document 5.10</p><p><strong>RNN vs LSTM</strong></p><p>Document 5.9, 5.10</p><h2 id="priority-2-important-short-answer-topics"><strong>Priority 2 – Important short-answer topics</strong></h2><ol><li><p>Classification vs Object Detection.</p></li><li><p>Bounding Box.</p></li><li><p>Selective Search.</p></li><li><p>CNN Feature Extraction.</p></li><li><p>Confidence Score.</p></li><li><p>Normalized Coordinates.</p></li><li><p>YOLO Grid Concept.</p></li><li><p>3D Pooling.</p></li><li><p>Video Preprocessing.</p></li><li><p>Hidden State.</p></li><li><p>Many-to-One and Many-to-Many RNN.</p></li><li><p>Cell State vs Hidden State.</p></li><li><p>LSTM Applications and Limitations.</p></li><li><p>Action Recognition vs Action Detection.</p></li></ol><h2 id="priority-3-diagrams-you-should-practise"><strong>Priority 3 – Diagrams you should practise</strong></h2><img alt="Deep Learning for Object Detection" class="exported-media" src="https://images.openai.com/static-rsc-4/Z7wkinRDRX5jtMOsVKDJ3faPZAXqfExVXfWBNacuUkqTFJwSRF1YmAJjsFeUHdNRINxd_-div1jWBNrVPmqA8-XFeAaGDR9h_K1H3Ay2hKxayPDXVR2UvDrjlr5kwfonRnRtST3uZEBk-2ksZXSSJ0Ywk08QEkq54GfRZw5hOoI?purpose=inline"/><p><strong>1. R-CNN Architecture</strong></p><img alt="Top Object Detection Models for Your Projects in 2025 | DigitalOcean" class="exported-media" src="https://images.openai.com/static-rsc-4/DNrC8yEqfyBy14UaRbYcKYFu8jyb9YtsFvMrt0CdxWAaPIVs2WOcv0pWXR2etzZ4kbPBJQe_N-0rFd_fSs6eza5XTkX9oHGmkRmofMAz02JZDxMf8cVg89euBo9yyfiimi0KluWqt29eVei7WndR3ghbpbxDti1xEm_HczbMim0?purpose=inline"/><p><strong>2. YOLO Architecture</strong></p><img alt="Deep Learning on Video (Part Three): Diving Deeper into 3D CNNs | by Cameron R. Wolfe, Ph.D. | TDS Archive | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/8p4qXrO-htnKX88huHKxROL9fUOd3OqQzeRApKRrGFwJy3vIZxmTkTAG3GNat4LBLMm9LkywZbaUz77R6ctLCsF3a78nbT_5gmGJ6hml_wMu0PK35USUKzh7MYUF2sN2QRSwCidqRzQQD2UxF5WNXisRL5rFnrcdsLvKYY5_3zg?purpose=inline"/><p><strong>3. 3D CNN Architecture</strong></p><img alt="A Deep Dive into Recurrent Neural Networks: Mastering Sequence Data" class="exported-media" src="https://images.openai.com/static-rsc-4/azn1Ew6AZaAhXxFN6892q1BTi_qc94axkEtZworzthDun4mYUvjFCs3b_sStEAZGkQiQjp0RdGxX8oD0GFzDrkMh3AGTC7UU5qmtloY5bhVpn-7E0qO7nqBYqHWY13ae9ZPqTrA066IgbP0mB_7HzbFI4hNJayUNMcebl7JF0Ck?purpose=inline"/><p><strong>4. RNN Architecture</strong></p><img alt="Order-Based Schedule of Dynamic Topology for Recurrent Neural Network" class="exported-media" src="https://images.openai.com/static-rsc-4/GUkTH3B6hsi5Mss8GCf1Pa99rrx_2gt0D8XCsdtsvGFYR1XXqrJskKh_IBrWZY9j69EP5qGweq_Xy0g2tMUsoZZfi14nwmVvRz-l3Yg75H03QAqnqaWj-FRXz2KM2O8l_JcITy7j6Q2fzrcv0qX-X_SWr17gADIcbEYU5zF0NIo?purpose=inline"/><p><strong>5. LSTM Architecture</strong></p><img alt="CNN + LSTM Combination | Download Scientific Diagram" class="exported-media" src="https://images.openai.com/static-rsc-4/FZn560hTvhoFnC2dlcMOZVls3E7VDKhP3UgAFFkKDMQMiYb36Q4HVEaOiL-2033MlzPdXQQKdhwc-4Gge7M0FvTF_XQ61VW9eiBDIJ6tw7jsGyi5dIorXTn56LcYnUD_DX-0qSBZNu9KfONtV1QBm_bYt3brTSngX3RSZh05PEE?purpose=inline"/><p><strong>6. CNN + LSTM Architecture</strong></p><h1 id="final-revision-five-lines-to-remember"><strong>Final Revision – Five Lines to Remember</strong></h1><ol><li><p><strong>R-CNN:</strong> Generates region proposals, extracts CNN features, classifies objects and refines bounding boxes.</p></li><li><p><strong>YOLO:</strong> Detects objects directly using a single integrated prediction process.</p></li><li><p><strong>3D CNN:</strong> Learns spatial and temporal features together using 3D convolution.</p></li><li><p><strong>RNN:</strong> Processes sequences using hidden states to understand temporal relationships.</p></li><li><p><strong>LSTM:</strong> Uses forget, input and output gates to control memory and learn long-term dependencies.</p></li></ol><p><strong>My recommendation:</strong> Study the five architectures first, understand their complete working pipelines, and then memorize the formulas and comparisons. These concepts form the foundation for most of the other topics in this unit.</p><p>The explanations above follow your five uploaded lecture documents. 5.6.docx 5.7.docx 5.8.docx 5.9.docx 5.10.docx</p>
+<div class="references"><strong>References:</strong><ol><li><a href="https://medium.com/%40patsatya3/dipping-into-yolo-inference-e94c4fac1bee?utm_source=chatgpt.com">medium.com</a></li><li><a href="https://mjrovai.github.io/EdgeML_Made_Ease_ebook/raspi/object_detection/object_detection_fundamentals.html?utm_source=chatgpt.com">mjrovai.github.io</a></li><li><a href="https://bigdaheta.tistory.com/60?utm_source=chatgpt.com">bigdaheta.tistory.com</a></li><li><a href="https://chih-sheng-huang821.medium.com/%E6%B7%B1%E5%BA%A6%E5%AD%B8%E7%BF%92-%E7%89%A9%E4%BB%B6%E5%81%B5%E6%B8%AC-you-only-look-once-yolo-4fb9cf49453c?utm_source=chatgpt.com">chih-sheng-huang821.medium.com</a></li><li><a href="https://cameronrwolfe.substack.com/p/local-light-field-fusion?utm_source=chatgpt.com">cameronrwolfe.substack.com</a></li><li><a href="https://www.mdpi.com/1996-1073/19/7/1745?utm_source=chatgpt.com">mdpi.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
