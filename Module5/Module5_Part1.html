@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Mindmap And Explanations</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#deep-learning-for-computer-vision-complete-study-notes">Deep Learning for Computer Vision – Complete Study Notes</a></li>
+<li class="toc-level-1"><a href="#part-1-complete-mind-map">Part 1: Complete mind map</a></li>
+<li class="toc-level-1"><a href="#part-2-explanation-of-every-topic">Part 2: Explanation of every topic</a></li>
+<li class="toc-level-1"><a href="#unit-1-introduction-to-deep-learning-for-computer-vision">Unit 1 – Introduction to Deep Learning for Computer Vision</a></li>
+<li class="toc-level-2"><a href="#1-what-is-deep-learning">1. What is Deep Learning?</a></li>
+<li class="toc-level-2"><a href="#2-artificial-intelligence-vs-machine-learning-vs-deep-learning">2. Artificial Intelligence vs Machine Learning vs Deep Learning</a></li>
+<li class="toc-level-2"><a href="#3-why-is-deep-learning-important-in-computer-vision">3. Why is Deep Learning important in Computer Vision?</a></li>
+<li class="toc-level-2"><a href="#4-traditional-computer-vision-vs-deep-learning">4. Traditional Computer Vision vs Deep Learning</a></li>
+<li class="toc-level-2"><a href="#5-what-does-deep-mean-in-deep-learning">5. What does Deep mean in Deep Learning?</a></li>
+<li class="toc-level-2"><a href="#6-artificial-neural-network-ann">6. Artificial Neural Network (ANN)</a></li>
+<li class="toc-level-3"><a href="#components-of-a-neuron">Components of a neuron</a></li>
+<li class="toc-level-2"><a href="#7-activation-functions">7. Activation Functions</a></li>
+<li class="toc-level-3"><a href="#a-relu-rectified-linear-unit">A. ReLU (Rectified Linear Unit)</a></li>
+<li class="toc-level-3"><a href="#b-sigmoid">B. Sigmoid</a></li>
+<li class="toc-level-3"><a href="#c-tanh">C. Tanh</a></li>
+<li class="toc-level-3"><a href="#d-softmax">D. Softmax</a></li>
+<li class="toc-level-3"><a href="#comparison-of-activation-functions">Comparison of activation functions</a></li>
+<li class="toc-level-2"><a href="#8-neural-network-learning-process">8. Neural Network Learning Process</a></li>
+<li class="toc-level-2"><a href="#9-forward-propagation">9. Forward Propagation</a></li>
+<li class="toc-level-2"><a href="#10-loss-function">10. Loss Function</a></li>
+<li class="toc-level-2"><a href="#11-backpropagation">11. Backpropagation</a></li>
+<li class="toc-level-2"><a href="#12-gradient-descent">12. Gradient Descent</a></li>
+<li class="toc-level-3"><a href="#learning-rate">Learning rate</a></li>
+<li class="toc-level-2"><a href="#13-epoch-batch-and-iteration">13. Epoch, Batch and Iteration</a></li>
+<li class="toc-level-2"><a href="#14-image-representation">14. Image Representation</a></li>
+<li class="toc-level-2"><a href="#15-why-are-fully-connected-networks-not-ideal-for-images">15. Why are Fully Connected Networks Not Ideal for Images?</a></li>
+<li class="toc-level-2"><a href="#16-introduction-to-cnn">16. Introduction to CNN</a></li>
+<li class="toc-level-2"><a href="#17-important-computer-vision-tasks">17. Important Computer Vision Tasks</a></li>
+<li class="toc-level-2"><a href="#18-important-cnn-architectures">18. Important CNN Architectures</a></li>
+<li class="toc-level-3"><a href="#residual-connection">Residual Connection</a></li>
+<li class="toc-level-2"><a href="#19-deep-learning-for-video">19. Deep Learning for Video</a></li>
+<li class="toc-level-3"><a href="#cnn-lstm">CNN + LSTM</a></li>
+<li class="toc-level-3"><a href="#3d-cnn">3D CNN</a></li>
+<li class="toc-level-2"><a href="#20-vision-transformers-vit">20. Vision Transformers (ViT)</a></li>
+<li class="toc-level-2"><a href="#21-complete-deep-learning-pipeline">21. Complete Deep Learning Pipeline</a></li>
+<li class="toc-level-2"><a href="#22-advantages-and-limitations-of-deep-learning">22. Advantages and Limitations of Deep Learning</a></li>
+<li class="toc-level-1"><a href="#unit-2-cnn-convolutional-neural-network">Unit 2 – CNN: Convolutional Neural Network</a></li>
+<li class="toc-level-2"><a href="#1-basic-idea-of-cnn">1. Basic idea of CNN</a></li>
+<li class="toc-level-2"><a href="#2-cnn-architecture">2. CNN Architecture</a></li>
+<li class="toc-level-2"><a href="#3-convolution-operation">3. Convolution Operation</a></li>
+<li class="toc-level-3"><a href="#how-convolution-works">How convolution works</a></li>
+<li class="toc-level-2"><a href="#4-filters-and-kernels">4. Filters and Kernels</a></li>
+<li class="toc-level-2"><a href="#5-feature-map">5. Feature Map</a></li>
+<li class="toc-level-2"><a href="#6-relu-activation">6. ReLU Activation</a></li>
+<li class="toc-level-2"><a href="#7-pooling-layer">7. Pooling Layer</a></li>
+<li class="toc-level-3"><a href="#a-max-pooling">A. Max Pooling</a></li>
+<li class="toc-level-3"><a href="#b-average-pooling">B. Average Pooling</a></li>
+<li class="toc-level-3"><a href="#max-pooling-vs-average-pooling">Max Pooling vs Average Pooling</a></li>
+<li class="toc-level-2"><a href="#8-multiple-cnn-layers-and-feature-hierarchy">8. Multiple CNN Layers and Feature Hierarchy</a></li>
+<li class="toc-level-2"><a href="#9-how-does-cnn-learn">9. How does CNN learn?</a></li>
+<li class="toc-level-2"><a href="#10-why-cnn-instead-of-a-normal-neural-network">10. Why CNN instead of a Normal Neural Network?</a></li>
+<li class="toc-level-2"><a href="#11-applications-of-cnn">11. Applications of CNN</a></li>
+<li class="toc-level-1"><a href="#unit-3-cnn-training-and-optimization-document-53">Unit 3 – CNN Training and Optimization (Document 5.3)</a></li>
+<li class="toc-level-2"><a href="#1-what-is-cnn-training">1. What is CNN Training?</a></li>
+<li class="toc-level-2"><a href="#2-what-does-a-cnn-actually-learn">2. What does a CNN actually learn?</a></li>
+<li class="toc-level-2"><a href="#3-what-are-parameters">3. What are Parameters?</a></li>
+<li class="toc-level-2"><a href="#4-complete-cnn-training-process">4. Complete CNN Training Process</a></li>
+<li class="toc-level-2"><a href="#5-input-image">5. Input Image</a></li>
+<li class="toc-level-2"><a href="#6-forward-propagation">6. Forward Propagation</a></li>
+<li class="toc-level-3"><a href="#example">Example</a></li>
+<li class="toc-level-2"><a href="#7-loss-calculation">7. Loss Calculation</a></li>
+<li class="toc-level-3"><a href="#cross-entropy-loss">Cross-Entropy Loss</a></li>
+<li class="toc-level-2"><a href="#8-backpropagation">8. Backpropagation</a></li>
+<li class="toc-level-2"><a href="#9-what-is-a-gradient">9. What is a Gradient?</a></li>
+<li class="toc-level-2"><a href="#10-updating-weights">10. Updating Weights</a></li>
+<li class="toc-level-3"><a href="#solved-example">Solved example</a></li>
+<li class="toc-level-2"><a href="#11-learning-rate">11. Learning Rate</a></li>
+<li class="toc-level-2"><a href="#12-epoch-batch-and-iteration">12. Epoch, Batch and Iteration</a></li>
+<li class="toc-level-3"><a href="#solved-example-1">Solved example</a></li>
+<li class="toc-level-2"><a href="#13-mini-batch-training">13. Mini-Batch Training</a></li>
+<li class="toc-level-2"><a href="#14-optimizers">14. Optimizers</a></li>
+<li class="toc-level-3"><a href="#a-gradient-descent">A. Gradient Descent</a></li>
+<li class="toc-level-3"><a href="#b-stochastic-gradient-descent-sgd">B. Stochastic Gradient Descent (SGD)</a></li>
+<li class="toc-level-3"><a href="#c-momentum">C. Momentum</a></li>
+<li class="toc-level-3"><a href="#d-rmsprop">D. RMSProp</a></li>
+<li class="toc-level-3"><a href="#e-adam-optimizer">E. Adam Optimizer</a></li>
+<li class="toc-level-3"><a href="#comparison">Comparison</a></li>
+<li class="toc-level-2"><a href="#15-training-accuracy">15. Training Accuracy</a></li>
+<li class="toc-level-2"><a href="#16-training-validation-and-testing">16. Training, Validation and Testing</a></li>
+<li class="toc-level-3"><a href="#differences">Differences</a></li>
+<li class="toc-level-2"><a href="#17-overfitting">17. Overfitting</a></li>
+<li class="toc-level-2"><a href="#18-underfitting">18. Underfitting</a></li>
+<li class="toc-level-3"><a href="#overfitting-vs-underfitting">Overfitting vs Underfitting</a></li>
+<li class="toc-level-2"><a href="#19-generalization">19. Generalization</a></li>
+<li class="toc-level-2"><a href="#20-techniques-to-reduce-overfitting">20. Techniques to Reduce Overfitting</a></li>
+<li class="toc-level-3"><a href="#a-data-augmentation">A. Data Augmentation</a></li>
+<li class="toc-level-3"><a href="#b-dropout">B. Dropout</a></li>
+<li class="toc-level-3"><a href="#c-regularization">C. Regularization</a></li>
+<li class="toc-level-3"><a href="#d-early-stopping">D. Early Stopping</a></li>
+<li class="toc-level-3"><a href="#e-batch-normalization">E. Batch Normalization</a></li>
+<li class="toc-level-2"><a href="#21-hyperparameters">21. Hyperparameters</a></li>
+<li class="toc-level-1"><a href="#unit-4-transfer-learning-document-54">Unit 4 – Transfer Learning (Document 5.4)</a></li>
+<li class="toc-level-2"><a href="#1-introduction-to-transfer-learning">1. Introduction to Transfer Learning</a></li>
+<li class="toc-level-2"><a href="#2-what-is-transfer-learning">2. What is Transfer Learning?</a></li>
+<li class="toc-level-3"><a href="#real-life-analogy">Real-life analogy</a></li>
+<li class="toc-level-2"><a href="#3-what-is-a-pre-trained-model">3. What is a Pre-trained Model?</a></li>
+<li class="toc-level-2"><a href="#4-without-transfer-learning-vs-with-transfer-learning">4. Without Transfer Learning vs With Transfer Learning</a></li>
+<li class="toc-level-2"><a href="#5-cnn-layers-and-feature-hierarchy">5. CNN Layers and Feature Hierarchy</a></li>
+<li class="toc-level-2"><a href="#6-transfer-learning-architecture">6. Transfer Learning Architecture</a></li>
+<li class="toc-level-2"><a href="#7-feature-extraction">7. Feature Extraction</a></li>
+<li class="toc-level-3"><a href="#advantages">Advantages</a></li>
+<li class="toc-level-2"><a href="#8-freezing-layers">8. Freezing Layers</a></li>
+<li class="toc-level-3"><a href="#why-do-we-freeze-layers">Why do we freeze layers?</a></li>
+<li class="toc-level-2"><a href="#9-fine-tuning">9. Fine-Tuning</a></li>
+<li class="toc-level-2"><a href="#10-feature-extraction-vs-fine-tuning">10. Feature Extraction vs Fine-Tuning</a></li>
+<li class="toc-level-2"><a href="#11-when-should-we-use-feature-extraction">11. When Should We Use Feature Extraction?</a></li>
+<li class="toc-level-2"><a href="#12-when-should-we-use-fine-tuning">12. When Should We Use Fine-Tuning?</a></li>
+<li class="toc-level-2"><a href="#13-transfer-learning-pipeline">13. Transfer Learning Pipeline</a></li>
+<li class="toc-level-2"><a href="#14-advantages-and-limitations-of-transfer-learning">14. Advantages and Limitations of Transfer Learning</a></li>
+<li class="toc-level-1"><a href="#unit-5-image-classification-using-cnns-document-55">Unit 5 – Image Classification Using CNNs (Document 5.5)</a></li>
+<li class="toc-level-2"><a href="#1-what-is-image-classification">1. What is Image Classification?</a></li>
+<li class="toc-level-2"><a href="#2-real-world-applications">2. Real-World Applications</a></li>
+<li class="toc-level-2"><a href="#3-classification-vs-detection-vs-segmentation">3. Classification vs Detection vs Segmentation</a></li>
+<li class="toc-level-2"><a href="#4-why-use-cnn-for-image-classification">4. Why Use CNN for Image Classification?</a></li>
+<li class="toc-level-2"><a href="#5-how-does-cnn-understand-an-image">5. How Does CNN Understand an Image?</a></li>
+<li class="toc-level-2"><a href="#6-representation-of-an-image">6. Representation of an Image</a></li>
+<li class="toc-level-3"><a href="#grayscale">Grayscale</a></li>
+<li class="toc-level-3"><a href="#rgb">RGB</a></li>
+<li class="toc-level-2"><a href="#7-image-preprocessing">7. Image Preprocessing</a></li>
+<li class="toc-level-3"><a href="#a-resizing">A. Resizing</a></li>
+<li class="toc-level-3"><a href="#b-normalization">B. Normalization</a></li>
+<li class="toc-level-3"><a href="#c-data-augmentation">C. Data Augmentation</a></li>
+<li class="toc-level-2"><a href="#8-complete-cnn-image-classification-pipeline">8. Complete CNN Image Classification Pipeline</a></li>
+<li class="toc-level-2"><a href="#9-convolution-layer">9. Convolution Layer</a></li>
+<li class="toc-level-2"><a href="#10-activation-function">10. Activation Function</a></li>
+<li class="toc-level-2"><a href="#11-pooling-layer">11. Pooling Layer</a></li>
+<li class="toc-level-2"><a href="#12-feature-hierarchy">12. Feature Hierarchy</a></li>
+<li class="toc-level-2"><a href="#13-flattening">13. Flattening</a></li>
+<li class="toc-level-2"><a href="#14-fully-connected-layer">14. Fully Connected Layer</a></li>
+<li class="toc-level-2"><a href="#15-output-layer">15. Output Layer</a></li>
+<li class="toc-level-3"><a href="#a-binary-classification">A. Binary Classification</a></li>
+<li class="toc-level-3"><a href="#b-multi-class-classification">B. Multi-Class Classification</a></li>
+<li class="toc-level-4"><a href="#softmax-numerical-example">Softmax numerical example</a></li>
+<li class="toc-level-3"><a href="#c-multi-label-classification">C. Multi-Label Classification</a></li>
+<li class="toc-level-3"><a href="#multi-class-vs-multi-label">Multi-Class vs Multi-Label</a></li>
+<li class="toc-level-2"><a href="#16-training-a-cnn-classifier">16. Training a CNN Classifier</a></li>
+<li class="toc-level-2"><a href="#17-training-validation-and-testing">17. Training, Validation and Testing</a></li>
+<li class="toc-level-2"><a href="#18-confusion-matrix">18. Confusion Matrix</a></li>
+<li class="toc-level-2"><a href="#19-classification-evaluation-metrics">19. Classification Evaluation Metrics</a></li>
+<li class="toc-level-3"><a href="#a-accuracy">A. Accuracy</a></li>
+<li class="toc-level-3"><a href="#b-precision">B. Precision</a></li>
+<li class="toc-level-3"><a href="#c-recall">C. Recall</a></li>
+<li class="toc-level-3"><a href="#d-f1-score">D. F1-Score</a></li>
+<li class="toc-level-2"><a href="#20-solved-numerical-example-evaluation-metrics">20. Solved Numerical Example – Evaluation Metrics</a></li>
+<li class="toc-level-1"><a href="#8333">83.33%</a></li>
+<li class="toc-level-1"><a href="#8889">88.89%</a></li>
+<li class="toc-level-1"><a href="#80">80%</a></li>
+<li class="toc-level-1"><a href="#8421">84.21%</a></li>
+<li class="toc-level-2"><a href="#21-why-accuracy-can-be-misleading">21. Why Accuracy Can Be Misleading</a></li>
+<li class="toc-level-2"><a href="#22-overfitting-in-cnn-classification">22. Overfitting in CNN Classification</a></li>
+<li class="toc-level-3"><a href="#causes">Causes</a></li>
+<li class="toc-level-2"><a href="#23-methods-to-reduce-overfitting">23. Methods to Reduce Overfitting</a></li>
+<li class="toc-level-2"><a href="#24-example-cnn-classification-architecture">24. Example CNN Classification Architecture</a></li>
+<li class="toc-level-2"><a href="#25-image-classification-using-transfer-learning">25. Image Classification Using Transfer Learning</a></li>
+<li class="toc-level-1"><a href="#part-3-most-important-concepts-to-remember">Part 3: Most Important Concepts to Remember</a></li>
+<li class="toc-level-2"><a href="#1-important-formulas-complete-formula-sheet">1. Important formulas – Complete formula sheet</a></li>
+<li class="toc-level-2"><a href="#2-important-differences-for-examinations">2. Important differences for examinations</a></li>
+<li class="toc-level-2"><a href="#3-topics-to-prioritize-for-your-examination">3. Topics to prioritize for your examination</a></li>
+<li class="toc-level-2"><a href="#study-priority-checklist">Study priority checklist</a></li>
+<li class="toc-level-2"><a href="#4-the-most-important-overall-understanding">4. The most important overall understanding</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">Create Mindmap And Explanations</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-18</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><h1 id="deep-learning-for-computer-vision-complete-study-notes"><strong>Deep Learning for Computer Vision – Complete Study Notes</strong></h1><p>I have identified <strong>five documents</strong> in your uploads. They cover the introduction to deep learning, CNN architecture, CNN training and optimization, transfer learning, and image classification using CNNs.</p><p>I'll first give you a combined mind map of all the topics, followed by explanations in the same order as your documents.</p><p>The explanations will be exam-oriented, with:</p><ul><li><p>Definitions and important concepts.</p></li><li><p>Working principles and step-by-step processes.</p></li><li><p>Important differences and comparisons.</p></li><li><p>Examples wherever useful.</p></li><li><p>Important formulas and diagrams to remember.</p></li></ul><h1 id="part-1-complete-mind-map"><strong>Part 1: Complete mind map</strong></h1><p><strong>DEEP LEARNING FOR COMPUTER VISION</strong></p><p>Understanding images using neural networks</p><p><strong>1. Introduction to Deep Learning</strong></p><ul><li><p>AI → Machine Learning → Deep Learning</p></li><li><p>Importance in Computer Vision</p></li><li><p>Traditional CV vs Deep Learning</p></li><li><p>Meaning of Deep Neural Networks</p></li><li><p>ANN architecture</p></li><li><p>Neurons, weights and biases</p></li><li><p>Activation functions</p><ul><li><p>ReLU</p></li><li><p>Sigmoid</p></li><li><p>Tanh</p></li><li><p>Softmax</p></li></ul></li><li><p>Forward propagation</p></li><li><p>Loss functions</p></li><li><p>Backpropagation</p></li><li><p>Gradient descent</p></li><li><p>Learning rate</p></li><li><p>Epoch, batch and iteration</p></li><li><p>Image representation</p></li><li><p>CNN introduction and applications</p></li></ul><p><strong>2. Convolutional Neural Networks (CNN)</strong></p><ul><li><p>CNN introduction and architecture</p></li><li><p>Convolution operation</p></li><li><p>Filters / Kernels</p></li><li><p>Feature maps</p></li><li><p>Edge and pattern detection</p></li><li><p>ReLU activation</p></li><li><p>Pooling</p><ul><li><p>Max pooling</p></li><li><p>Average pooling</p></li></ul></li><li><p>Hierarchical feature extraction</p></li><li><p>Fully connected layer</p></li><li><p>Classification output</p></li><li><p>Local connectivity</p></li><li><p>Parameter sharing</p></li><li><p>CNN applications</p></li></ul><p><strong>3. CNN Training and Optimization (5.3)</strong></p><ul><li><p>CNN training process</p></li><li><p>Parameters: weights and biases</p></li><li><p>Forward propagation</p></li><li><p>Loss calculation</p></li><li><p>Cross-entropy loss</p></li><li><p>Backpropagation</p></li><li><p>Gradients</p></li><li><p>Weight updates</p></li><li><p>Learning rate</p></li><li><p>Epoch, batch and iteration</p></li><li><p>Mini-batch training</p></li><li><p>Optimizers</p><ul><li><p>Gradient Descent</p></li><li><p>SGD</p></li><li><p>Momentum</p></li><li><p>RMSProp</p></li><li><p>Adam</p></li></ul></li><li><p>Training accuracy</p></li><li><p>Validation and test sets</p></li><li><p>Overfitting and underfitting</p></li><li><p>Generalization</p></li><li><p>Overfitting prevention</p><ul><li><p>Data augmentation</p></li><li><p>Dropout</p></li><li><p>Regularization</p></li><li><p>Early stopping</p></li><li><p>Batch normalization</p></li></ul></li></ul><p><strong>4. Transfer Learning (5.4)</strong></p><ul><li><p>Introduction and definition</p></li><li><p>Pre-trained models</p><ul><li><p>VGG</p></li><li><p>ResNet</p></li><li><p>Inception</p></li><li><p>MobileNet</p></li><li><p>EfficientNet</p></li></ul></li><li><p>CNN feature hierarchy</p><ul><li><p>Early layers</p></li><li><p>Middle layers</p></li><li><p>Deep layers</p></li></ul></li><li><p>Transfer learning architecture</p></li><li><p>Feature extraction</p></li><li><p>Freezing layers</p></li><li><p>Fine-tuning</p></li><li><p>Feature extraction vs fine-tuning</p></li><li><p>Transfer learning pipeline</p></li><li><p>Advantages and limitations</p></li><li><p>Applications</p></li></ul><p><strong>5. Image Classification Using CNNs (5.5)</strong></p><ul><li><p>Image classification introduction</p></li><li><p>Real-world applications</p></li><li><p>Classification vs detection vs segmentation</p></li><li><p>Image representation</p></li><li><p>Image preprocessing</p><ul><li><p>Resizing</p></li><li><p>Normalization</p></li><li><p>Data augmentation</p></li></ul></li><li><p>Complete CNN classification pipeline</p></li><li><p>Convolution, activation and pooling</p></li><li><p>Flattening / Global Average Pooling</p></li><li><p>Fully connected layers</p></li><li><p>Output layer</p></li><li><p>Binary classification</p></li><li><p>Multi-class classification</p></li><li><p>Multi-label classification</p></li><li><p>Sigmoid vs Softmax</p></li><li><p>Training, validation and testing</p></li><li><p>Classification loss</p></li><li><p>Confusion matrix</p></li><li><p>Accuracy, precision and recall</p></li><li><p>F1-score</p></li><li><p>Overfitting prevention</p></li><li><p>CNN classification architecture</p></li><li><p>Transfer learning for classification</p></li></ul><p><strong>Overall learning sequence:</strong></p><p><strong>Image</strong></p><p><strong>Preprocessing</strong></p><p><strong>CNN feature extraction</strong></p><p><strong>Classification</strong></p><p><strong>Prediction</strong></p><p><strong>Loss calculation</strong></p><p><strong>Backpropagation and optimization</strong></p><p><strong>Improved model</strong></p><h1 id="part-2-explanation-of-every-topic"><strong>Part 2: Explanation of every topic</strong></h1><h1 id="unit-1-introduction-to-deep-learning-for-computer-vision"><strong>Unit 1 – Introduction to Deep Learning for Computer Vision</strong></h1><h2 id="1-what-is-deep-learning"><strong>1. What is Deep Learning?</strong></h2><p><strong>Deep Learning (DL)</strong> is a subfield of Machine Learning that uses artificial neural networks with multiple layers to automatically learn patterns and features from large amounts of data.</p><p>In computer vision, deep learning helps computers understand images and videos.</p><p>For example, when identifying a cat, a deep learning model learns:</p><img alt="NOVA | Cat Tales | Season 47 | Episode 3 | PBS" class="exported-media" src="https://images.openai.com/static-rsc-4/RhOkTFGdp3jXAmHpXtbE5QsPiDuPAGJ150S-f8_qdsHj86Za5O5dfGfTwbwVmXwxXaRDvLS0Ok61jQUDm9OSckkDOQwBLRKbhueklO0J3xXQyIrhgFML32vuSVw_MkrR_BJ_zTTPO1oI0ClUoEACri-SJYhWrTg9i-bTZSausN4?purpose=inline"/><a href="https://www.pbs.org/video/cat-tales-lhavhy/?utm_source=chatgpt.com">pbs.org</a><p><strong>Raw image</strong></p><p><strong>Edges and lines</strong></p><p><strong>Textures and shapes</strong></p><p><strong>Eyes, ears and face</strong></p>Cat recognized<p>The main advantage is that the network learns features automatically instead of requiring humans to define every feature.</p><h2 id="2-artificial-intelligence-vs-machine-learning-vs-deep-learning"><strong>2. Artificial Intelligence vs Machine Learning vs Deep Learning</strong></h2><p>These three concepts are related, but they are not identical.</p><p><strong>Artificial Intelligence (AI)</strong></p><p>Broadest field</p><p><strong>Machine Learning (ML)</strong></p><p>Learns patterns from data</p><p><strong>Deep Learning (DL)</strong></p><p>Uses multi-layer neural networks</p><ul><li><p><strong>AI:</strong> Develops machines that perform tasks requiring human intelligence, such as reasoning, planning and decision-making.</p></li><li><p><strong>ML:</strong> Allows computers to learn patterns from data without explicitly programming every rule.</p></li><li><p><strong>DL:</strong> Uses multiple neural network layers to learn complex patterns automatically.</p></li></ul><p>Example: To identify cats:</p><ul><li><p>AI: A system that can recognize animals.</p></li><li><p>ML: Learns from labelled cat and dog images.</p></li><li><p>DL: Learns edges, textures, shapes and animal features through multiple neural network layers.</p></li></ul><h2 id="3-why-is-deep-learning-important-in-computer-vision"><strong>3. Why is Deep Learning important in Computer Vision?</strong></h2><p>Images contain enormous amounts of information.</p><p>A computer must handle variations such as:</p><ol><li><p>Illumination – changes in lighting.</p></li><li><p>Scale – objects appearing large or small.</p></li><li><p>Rotation – objects appearing at different angles.</p></li><li><p>Viewpoint – objects viewed from different directions.</p></li><li><p>Background – different surroundings.</p></li><li><p>Occlusion – objects partially hidden.</p></li><li><p>Deformation – changes in object shape.</p></li><li><p>Noise – unwanted information in images.</p></li><li><p>Motion blur – unclear images due to movement.</p></li></ol><p>Traditional methods require manually designed rules for these variations.</p><p>Deep learning automatically learns useful representations, making it effective for complex image recognition tasks.</p><h2 id="4-traditional-computer-vision-vs-deep-learning"><strong>4. Traditional Computer Vision vs Deep Learning</strong></h2><p>This is an important comparison.</p><p><strong>Traditional Computer Vision</strong></p>Image → Preprocessing → Manual Feature Extraction → Feature Selection → Classifier → Prediction<p>Common manually designed features:</p><ul><li><p>SIFT</p></li><li><p>SURF</p></li><li><p>HOG</p></li><li><p>Harris corners</p></li><li><p>Local Binary Patterns</p></li><li><p>Gabor features</p><p><strong>Deep Learning</strong></p>Image → Neural Network → Automatically Learned Features → Prediction<p>The network automatically learns the important features during training.</p></li></ul><table><tr><th>Traditional CV</th><th>Deep Learning</th></tr><tr><td>Manual feature extraction</td><td>Automatic feature extraction</td></tr><tr><td>Human-designed features</td><td>Learned features</td></tr><tr><td>Often less computationally expensive</td><td>Often more computationally expensive</td></tr><tr><td>Requires feature engineering</td><td>Learns representations from data</td></tr><tr><td>Can work with smaller datasets</td><td>Often benefits from larger datasets</td></tr></table><h2 id="5-what-does-deep-mean-in-deep-learning"><strong>5. What does Deep mean in Deep Learning?</strong></h2><p>A neural network is called deep when it contains multiple computational layers between input and output.</p><p><strong>Simple neural network:</strong></p><p>Input → Hidden Layer → Output</p><p><strong>Deep neural network:</strong></p><p>Input → Hidden Layer 1 → Hidden Layer 2 → Hidden Layer 3 → Hidden Layer 4 → Output</p><p>Each layer learns increasingly complex representations.</p><p>For example:</p><ul><li><p>First layer: Edges.</p></li><li><p>Second layer: Textures.</p></li><li><p>Third layer: Shapes.</p></li><li><p>Fourth layer: Object parts.</p></li><li><p>Final layer: Complete object.</p></li></ul><h2 id="6-artificial-neural-network-ann"><strong>6. Artificial Neural Network (ANN)</strong></h2><p>An Artificial Neural Network is a computational model inspired by biological neurons.</p><p>It consists of interconnected artificial neurons that process information.</p><p>A basic neural network has three types of layers:</p><ol><li><p>Input layer – receives input data.</p></li><li><p>Hidden layer – processes information and learns patterns.</p></li><li><p>Output layer – produces the final prediction.</p></li></ol><h3 id="components-of-a-neuron"><strong>Components of a neuron</strong></h3><p><strong>Input (x):</strong> Data received by the neuron.</p><p><strong>Weight (w):</strong> Determines the importance of an input.</p><p><strong>Bias (b):</strong> An additional adjustable value that shifts the neuron's output.</p><p><strong>Activation function:</strong> Determines the final output of the neuron.</p><p>The mathematical equation is:</p>
+
+<div class="math-display">$$
+z=\sum_{i=1}^{n}w_ix_i+b
+$$</div>
+
+<p>The neuron output is:</p>
+
+<div class="math-display">$$
+a=f(z)
+$$</div>
+
+<p>Where:</p><ul><li><p>$x_i$ = input.</p></li><li><p>$w_i$ = weight.</p></li><li><p>$b$ = bias.</p></li><li><p>$f$ = activation function.</p></li><li><p>$a$ = output.</p></li></ul><h2 id="7-activation-functions"><strong>7. Activation Functions</strong></h2><p>An activation function introduces non-linearity into a neural network.</p><p>Without activation functions, multiple layers of linear operations would behave like a single linear transformation. This would limit the network's ability to learn complex relationships.</p><p>The important activation functions are:</p><h3 id="a-relu-rectified-linear-unit"><strong>A. ReLU (Rectified Linear Unit)</strong></h3><p>ReLU converts negative values into zero and keeps positive values unchanged.</p>
+
+<div class="math-display">$$
+f(x)=\max(0,x)
+$$</div>
+
+<p>Example:</p><table><tr><th>Input</th><th>ReLU output</th></tr><tr><td>-5</td><td>0</td></tr><tr><td>-2</td><td>0</td></tr><tr><td>0</td><td>0</td></tr><tr><td>2</td><td>2</td></tr><tr><td>5</td><td>5</td></tr></table><p>Advantages:</p><ul><li><p>Simple to calculate.</p></li><li><p>Computationally efficient.</p></li><li><p>Helps reduce vanishing-gradient problems compared with sigmoid and tanh in many deep networks.</p></li></ul><h3 id="b-sigmoid"><strong>B. Sigmoid</strong></h3><p>Sigmoid converts values into a range between 0 and 1.</p>
+
+<div class="math-display">$$
+\sigma(x)=\frac{1}{1+e^{-x}}
+$$</div>
+
+<p>Applications:</p><ul><li><p>Binary classification.</p></li><li><p>Probability-like output for a binary decision.</p></li></ul><p>Example:</p>
+
+<div class="math-display">$$
+P(\text{Dog})=0.85
+$$</div>
+
+<p>This means the model predicts an 85% probability for the Dog class.</p><h3 id="c-tanh"><strong>C. Tanh</strong></h3><p>Tanh converts values into a range between -1 and +1.</p>
+
+<div class="math-display">$$
+\tanh(x)=\frac{e^x-e^{-x}}{e^x+e^{-x}}
+$$</div>
+
+<p>It is zero-centred and can be useful in certain neural network architectures.</p><h3 id="d-softmax"><strong>D. Softmax</strong></h3><p>Softmax converts multiple class scores into probabilities whose sum is 1.</p>
+
+<div class="math-display">$$
+P_i=\frac{e^{z_i}}{\sum_j e^{z_j}}
+$$</div>
+
+<p>Example:</p><table><tr><th>Class</th><th>Probability</th></tr><tr><td>Cat</td><td>0.72</td></tr><tr><td>Dog</td><td>0.20</td></tr><tr><td>Horse</td><td>0.08</td></tr><tr><td>Total</td><td>1.00</td></tr></table><p>The model predicts Cat because it has the highest probability.</p><h3 id="comparison-of-activation-functions"><strong>Comparison of activation functions</strong></h3><table><tr><th>Function</th><th>Output range</th><th>Main use</th></tr><tr><td>ReLU</td><td>0 to infinity</td><td>Hidden layers</td></tr><tr><td>Sigmoid</td><td>0 to 1</td><td>Binary output</td></tr><tr><td>Tanh</td><td>-1 to +1</td><td>Certain hidden layers</td></tr><tr><td>Softmax</td><td>Probabilities summing to 1</td><td>Multi-class output</td></tr></table><h2 id="8-neural-network-learning-process"><strong>8. Neural Network Learning Process</strong></h2><p>A neural network initially contains weights that are initialized with values that are not yet trained.</p><p>It learns by repeatedly performing the following operations:</p><ol><li><p>Receives input data.</p></li><li><p>Produces a prediction.</p></li><li><p>Compares prediction with the actual answer.</p></li><li><p>Calculates the error using a loss function.</p></li><li><p>Calculates gradients using backpropagation.</p></li><li><p>Updates weights using an optimizer.</p></li><li><p>Repeats the process.</p></li></ol><h2 id="9-forward-propagation"><strong>9. Forward Propagation</strong></h2><p>Forward propagation is the process of passing input data through the neural network to produce a prediction.</p><p>For example:</p><p><strong>Input image</strong></p><p><strong>Input layer</strong></p><p><strong>Hidden layers</strong></p><p><strong>Output layer</strong></p>Prediction: Cat<p>The output of one layer becomes the input of the next layer.</p><h2 id="10-loss-function"><strong>10. Loss Function</strong></h2><p>A loss function measures how far the predicted output is from the actual output.</p><p>The objective of training is to minimize the loss.</p><p>Two important loss functions are:</p><p><strong>A. Mean Squared Error (MSE)</strong></p><p>Commonly used for regression.</p>
+
+<div class="math-display">$$
+MSE=\frac{1}{n}\sum_{i=1}^{n}(y_i-\hat y_i)^2
+$$</div>
+
+<p><strong>B. Cross-Entropy Loss</strong></p><p>Commonly used for classification.</p><p>For multi-class classification:</p>
+
+<div class="math-display">$$
+L=-\sum_{i=1}^{C}y_i\log(\hat y_i)
+$$</div>
+
+<p>Where:</p><ul><li><p>$C$ = number of classes.</p></li><li><p>$y_i$ = actual class value.</p></li><li><p>$\hat y_i$ = predicted probability.</p></li></ul><p>A higher loss generally indicates a worse prediction.</p><h2 id="11-backpropagation"><strong>11. Backpropagation</strong></h2><p>Backpropagation calculates how much each weight contributes to the total loss.</p><p>It propagates error information backward through the network and calculates gradients.</p><p>Working:</p><ol><li><p>Calculate prediction.</p></li><li><p>Calculate loss.</p></li><li><p>Calculate gradients.</p></li><li><p>Propagate gradients backward.</p></li><li><p>Update weights.</p></li></ol><p>The derivative:</p>
+
+<div class="math-display">$$
+\frac{\partial L}{\partial w}
+$$</div>
+
+<p>tells us how the loss changes when a particular weight changes.</p><h2 id="12-gradient-descent"><strong>12. Gradient Descent</strong></h2><p>Gradient Descent is an optimization algorithm used to minimize the loss function.</p><p>It updates the weights in the direction that reduces the loss.</p><p>The formula is:</p>
+
+<div class="math-display">$$
+\boxed{w_{\text{new}}=w_{\text{old}}-
+\eta\frac{\partial L}{\partial w}}
+$$</div>
+
+<p>Where:</p><ul><li><p>$w$ = weight.</p></li><li><p>$\eta$ = learning rate.</p></li><li><p>$\frac{\partial L}{\partial w}$ = gradient of loss with respect to weight.</p></li></ul><h3 id="learning-rate"><strong>Learning rate</strong></h3><p>Learning rate controls the size of each weight update.</p><ul><li><p>Too high: Training may become unstable or overshoot the minimum.</p></li><li><p>Too low: Training becomes very slow.</p></li><li><p>Appropriate: Training can converge more smoothly.</p></li></ul><h2 id="13-epoch-batch-and-iteration"><strong>13. Epoch, Batch and Iteration</strong></h2><p>These three terms are very important for examinations.</p><table><tr><th>Term</th><th>Meaning</th></tr><tr><td>Epoch</td><td>One complete pass through the entire training dataset</td></tr><tr><td>Batch</td><td>A group of training examples processed together</td></tr><tr><td>Iteration</td><td>One batch-processing and parameter-update step</td></tr></table><p>Example:</p><p>Suppose:</p><ul><li><p>Total images = 1,000.</p></li><li><p>Batch size = 100.</p></li></ul><p>Number of iterations per epoch:</p>
+
+<div class="math-display">$$
+\text{Iterations}=\frac{1000}{100}=10
+$$</div>
+
+<p>Therefore, 10 iterations complete one epoch, assuming all batches are processed once.</p><h2 id="14-image-representation"><strong>14. Image Representation</strong></h2><p>Computers represent images as numerical values called pixels.</p><p><strong>Grayscale image:</strong></p><p>A grayscale image contains one channel.</p>
+
+<div class="math-display">$$
+H\times W
+$$</div>
+
+<p>Pixel values generally range from 0 to 255.</p><ul><li><p>0 = Black.</p></li><li><p>255 = White.</p></li></ul><p><strong>RGB image:</strong></p><p>An RGB image contains three channels:</p><ul><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Blue.</p></li></ul><p>Its dimensions are:</p>
+
+<div class="math-display">$$
+H\times W\times 3
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+224\times224\times3
+$$</div>
+
+<p>This means 224 pixels in height, 224 pixels in width and 3 colour channels.</p><h2 id="15-why-are-fully-connected-networks-not-ideal-for-images"><strong>15. Why are Fully Connected Networks Not Ideal for Images?</strong></h2><p>Fully connected networks are not particularly efficient for large images because:</p><ol><li><p>Images contain huge numbers of pixels.</p></li><li><p>Flattening an image loses its explicit spatial arrangement.</p></li><li><p>A large number of weights and connections are required.</p></li><li><p>Nearby pixel relationships are not directly preserved.</p></li></ol><p>This motivates CNNs, which use local connectivity and parameter sharing.</p><h2 id="16-introduction-to-cnn"><strong>16. Introduction to CNN</strong></h2><p>A Convolutional Neural Network is a deep learning architecture designed especially for data with spatial structure, such as images.</p><p>Basic architecture:</p><p><strong>Input image</strong></p><p><strong>Convolution</strong></p><p><strong>ReLU</strong></p><p><strong>Pooling</strong></p><p><strong>Convolution + ReLU + Pooling</strong></p><p><strong>Fully Connected Layer</strong></p>Output / Prediction<p>The main operations are explained in Unit 2.</p><h2 id="17-important-computer-vision-tasks"><strong>17. Important Computer Vision Tasks</strong></h2><p>Deep learning performs different tasks in computer vision.</p><table><tr><th>Task</th><th>Purpose</th><th>Example</th></tr><tr><td>Image classification</td><td>Identifies what is present</td><td>Cat</td></tr><tr><td>Object detection</td><td>Identifies objects and their locations</td><td>Cat + bounding box</td></tr><tr><td>Semantic segmentation</td><td>Assigns a class to every pixel</td><td>All road pixels</td></tr><tr><td>Instance segmentation</td><td>Identifies individual object masks</td><td>Car 1, Car 2</td></tr></table><h2 id="18-important-cnn-architectures"><strong>18. Important CNN Architectures</strong></h2><p>The introduction document discusses major CNN architectures.</p><img alt="Understanding LeNet: The Pioneer of Image Recognition in Computer Vision | by Prem Vishnoi(cloudvala) | NextGenAI | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/9-c1EXEIZqfNVRqTQf6MToEOd8LqGIbyvYz5Do1XI8F0fRxH9xdiHHCWi-tNyzZiPfXfQIRyePOXRu-SuOqBg487IFqLPuhdkDD_SGGyb2UOSFgrwom09w9PBp7ohKZVFuyUqKWrdYrH2J1iMMHsFYe9hsdzbs3c2fg28Iuo85M?purpose=inline"/><p><strong>LeNet</strong></p><p>One of the early successful CNN architectures. It was used for handwritten digit recognition.</p><img alt="2012: AlexNet Wins the ImageNet Challenge – AskPromotheus.ai" class="exported-media" src="https://images.openai.com/static-rsc-4/fy-Boe-OZpssQxvFZWyVrGr8X1XKnogB3ZQK8LuyRa9PhQb8nJeQs9CQ0N64EjUj3pEG-aXlJfveg6qWvKKiT10fFT5JUICvtrUixn0VvlAxIojxAFAkk_lFwwMhRGdCplt2KVtfe1ZtG0pl3L-56s_gg6zgHLAUgq5n5rZDWxc?purpose=inline"/><p><strong>AlexNet</strong></p><p>A landmark CNN that demonstrated the power of deep learning for large-scale image recognition. It used ReLU, GPU training, dropout and data augmentation.</p><img alt="[논문리뷰] VGG16 (Very Deep Convolutional Networks for Large-Scale Image Recognition)" class="exported-media" src="https://images.openai.com/static-rsc-4/dsZUBz6jdiODmMh1FPpyd7oxRiZ1ATZqRmEH1a22J20f1tBTUhBazkRzvemQ95pk0Dk_PNf2WJaCAmTQOg24cP6ERr9IeMqLLAeu9T3_Xcmm1FBvcEQzn_nhnZHY88bofFd1CgwsnrG1LHalThijWXR201WW975nNOoF8byd9G4?purpose=inline"/><p><strong>VGG</strong></p><p>Uses deeper networks with small convolution filters, commonly 3 × 3.</p><img alt="How GoogleNet (aka Inception V1) showed that size doesn't matter" class="exported-media" src="https://images.openai.com/static-rsc-4/8ieXgfll-MN5mBy9j6Vw_mt36tgnP9ZM2xnPLXME_nIZPQIRv-BEY1hHLScm7G2-lnjh3l-rLRBeSKtMaRgUIZCJcYACq3-2rZyZwtwg0z5pR4togmmNrGIZ2baFsuuxb66OL3ynFTqpthzNHATw3n1n1youeEXHZhXojmSBOGM?purpose=inline"/><p><strong>GoogLeNet / Inception</strong></p><p>Uses Inception modules to process information at multiple spatial scales.</p><img alt="Two Deep Learning Papers" class="exported-media" src="https://images.openai.com/static-rsc-4/40b059hw2A8Dh3gDrjRJw1jrOuHlq2res0gWcya9iDKmW_oNZOSRkDaWuRpiCngHqOWM2xNLxNuO-YSE4e197Y9TzIe2OW4OqVrqDYYrxGvGf37OjRC0xJ1-mm7_ecwSqGbAIIFeqE7ix8ZbE5ZHzulWgNNEtYYWoZjapuvjpBE?purpose=inline"/><p><strong>ResNet</strong></p><p>Uses residual connections (skip connections) to help train very deep networks.</p><h3 id="residual-connection"><strong>Residual Connection</strong></h3><p>A residual connection allows information to bypass some layers through a shortcut connection.</p>
+
+<div class="math-display">$$
+y=F(x)+x
+$$</div>
+
+<p>Where:</p><ul><li><p>$x$ = original input.</p></li><li><p>$F(x)$ = output of the convolutional layers.</p></li><li><p>$y$ = final output after addition.</p></li></ul><p>It improves information and gradient flow through deep networks.</p><h2 id="19-deep-learning-for-video"><strong>19. Deep Learning for Video</strong></h2><p>A video consists of multiple frames. Understanding a video requires learning both spatial information and temporal information.</p><p>Important approaches:</p><ul><li><p>CNN + RNN/LSTM.</p></li><li><p>3D CNN.</p></li><li><p>Video Transformers.</p></li><li><p>Temporal convolutional models.</p></li></ul><h3 id="cnn-lstm"><strong>CNN + LSTM</strong></h3><ul><li><p>CNN extracts visual features from each frame.</p></li><li><p>LSTM learns relationships between consecutive frames.</p></li><li><p>The final output can identify an action.</p></li></ul><p>Example: Recognizing a person walking.</p><h3 id="3d-cnn"><strong>3D CNN</strong></h3><p>A 2D CNN processes height and width.</p><p>A 3D CNN processes:</p>
+
+<div class="math-display">$$
+T\times H\times W
+$$</div>
+
+<p>Where:</p><ul><li><p>$T$ = time.</p></li><li><p>$H$ = height.</p></li><li><p>$W$ = width.</p></li></ul><p>It can learn spatial and temporal features together.</p><h2 id="20-vision-transformers-vit"><strong>20. Vision Transformers (ViT)</strong></h2><p>Vision Transformers apply Transformer architecture to images.</p><p>Working:</p><ol><li><p>Divide the image into smaller patches.</p></li><li><p>Convert patches into numerical embeddings.</p></li><li><p>Pass embeddings into a Transformer.</p></li><li><p>Use attention to understand relationships between patches.</p></li><li><p>Produce a classification or other output.</p></li></ol><p>Example:</p>
+
+<div class="math-display">$$
+224\times224 \text{ image}
+$$</div>
+
+<p>With $16\times16$ patches:</p>
+
+<div class="math-display">$$
+14\times14=196 \text{ patches}
+$$</div>
+
+<p>The Transformer can learn relationships between distant regions of the image.</p><h2 id="21-complete-deep-learning-pipeline"><strong>21. Complete Deep Learning Pipeline</strong></h2><p>A practical computer vision project generally follows:</p><p><strong>Problem Definition</strong></p><p><strong>Data Collection</strong></p><p><strong>Data Cleaning and Annotation</strong></p><p><strong>Preprocessing</strong></p><p><strong>Train / Validation / Test Split</strong></p><p><strong>Model Selection and Training</strong></p><p><strong>Validation and Hyperparameter Tuning</strong></p><p><strong>Testing and Evaluation</strong></p>Deployment<h2 id="22-advantages-and-limitations-of-deep-learning"><strong>22. Advantages and Limitations of Deep Learning</strong></h2><p><strong>Advantages</strong></p><ol><li><p>Automatic feature learning.</p></li><li><p>High performance in many vision tasks.</p></li><li><p>End-to-end learning.</p></li><li><p>Handles complex patterns.</p></li><li><p>Supports transfer learning.</p></li></ol><p><strong>Limitations</strong></p><ol><li><p>Requires substantial training data in many applications.</p></li><li><p>High computational requirements.</p></li><li><p>Long training time for large models.</p></li><li><p>Difficult to interpret some predictions.</p></li><li><p>Can inherit bias from training datasets.</p></li><li><p>Deployment can be difficult on resource-constrained devices.</p></li></ol><h1 id="unit-2-cnn-convolutional-neural-network"><strong>Unit 2 – CNN: Convolutional Neural Network</strong></h1><p>This document explains CNN in simpler terms and focuses on how a CNN actually understands an image.</p><h2 id="1-basic-idea-of-cnn"><strong>1. Basic idea of CNN</strong></h2><p>A CNN looks at an image in small portions, identifies simple features and combines them to recognize complex objects.</p><p>For example, when recognizing a car:</p>
+
+<div class="math-display">$$
+\text{Pixels}\rightarrow\text{Edges}\rightarrow
+\text{Shapes}\rightarrow\text{Wheels}
+\rightarrow\text{Car}
+$$</div>
+
+<p>The network learns these features from training images.</p><h2 id="2-cnn-architecture"><strong>2. CNN Architecture</strong></h2><p>A basic CNN contains:</p><ol><li><p>Input image.</p></li><li><p>Convolution layer.</p></li><li><p>ReLU activation.</p></li><li><p>Pooling layer.</p></li><li><p>Additional convolution and pooling layers.</p></li><li><p>Classification layer.</p></li><li><p>Output.</p></li></ol><img alt="Convolutional Neural Networks: Architectures, Types &amp; Examples" class="exported-media" src="https://images.openai.com/static-rsc-4/J8GNvV5Xe6q7xFYPVJlDYGbyStqAwXKaBGpvaspqSpr9hSID50jBdXj14vPHKMw089jFpEmYjf9BDONHbts3K-efE9nDj0aL0BZJI7Kvz7fTac4GWYI1FiH2yhuBh4Lptmfv9Zzs9FgOwp7bBEO9jEII8XKMYkGGi3IsmsGMeYc?purpose=inline"/><a href="https://www.v7labs.com/blog/convolutional-neural-networks-guide?utm_source=chatgpt.com">v7labs.com</a><h2 id="3-convolution-operation"><strong>3. Convolution Operation</strong></h2><p>Convolution is the most important operation in a CNN.</p><p>It uses a small matrix called a filter or kernel that moves across the image to detect patterns.</p><p>Common filter sizes include:</p><ul><li><p>3 × 3.</p></li><li><p>5 × 5.</p></li><li><p>7 × 7.</p></li></ul><h3 id="how-convolution-works"><strong>How convolution works</strong></h3><ol><li><p>Place the kernel over a small region of the image.</p></li><li><p>Multiply corresponding image and kernel values.</p></li><li><p>Add all multiplication results.</p></li><li><p>Store the result in the output feature map.</p></li><li><p>Move the kernel to the next position.</p></li><li><p>Repeat until the image has been scanned.</p></li></ol><p>Mathematically:</p>
+
+<div class="math-display">$$
+O(i,j)=\sum_m\sum_n I(i+m,j+n)K(m,n)
+$$</div>
+
+<p>Where:</p><ul><li><p>$I$ = input image.</p></li><li><p>$K$ = kernel.</p></li><li><p>$O$ = output feature map.</p></li></ul><p>The exact operation in CNN implementations is commonly cross-correlation, although it is often called convolution.</p><h2 id="4-filters-and-kernels"><strong>4. Filters and Kernels</strong></h2><p>A filter is a small matrix used to identify particular visual patterns.</p><p>Examples:</p><table><tr><th>Filter</th><th>Detects</th></tr><tr><td>Vertical edge filter</td><td>Vertical edges</td></tr><tr><td>Horizontal edge filter</td><td>Horizontal edges</td></tr><tr><td>Diagonal edge filter</td><td>Diagonal edges</td></tr><tr><td>Texture filter</td><td>Texture patterns</td></tr></table><p>The important point is that CNNs learn their filters during training instead of requiring humans to manually specify all the filters.</p><h2 id="5-feature-map"><strong>5. Feature Map</strong></h2><p>A feature map is the output produced after applying a filter to an image.</p><p>Example:</p>
+
+<div class="math-display">$$
+\text{Original Image}
+\rightarrow \text{Filter}
+\rightarrow \text{Feature Map}
+$$</div>
+
+<p>It indicates where a particular feature or pattern is detected.</p><p>A CNN can generate multiple feature maps using different filters.</p><h2 id="6-relu-activation"><strong>6. ReLU Activation</strong></h2><p>After convolution, ReLU is commonly applied.</p>
+
+<div class="math-display">$$
+ReLU(x)=\max(0,x)
+$$</div>
+
+<p>Example:</p><table><tr><th>Input</th><th>Output</th></tr><tr><td>-3</td><td>0</td></tr><tr><td>-1</td><td>0</td></tr><tr><td>2</td><td>2</td></tr><tr><td>5</td><td>5</td></tr></table><p>It introduces non-linearity and helps the network learn complex patterns.</p><h2 id="7-pooling-layer"><strong>7. Pooling Layer</strong></h2><p>Pooling reduces the spatial dimensions of feature maps.</p><p>Its purpose is to:</p><ul><li><p>Reduce computation.</p></li><li><p>Reduce memory requirements.</p></li><li><p>Retain important features.</p></li><li><p>Provide some tolerance to small image shifts.</p></li></ul><p>Two common pooling techniques are:</p><h3 id="a-max-pooling"><strong>A. Max Pooling</strong></h3><p>Selects the maximum value from a particular region.</p><p>Example:</p><p><strong>Input feature map</strong></p><p><strong>1</strong>
+<strong>3</strong></p><p><strong>2</strong>
+<strong>4</strong></p><p>2 × 2 region</p><p><strong>Maximum = 4</strong></p><h3 id="b-average-pooling"><strong>B. Average Pooling</strong></h3><p>Calculates the average of the values in a particular region.</p>
+
+<div class="math-display">$$
+Average=\frac{\text{Sum of values}}{\text{Number of values}}
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+\frac{1+3+2+4}{4}=2.5
+$$</div>
+
+<h3 id="max-pooling-vs-average-pooling"><strong>Max Pooling vs Average Pooling</strong></h3><table><tr><th>Max Pooling</th><th>Average Pooling</th></tr><tr><td>Selects maximum value</td><td>Calculates average</td></tr><tr><td>Retains strongest activation</td><td>Retains average information</td></tr><tr><td>Commonly used in CNN feature extraction</td><td>Used in several CNN architectures</td></tr></table><h2 id="8-multiple-cnn-layers-and-feature-hierarchy"><strong>8. Multiple CNN Layers and Feature Hierarchy</strong></h2><p>CNNs learn features at different levels.</p><table><tr><th>Layer</th><th>Features learned</th></tr><tr><td>Early layers</td><td>Edges, lines, corners</td></tr><tr><td>Middle layers</td><td>Curves, textures, simple shapes</td></tr><tr><td>Deeper layers</td><td>Eyes, ears, wheels, faces</td></tr><tr><td>Final layers</td><td>Complete objects such as cats, dogs and cars</td></tr></table><p>This is called hierarchical feature learning.</p><h2 id="9-how-does-cnn-learn"><strong>9. How does CNN learn?</strong></h2><p>Suppose we want to classify cats and dogs.</p><p>Training process:</p><ol><li><p>Give the CNN labelled cat and dog images.</p></li><li><p>CNN extracts features using convolution.</p></li><li><p>It produces a prediction.</p></li><li><p>Compare prediction with the actual label.</p></li><li><p>Calculate loss.</p></li><li><p>Perform backpropagation.</p></li><li><p>Update weights and filters.</p></li><li><p>Repeat until the model improves.</p></li></ol><p>Example:</p>
+
+<div class="math-display">$$
+P(\text{Cat})=0.95
+$$</div>
+
+<div class="math-display">$$
+P(\text{Dog})=0.05
+$$</div>
+
+<p>The model predicts Cat.</p><h2 id="10-why-cnn-instead-of-a-normal-neural-network"><strong>10. Why CNN instead of a Normal Neural Network?</strong></h2><p>Three important concepts explain why CNNs are suitable for images.</p><p><strong>Local connectivity:</strong> A filter looks at a small region of the image rather than connecting every input pixel to every neuron.</p><p><strong>Parameter sharing:</strong> The same filter is reused across different locations in the image, reducing the number of learnable parameters.</p><p><strong>Spatial structure:</strong> CNNs preserve spatial relationships between nearby pixels through feature maps.</p><p>These properties make CNNs effective for image processing.</p><h2 id="11-applications-of-cnn"><strong>11. Applications of CNN</strong></h2><ol><li><p>Image classification.</p></li><li><p>Object detection.</p></li><li><p>Image segmentation.</p></li><li><p>Face recognition.</p></li><li><p>Medical image analysis.</p></li><li><p>Handwritten character recognition.</p></li><li><p>Autonomous vehicles.</p></li></ol><h1 id="unit-3-cnn-training-and-optimization-document-53"><strong>Unit 3 – CNN Training and Optimization (Document 5.3)</strong></h1><p>This topic explains how a CNN learns from images, reduces prediction errors and improves its performance.</p><h2 id="1-what-is-cnn-training"><strong>1. What is CNN Training?</strong></h2><p>CNN training is the process of teaching a CNN to make correct predictions using labelled training images.</p><p>Example:</p><table><tr><th>Input</th><th>Correct answer</th></tr><tr><td>Cat image</td><td>Cat</td></tr><tr><td>Dog image</td><td>Dog</td></tr><tr><td>Cat image</td><td>Cat</td></tr><tr><td>Dog image</td><td>Dog</td></tr></table><p>Initially, the CNN may predict incorrectly. It gradually improves by calculating errors and updating its parameters.</p><h2 id="2-what-does-a-cnn-actually-learn"><strong>2. What does a CNN actually learn?</strong></h2><p>A CNN does not simply store training images. It learns important features.</p><ul><li><p>Early layers: Edges, lines, corners and textures.</p></li><li><p>Middle layers: Eyes, ears, nose and fur patterns.</p></li><li><p>Deeper layers: Cat faces, dog faces and overall body shapes.</p></li></ul><p>Therefore:</p>
+
+<div class="math-display">$$
+\text{Simple Features}\rightarrow
+\text{Complex Features}\rightarrow
+\text{Object Recognition}
+$$</div>
+
+<h2 id="3-what-are-parameters"><strong>3. What are Parameters?</strong></h2><p>Parameters are the learnable values inside a CNN.</p><p>Two important parameters are:</p><p><strong>Weights:</strong> Determine the importance of different input features.</p><p><strong>Biases:</strong> Allow the network to adjust the output independently of the weighted input.</p><p>During training, these parameters are updated to improve predictions.</p><p>Remember:</p><ul><li><p>Parameters are learned from training data.</p></li><li><p>Hyperparameters are selected before or during model development.</p></li></ul><h2 id="4-complete-cnn-training-process"><strong>4. Complete CNN Training Process</strong></h2><p><strong>Training Image</strong></p><p><strong>CNN Model</strong></p><p><strong>Prediction</strong></p><p><strong>Compare with Actual Answer</strong></p><p><strong>Calculate Loss</strong></p><p><strong>Backpropagation</strong></p><p><strong>Calculate Gradients</strong></p><p><strong>Update Weights</strong></p>Improved Prediction<p>This process is repeated many times.</p><h2 id="5-input-image"><strong>5. Input Image</strong></h2><p>An image is converted into numerical values before being given to the CNN.</p><p>For a colour image, every pixel contains three values:</p><ul><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Blue.</p></li></ul><p>For example, a colour image of dimensions $224\times224\times3$ is provided as input to the CNN.</p><h2 id="6-forward-propagation"><strong>6. Forward Propagation</strong></h2><p>Forward propagation means passing the input image through the CNN to obtain a prediction.</p><p>The image passes through:</p><ol><li><p>Convolution.</p></li><li><p>Activation.</p></li><li><p>Pooling.</p></li><li><p>Additional convolution layers.</p></li><li><p>Fully connected layer.</p></li><li><p>Output layer.</p></li></ol><h3 id="example"><strong>Example</strong></h3><p>Suppose the CNN receives an image of a cat.</p><p>It predicts:</p><table><tr><th>Class</th><th>Probability</th></tr><tr><td>Cat</td><td>0.30</td></tr><tr><td>Dog</td><td>0.70</td></tr></table><p>The CNN predicts Dog.</p><p>But the actual answer is Cat.</p><p>Therefore, the prediction is incorrect and the CNN must improve.</p><h2 id="7-loss-calculation"><strong>7. Loss Calculation</strong></h2><p>Loss measures the difference between the actual answer and predicted answer.</p><ul><li><p>Small loss = Better prediction.</p></li><li><p>Large loss = Poor prediction.</p></li></ul><p>Example:</p><p>Before training:</p><table><tr><th>Class</th><th>Probability</th></tr><tr><td>Cat</td><td>0.30</td></tr><tr><td>Dog</td><td>0.70</td></tr></table><p>After training:</p><table><tr><th>Class</th><th>Probability</th></tr><tr><td>Cat</td><td>0.90</td></tr><tr><td>Dog</td><td>0.10</td></tr></table><p>The model has improved its prediction for the cat image.</p><h3 id="cross-entropy-loss"><strong>Cross-Entropy Loss</strong></h3><p>Cross-entropy is commonly used for classification problems.</p>
+
+<div class="math-display">$$
+L=-\sum_{i=1}^{C}y_i\log(\hat y_i)
+$$</div>
+
+<p>Where:</p><ul><li><p>$y_i$ = actual label.</p></li><li><p>$\hat y_i$ = predicted probability.</p></li><li><p>$C$ = number of classes.</p></li></ul><p>It penalizes incorrect predictions, especially when the model assigns a low probability to the correct class.</p><h2 id="8-backpropagation"><strong>8. Backpropagation</strong></h2><p>Backpropagation determines how the model's parameters contributed to the prediction error.</p><p>It works backward from the output layer towards the earlier layers.</p><p>Steps:</p><ol><li><p>Calculate prediction.</p></li><li><p>Calculate loss.</p></li><li><p>Calculate gradients.</p></li><li><p>Propagate gradients backward.</p></li><li><p>Determine how weights should change.</p></li></ol><p><strong>Important:</strong> Backpropagation calculates gradients; the optimizer uses those gradients to update the parameters.</p><h2 id="9-what-is-a-gradient"><strong>9. What is a Gradient?</strong></h2><p>A gradient indicates the direction and rate at which the loss changes with respect to a parameter.</p>
+
+<div class="math-display">$$
+\frac{\partial L}{\partial w}
+$$</div>
+
+<p>It helps determine how a weight should change to reduce the loss.</p><p>Think of walking down a hill:</p><ul><li><p>The height represents loss.</p></li><li><p>The slope represents the gradient.</p></li><li><p>Moving downhill represents minimizing the loss.</p></li></ul><h2 id="10-updating-weights"><strong>10. Updating Weights</strong></h2><p>Once gradients are calculated, the optimizer updates the weights.</p><p>The formula is:</p>
+
+<div class="math-display">$$
+\boxed{w_{\text{new}}=w_{\text{old}}-\eta
+\frac{\partial L}{\partial w}}
+$$</div>
+
+<p>Where:</p><ul><li><p>$w_{\text{new}}$ = new weight.</p></li><li><p>$w_{\text{old}}$ = old weight.</p></li><li><p>$\eta$ = learning rate.</p></li><li><p>$\frac{\partial L}{\partial w}$ = gradient.</p></li></ul><h3 id="solved-example"><strong>Solved example</strong></h3><p>Given:</p><ul><li><p>Old weight = 0.50.</p></li><li><p>Gradient = 0.20.</p></li><li><p>Learning rate = 0.10.</p></li></ul><p><strong>Formula to use:</strong></p>
+
+<div class="math-display">$$
+w_{\text{new}}=w_{\text{old}}-\eta g
+$$</div>
+
+<p><strong>Why?</strong> Because we need to update the weight using its gradient and learning rate.</p><p>Substitute:</p>
+
+<div class="math-display">$$
+w_{\text{new}}=0.50-(0.10\times0.20)
+$$</div>
+
+<div class="math-display">$$
+=0.50-0.02
+$$</div>
+
+Final answer: 0.48<p>The weight changes from 0.50 to 0.48.</p><h2 id="11-learning-rate"><strong>11. Learning Rate</strong></h2><p>Learning rate determines how much the weights change during each optimization step.</p><table><tr><th>Learning rate</th><th>Effect</th></tr><tr><td>Too high</td><td>May overshoot the minimum and become unstable</td></tr><tr><td>Too low</td><td>Training becomes very slow</td></tr><tr><td>Appropriate</td><td>Allows smoother optimization</td></tr></table><p>It is an important hyperparameter in CNN training.</p><h2 id="12-epoch-batch-and-iteration"><strong>12. Epoch, Batch and Iteration</strong></h2><p>These are frequently asked examination questions.</p><p><strong>Epoch:</strong> One complete pass through the entire training dataset.</p><p><strong>Batch:</strong> A group of images processed together.</p><p><strong>Iteration:</strong> One parameter-update step based on a batch.</p><h3 id="solved-example-1"><strong>Solved example</strong></h3><p>Given:</p><ul><li><p>Dataset = 1,000 images.</p></li><li><p>Batch size = 100.</p></li></ul><p>Formula:</p>
+
+<div class="math-display">$$
+\text{Iterations per epoch}
+=\frac{\text{Total images}}{\text{Batch size}}
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+=\frac{1000}{100}=10
+$$</div>
+
+<p>Therefore:</p><ul><li><p>One batch contains 100 images.</p></li><li><p>One iteration processes one batch and updates parameters.</p></li><li><p>Ten iterations complete one epoch.</p></li></ul><h2 id="13-mini-batch-training"><strong>13. Mini-Batch Training</strong></h2><p>Mini-batch training divides the training dataset into smaller groups.</p><p>Example:</p><ul><li><p>Total images = 10,000.</p></li><li><p>Batch size = 32.</p></li></ul><p>The CNN processes 32 images at a time.</p><p>For each batch:</p><ol><li><p>Forward propagation.</p></li><li><p>Loss calculation.</p></li><li><p>Backpropagation.</p></li><li><p>Weight update.</p></li></ol><p>It then processes the next batch until the complete dataset has been processed.</p><p>This is repeated across multiple epochs.</p><h2 id="14-optimizers"><strong>14. Optimizers</strong></h2><p>An optimizer determines how the CNN's weights and biases should be updated to reduce loss.</p><p>Important optimizers in your document:</p><h3 id="a-gradient-descent"><strong>A. Gradient Descent</strong></h3><p>Gradient Descent minimizes the loss by updating parameters in the negative gradient direction.</p>
+
+<div class="math-display">$$
+w_{\text{new}}=w_{\text{old}}-\eta\nabla L
+$$</div>
+
+<h3 id="b-stochastic-gradient-descent-sgd"><strong>B. Stochastic Gradient Descent (SGD)</strong></h3><p>SGD updates model parameters using gradients calculated from individual training examples or small batches, depending on the implementation.</p><p>It performs repeated updates and can be computationally efficient.</p><h3 id="c-momentum"><strong>C. Momentum</strong></h3><p>Momentum uses information from previous gradients to influence current updates.</p><p>It helps accelerate optimization in consistent directions and reduce oscillations.</p><h3 id="d-rmsprop"><strong>D. RMSProp</strong></h3><p>RMSProp adjusts the learning rate for individual parameters using a moving average of squared gradients.</p><p>This helps adapt the update sizes during training.</p><h3 id="e-adam-optimizer"><strong>E. Adam Optimizer</strong></h3><p>Adam stands for Adaptive Moment Estimation.</p><p>It combines information from:</p><ul><li><p>First moment: Moving average of gradients.</p></li><li><p>Second moment: Moving average of squared gradients.</p></li></ul><p>It adaptively adjusts parameter updates.</p><p>It is a popular optimizer for training deep neural networks.</p><h3 id="comparison"><strong>Comparison</strong></h3><table><tr><th>Optimizer</th><th>Main idea</th></tr><tr><td>Gradient Descent</td><td>Moves in the negative gradient direction</td></tr><tr><td>SGD</td><td>Uses sample or mini-batch gradients</td></tr><tr><td>Momentum</td><td>Uses previous gradient information</td></tr><tr><td>RMSProp</td><td>Adapts updates using squared gradients</td></tr><tr><td>Adam</td><td>Combines first- and second-moment estimates</td></tr></table><h2 id="15-training-accuracy"><strong>15. Training Accuracy</strong></h2><p>Training accuracy measures how correctly the CNN classifies images in the training dataset.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Accuracy=\frac{\text{Correct Predictions}}{\text{Total Predictions}}\times100
+$$</div>
+
+<p>Example:</p><p>If a CNN correctly classifies 90 images out of 100:</p>
+
+<div class="math-display">$$
+Accuracy=\frac{90}{100}\times100=90\%
+$$</div>
+
+<p>Ideally, as training progresses:</p><ul><li><p>Loss decreases.</p></li><li><p>Accuracy increases.</p></li></ul><p>However, training accuracy alone cannot tell us whether the model performs well on unseen images.</p><h2 id="16-training-validation-and-testing"><strong>16. Training, Validation and Testing</strong></h2><p>The dataset is divided into three parts.</p><p><strong>Complete Dataset</strong></p><p><strong>Training Set</strong></p><p>Used to learn weights and biases.</p><p><strong>Validation Set</strong></p><p>Used to monitor model performance and tune hyperparameters.</p><p><strong>Test Set</strong></p><p>Used for final evaluation on unseen data.</p><h3 id="differences"><strong>Differences</strong></h3><table><tr><th>Training</th><th>Validation</th><th>Testing</th></tr><tr><td>Learns parameters</td><td>Tunes the model</td><td>Evaluates final model</td></tr><tr><td>Used during training</td><td>Used during development</td><td>Used after development</td></tr><tr><td>Updates weights</td><td>Does not directly update weights</td><td>Does not update weights</td></tr></table><h2 id="17-overfitting"><strong>17. Overfitting</strong></h2><p>Overfitting occurs when a model learns the training dataset too closely but performs poorly on unseen data.</p><p>Example:</p><ul><li><p>Training accuracy = 98%.</p></li><li><p>Validation accuracy = 70%.</p></li></ul><p>This indicates possible overfitting.</p><p>The model has memorized the training patterns instead of learning patterns that generalize well.</p><h2 id="18-underfitting"><strong>18. Underfitting</strong></h2><p>Underfitting occurs when the model has not learned enough to capture the patterns in the training dataset.</p><p>Example:</p><ul><li><p>Training accuracy = 60%.</p></li><li><p>Validation accuracy = 58%.</p></li></ul><p>Both results are poor.</p><p>Possible reasons:</p><ul><li><p>Model is too simple.</p></li><li><p>Insufficient training.</p></li><li><p>Poor feature learning.</p></li><li><p>Inadequate model capacity.</p></li></ul><h3 id="overfitting-vs-underfitting"><strong>Overfitting vs Underfitting</strong></h3><table><tr><th>Overfitting</th><th>Underfitting</th></tr><tr><td>Learns training data too closely</td><td>Fails to learn sufficient patterns</td></tr><tr><td>Training performance high</td><td>Training performance poor</td></tr><tr><td>Validation performance poor</td><td>Validation performance poor</td></tr><tr><td>Poor generalization</td><td>Poor learning</td></tr></table><h2 id="19-generalization"><strong>19. Generalization</strong></h2><p>Generalization is the ability of a trained CNN to perform well on new, unseen images.</p><p>The actual objective of deep learning is not to memorize training images but to learn useful patterns that work on different images.</p><h2 id="20-techniques-to-reduce-overfitting"><strong>20. Techniques to Reduce Overfitting</strong></h2><p>Your document discusses five important techniques.</p><h3 id="a-data-augmentation"><strong>A. Data Augmentation</strong></h3><p>Data augmentation creates modified versions of existing training images.</p><p>Methods:</p><ul><li><p>Rotation.</p></li><li><p>Horizontal flipping.</p></li><li><p>Cropping.</p></li><li><p>Scaling.</p></li><li><p>Translation.</p></li><li><p>Brightness changes.</p></li></ul><p>Example:</p><img alt="Image Augmentation with Torchvision" class="exported-media" src="https://images.openai.com/static-rsc-4/isI6DMIFhazc4zeJ-MawAYaCGqtm133e_TCDSj-ZwPRnV_2fBT9p2jM2auqUgRhkP1erNM8a4XqpVQpenpEeXpc5oN_1Ab8rOZ8hiIWWLCmYz6koLG2U4uoO5GxBpde3zifZMMXCYYTxStAltocXD2Vx9yLv6xBzGFBgBPiKJgE?purpose=inline"/><img alt="Data Science versus Econometrics. “I’ve been reading about data science… | by Logan Cooper | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/zuTxpBD1724ZeW54pg6gU4qU5FYYf_UrvZ1_lU5kSaJaIa_PxsHVn3cMhPFzgXLuXPcmpRX0-WoLRw8VulWoKZ2A5Hzy76hr_DFRb8I4uy34h-PTwx18yOc77IeRxj0RVbaFRIUDWqZvMIbBu4wjjs0TQB1cEwWaJKu0I2FP-Rw?purpose=inline"/><img alt="Train a multi-label image classification for movie snapshots | Yann Defretin" class="exported-media" src="https://images.openai.com/static-rsc-4/guO6tJfg-k2TjgQ1oYtxyjH2smTWuWyDTKcboxJu0XyvzfoYayfC9XbEMgNk_E9OKhFaujPSZu6dEOkOjq-3PNEi3fmBh5sRYgKO5rrp9EwjuiBrK-LCTIUdYOSxZxAHpzjNqMGmuujmn61rcccsydHzDlIncGCtjEeuMw2g5ag?purpose=inline"/><p>Benefits:</p><ul><li><p>Increases training data diversity.</p></li><li><p>Improves generalization.</p></li><li><p>Reduces overfitting.</p></li></ul><h3 id="b-dropout"><strong>B. Dropout</strong></h3><p>Dropout randomly deactivates a proportion of neurons during training.</p><p>For example, if a layer contains six neurons, some neurons are temporarily ignored during a training step.</p><p>Benefits:</p><ul><li><p>Prevents excessive dependence on specific neurons.</p></li><li><p>Encourages robust feature learning.</p></li><li><p>Helps reduce overfitting.</p></li></ul><h3 id="c-regularization"><strong>C. Regularization</strong></h3><p>Regularization penalizes unnecessarily large model weights.</p><p>For L2 regularization:</p>
+
+<div class="math-display">$$
+L_{\text{total}}=L_{\text{original}}+
+\lambda\sum_iw_i^2
+$$</div>
+
+<p>Where:</p><ul><li><p>$L_{\text{original}}$ = original loss.</p></li><li><p>$\lambda$ = regularization strength.</p></li><li><p>$w_i$ = model weights.</p></li></ul><p>It discourages excessively large weights.</p><h3 id="d-early-stopping"><strong>D. Early Stopping</strong></h3><p>Early stopping stops training when validation performance stops improving.</p><p>Example:</p><table><tr><th>Epoch</th><th>Training loss</th><th>Validation loss</th></tr><tr><td>1</td><td>0.80</td><td>0.85</td></tr><tr><td>2</td><td>0.60</td><td>0.65</td></tr><tr><td>3</td><td>0.40</td><td>0.45</td></tr><tr><td>4</td><td>0.25</td><td>0.55</td></tr></table><p>At epoch 4, training loss continues decreasing, but validation loss increases.</p><p>This suggests overfitting may be starting, so training can be stopped.</p><h3 id="e-batch-normalization"><strong>E. Batch Normalization</strong></h3><p>Batch Normalization normalizes activations within mini-batches using batch statistics.</p><p>It helps:</p><ul><li><p>Stabilize training.</p></li><li><p>Improve optimization.</p></li><li><p>Sometimes accelerate training.</p></li><li><p>Make deeper networks easier to train.</p></li></ul><h2 id="21-hyperparameters"><strong>21. Hyperparameters</strong></h2><p>Hyperparameters are values chosen by the practitioner rather than directly learned as model parameters.</p><p>Examples:</p><ul><li><p>Learning rate.</p></li><li><p>Batch size.</p></li><li><p>Number of epochs.</p></li><li><p>Number of layers.</p></li><li><p>Number of filters.</p></li><li><p>Kernel size.</p></li><li><p>Dropout rate.</p></li></ul><p><strong>Remember the difference:</strong></p><table><tr><th>Parameters</th><th>Hyperparameters</th></tr><tr><td>Learned during training</td><td>Selected before or during development</td></tr><tr><td>Weights</td><td>Learning rate</td></tr><tr><td>Biases</td><td>Batch size</td></tr><tr><td>Filter values</td><td>Number of epochs</td></tr></table><h1 id="unit-4-transfer-learning-document-54"><strong>Unit 4 – Transfer Learning (Document 5.4)</strong></h1><h2 id="1-introduction-to-transfer-learning"><strong>1. Introduction to Transfer Learning</strong></h2><p>Training a deep CNN from scratch can require:</p><ol><li><p>Large datasets.</p></li><li><p>Powerful GPUs.</p></li><li><p>Significant training time.</p></li><li><p>Careful hyperparameter tuning.</p></li></ol><p>But sometimes we have only a small dataset.</p><p>For example, suppose we want to classify plant leaves as healthy or diseased. We may not have thousands of labelled leaf images.</p><p>Instead of training a new CNN from zero, we can use a CNN already trained on a large image dataset.</p><p>This is called Transfer Learning.</p><h2 id="2-what-is-transfer-learning"><strong>2. What is Transfer Learning?</strong></h2><p><strong>Transfer Learning</strong> is the process of using knowledge learned from one task or dataset to solve another related task.</p><p>In computer vision, we reuse the visual features learned by a pre-trained CNN for a new image-recognition problem.</p><p>Example:</p><p><strong>Large image dataset</strong></p><p><strong>Pre-trained CNN</strong></p><p><strong>Learned visual features</strong></p><p><strong>New plant-leaf dataset</strong></p>Healthy / Diseased<h3 id="real-life-analogy"><strong>Real-life analogy</strong></h3><p>Imagine a student who already knows mathematics and algebra.</p><p>When learning machine learning, the student does not need to start learning basic mathematics again.</p><p>Previous knowledge helps with the new subject.</p><p>Transfer learning works similarly.</p><h2 id="3-what-is-a-pre-trained-model"><strong>3. What is a Pre-trained Model?</strong></h2><p>A pre-trained model is a neural network that has already been trained on a large dataset.</p><p>It has learned useful visual patterns such as:</p><ul><li><p>Edges.</p></li><li><p>Corners.</p></li><li><p>Shapes.</p></li><li><p>Textures.</p></li><li><p>Object parts.</p></li></ul><p>Important pre-trained CNN architectures:</p><img alt="Paper Review and Model Architecture for CNN (VGG, Inception, ResNet) | by Yinghan Xu | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/itfQ6DLLnjnTy3JQBGrw1C4cgZafAaWuqH-nkxl4jcll6jdNEnoOBohty1wPu7MGaQoasL8q4kJaEA6NpTHQjo2phT2NceR-KL_fMG3QalG41EQJNqf3y3eQmvJn5mpN8gIWRQSLJWPgBJ9Yj15tCpo4cBob9l0xUCyNfgeAm0U?purpose=inline"/><p><strong>VGG</strong></p><p>Deep architecture using small convolution filters.</p><img alt="ResNet-50架构解析-CSDN博客" class="exported-media" src="https://images.openai.com/static-rsc-4/8Z7GmGGQVEh-ORBBGsm9P_uk5MNNJ3-0r6o6AincQEkksM7nRvfdXb1SfqP1W66LHT37Ah_P02TZSXSdc3W6rByoYq4OjnVecLgu0UIFToXLlTRo-jeLdb3Cff4ae5Q9e9bssSokp4-KPpd32s7qmIxD333fOfyw3CPPvROAvH0?purpose=inline"/><p><strong>ResNet</strong></p><p>Uses residual connections to support very deep networks.</p><img alt="Inception Module lack of Non Linearity - Convolutional Neural Networks - DeepLearning.AI" class="exported-media" src="https://images.openai.com/static-rsc-4/KCiUwdSZze6OsgClzcpSnpk-4380ODiY9nl2k4Lqnp7xNQYruDUjJldfMPYlsqhKTCzgh636j7jOBlgFTNXVywRqRiQg3gIhG5AlzIBHWapQUnS3b2gksdD313ojTLqiUMr23kqVVhFCYWgo_r01l_wQjKKxyShIKvU9ekt79X8?purpose=inline"/><p><strong>Inception</strong></p><p>Processes features at multiple spatial scales.</p><img alt="Unleashing the Power of MobileNet: A Comparison with Simple Convolutional Neural Networks | by Zaid Bin Muzammil | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/ipxEUdu8u7RwiZk7r1YrC3qb9QUfoFzDStnTFZWxS4-mWIjdw0ZCGZj_dTnmmxE1B5qD5oElWS2kzVhv-ZtctsxQcbRPQdcyCGd-SdhL0NoVaddUxgn4dc7hcxSXqjl9Vd4YAIcCi0aWAW4Yj2h8VDsjqHT5KJakli_mCNp7YI4?purpose=inline"/><p><strong>MobileNet</strong></p><p>Designed for efficient computation on mobile and resource-constrained devices.</p><img alt="Google Colab" class="exported-media" src="https://images.openai.com/static-rsc-4/t4r3vb_cuEE19Tmez9OKDT61_OnG_Nc6LcZB-Wj3Oe3lc8WnuZOx39a-lkV04VLVG5D0h5ogB2lHlHmCKVBM5VX_FVbQFn9PSLXz42DSTFJJIMVZeiqPMyMdLbtecuaFf5VAGDSw3jIFtVscBtunMN0yf63wbjHxRi3tAcV02Jw?purpose=inline"/><p><strong>EfficientNet</strong></p><p>Uses compound scaling of network depth, width and resolution.</p><h2 id="4-without-transfer-learning-vs-with-transfer-learning"><strong>4. Without Transfer Learning vs With Transfer Learning</strong></h2><p>Suppose we want to classify healthy and diseased leaves.</p><p><strong>Without Transfer Learning:</strong></p><ol><li><p>Collect a large dataset.</p></li><li><p>Initialize a CNN with random weights.</p></li><li><p>Train the entire CNN.</p></li><li><p>Learn edges.</p></li><li><p>Learn shapes.</p></li><li><p>Learn textures.</p></li><li><p>Learn leaf-specific features.</p></li><li><p>Build a classifier.</p></li></ol><p>This requires more data and computation.</p><p><strong>With Transfer Learning:</strong></p><ol><li><p>Select a pre-trained CNN.</p></li><li><p>Reuse the learned features.</p></li><li><p>Adapt the final classifier.</p></li><li><p>Train on leaf images.</p></li><li><p>Predict healthy or diseased.</p></li></ol><p>This generally requires less training time and data.</p><h2 id="5-cnn-layers-and-feature-hierarchy"><strong>5. CNN Layers and Feature Hierarchy</strong></h2><p>Different CNN layers learn different levels of information.</p><table><tr><th>Layer</th><th>Learns</th><th>Reusability</th></tr><tr><td>Early layers</td><td>Edges, lines, corners</td><td>Usually highly reusable</td></tr><tr><td>Middle layers</td><td>Curves, textures, shapes</td><td>Often reusable</td></tr><tr><td>Deep layers</td><td>Task-specific object features</td><td>May need retraining</td></tr><tr><td>Final classifier</td><td>Original task classes</td><td>Usually replaced</td></tr></table><p><strong>Important concept:</strong> Early layers learn general features, whereas deeper layers learn more task-specific features.</p><h2 id="6-transfer-learning-architecture"><strong>6. Transfer Learning Architecture</strong></h2><p>Suppose a pre-trained CNN classifies 1,000 categories.</p><p>But our new task has only two classes:</p><ul><li><p>Cat.</p></li><li><p>Dog.</p></li></ul><p>We do not need the original 1,000-class output layer.</p><p>We replace it with a new classifier.</p><p><strong>Input image</strong></p><p><strong>Pre-trained CNN</strong></p><p><strong>Feature extraction</strong></p><p><strong>New classification layer</strong></p>Cat / Dog<h2 id="7-feature-extraction"><strong>7. Feature Extraction</strong></h2><p>Feature extraction is a transfer learning technique in which we use a pre-trained CNN to extract useful features.</p><p>The existing CNN layers are kept fixed, and only the new classifier is trained.</p><p>Example:</p>
+
+<div class="math-display">$$
+\text{Image}\rightarrow\text{Pre-trained CNN}
+$$</div>
+
+<div class="math-display">$$
+\rightarrow\text{Extracted Features}
+\rightarrow\text{New Classifier}
+\rightarrow\text{Prediction}
+$$</div>
+
+<h3 id="advantages"><strong>Advantages</strong></h3><ol><li><p>Faster training.</p></li><li><p>Requires fewer trainable parameters.</p></li><li><p>Useful for small datasets.</p></li><li><p>Reduces computational requirements.</p></li><li><p>Lower risk of overfitting compared with training many layers on a small dataset.</p></li></ol><h2 id="8-freezing-layers"><strong>8. Freezing Layers</strong></h2><p>Freezing means preventing selected layers from updating their parameters during training.</p><p>Example:</p><table><tr><th>Layer</th><th>Status</th></tr><tr><td>Conv 1</td><td>Frozen</td></tr><tr><td>Conv 2</td><td>Frozen</td></tr><tr><td>Conv 3</td><td>Frozen</td></tr><tr><td>Conv 4</td><td>Frozen</td></tr><tr><td>Classifier</td><td>Trainable</td></tr></table><p>Only the new classifier is trained.</p><h3 id="why-do-we-freeze-layers"><strong>Why do we freeze layers?</strong></h3><p>The pre-trained model already knows useful features such as edges, corners and basic textures.</p><p>There is no need to relearn these features from the beginning.</p><p>Freezing reduces:</p><ul><li><p>Training time.</p></li><li><p>Computation.</p></li><li><p>Number of trainable parameters.</p></li></ul><p>It is particularly useful when the new dataset is small.</p><h2 id="9-fine-tuning"><strong>9. Fine-Tuning</strong></h2><p>Fine-tuning is another transfer learning technique.</p><p>Here, we allow some of the pre-trained CNN layers to update using the new dataset.</p><p>Example:</p><table><tr><th>Layer</th><th>Status</th></tr><tr><td>Conv 1</td><td>Frozen</td></tr><tr><td>Conv 2</td><td>Frozen</td></tr><tr><td>Conv 3</td><td>Trainable</td></tr><tr><td>Conv 4</td><td>Trainable</td></tr><tr><td>Classifier</td><td>Trainable</td></tr></table><p>This allows the network to adapt its previously learned features to the new task.</p><p>Fine-tuning generally uses a small learning rate to avoid drastically changing the pre-trained weights.</p><h2 id="10-feature-extraction-vs-fine-tuning"><strong>10. Feature Extraction vs Fine-Tuning</strong></h2><p><strong>Feature Extraction</strong></p><img alt="Comparison of Deep Neural Networks in Detecting Field Grapevine Diseases Using Transfer Learning | MDPI" class="exported-media" src="https://images.openai.com/static-rsc-4/iG7RmsvzwLWlvozhzkeiG70OaOY1EWqpnQElAQUhp3AFV9PFHkvdwmxdDdZylc3kq82z3LWMyfb1U_S0GWt8fbmjbA8t3htUl8a7leSxka-9q1U37rTLyuIrCpcELWqAVPkm_ReVKRgQqKcqgJGPLBckTcwCfGM3a-roMlQSbLs?purpose=inline"/><a href="https://www.mdpi.com/2072-4292/14/18/4648?utm_source=chatgpt.com">mdpi.com</a><ul><li><p>Most pre-trained layers are frozen.</p></li><li><p>Only the new classifier is trained.</p></li><li><p>Faster and less computationally expensive.</p></li><li><p>Suitable for small datasets and similar tasks.</p><p><strong>Fine-Tuning</strong></p><img alt="Transfer Learning: Feature Extraction and Fine tuning | by Alessandro Bosco | Data Reply IT | DataTech | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/7fcEC43_qn30RYnLShMmHDJTdJFBzsrYItuvQ4ryUNp6RLHTpEAoZE0SCBqKa1TwXCM1ndYfv_C-lwL4PH5CisyRQbRgaC2w8IKtSJaRBS4VXR9vsdPE3owyXjkOiT65UD5U0cUIUxlDS1vz5RS4eReJln60s1-T7VZYqJgWhAo?purpose=inline"/><a href="https://medium.com/data-reply-it-datatech/transfer-learning-feature-extraction-and-fine-tuning-db7d82767992?utm_source=chatgpt.com">medium.com</a></li><li><p>Some pre-trained layers are unfrozen.</p></li><li><p>Selected CNN layers and the classifier are trained.</p></li><li><p>Requires more computation.</p></li><li><p>Useful when existing features need adjustment.</p></li></ul><table><tr><th>Feature</th><th>Feature Extraction</th><th>Fine-Tuning</th></tr><tr><td>Pre-trained layers</td><td>Mostly frozen</td><td>Some unfrozen</td></tr><tr><td>Trainable layers</td><td>New classifier</td><td>Selected CNN layers + classifier</td></tr><tr><td>Training time</td><td>Faster</td><td>Usually slower</td></tr><tr><td>Computation</td><td>Lower</td><td>Higher</td></tr><tr><td>Small datasets</td><td>Suitable</td><td>Requires care</td></tr><tr><td>Risk of overfitting</td><td>Generally lower</td><td>Can be higher</td></tr></table><h2 id="11-when-should-we-use-feature-extraction"><strong>11. When Should We Use Feature Extraction?</strong></h2><p>Use feature extraction when:</p><ol><li><p>The new dataset is small.</p></li><li><p>The new task is similar to the original task.</p></li><li><p>Faster training is required.</p></li><li><p>Fewer trainable parameters are preferred.</p></li></ol><p>Example: A model trained on general photographs is used to classify different animal species.</p><h2 id="12-when-should-we-use-fine-tuning"><strong>12. When Should We Use Fine-Tuning?</strong></h2><p>Use fine-tuning when:</p><ol><li><p>The new dataset is reasonably large.</p></li><li><p>The new task is somewhat different.</p></li><li><p>Existing features need adjustment.</p></li><li><p>Better task-specific performance is required.</p></li></ol><p>Example: A model trained on ordinary photographs is adapted to a specialized medical-image classification task.</p><h2 id="13-transfer-learning-pipeline"><strong>13. Transfer Learning Pipeline</strong></h2><p>Remember these steps:</p><p><strong>Step 1: Select a pre-trained model</strong></p><p><strong>Step 2: Load pre-trained weights</strong></p><p><strong>Step 3: Remove original classification layer</strong></p><p><strong>Step 4: Add new classifier</strong></p><p><strong>Step 5: Freeze selected layers</strong></p><p><strong>Step 6: Train the classifier</strong></p><p><strong>Step 7: Optionally unfreeze deeper layers</strong></p>Step 8: Fine-tune the model<h2 id="14-advantages-and-limitations-of-transfer-learning"><strong>14. Advantages and Limitations of Transfer Learning</strong></h2><p><strong>Advantages</strong></p><ul><li><p>Reduces training time.</p></li><li><p>Requires fewer training images in many cases.</p></li><li><p>Reduces computational cost.</p></li><li><p>Reuses useful visual features.</p></li><li><p>Helps when training data is limited.</p></li></ul><p><strong>Limitations</strong></p><ul><li><p>A pre-trained model may not suit the new domain.</p></li><li><p>Incorrectly chosen models may perform poorly.</p></li><li><p>Fine-tuning can cause overfitting.</p></li><li><p>Different input preprocessing requirements may exist.</p></li><li><p>A model may retain biases from its original dataset.</p></li></ul><h1 id="unit-5-image-classification-using-cnns-document-55"><strong>Unit 5 – Image Classification Using CNNs (Document 5.5)</strong></h1><p>This topic explains how CNNs are used to classify images into predefined categories.</p><h2 id="1-what-is-image-classification"><strong>1. What is Image Classification?</strong></h2><p>Image classification is the process of assigning an input image to one or more predefined classes.</p><p>Example:</p><p>Suppose we have three classes:</p><ul><li><p>Cat.</p></li><li><p>Dog.</p></li><li><p>Horse.</p></li></ul><p>We provide an image to a CNN, and it predicts the most likely class.</p>
+
+<div class="math-display">$$
+X\rightarrow f(X;\theta)\rightarrow\hat y
+$$</div>
+
+<p>Where:</p><ul><li><p>$X$ = input image.</p></li><li><p>$f$ = CNN model.</p></li><li><p>$\theta$ = learned parameters.</p></li><li><p>$\hat y$ = predicted class.</p></li></ul><h2 id="2-real-world-applications"><strong>2. Real-World Applications</strong></h2><table><tr><th>Domain</th><th>Classification examples</th></tr><tr><td>Healthcare</td><td>Normal, pneumonia, tumour</td></tr><tr><td>Agriculture</td><td>Healthy leaf, rust, blight</td></tr><tr><td>Manufacturing</td><td>Good product, defective product</td></tr><tr><td>Transportation</td><td>Stop sign, speed limit, no entry</td></tr><tr><td>Security</td><td>Face identity, object categories</td></tr><tr><td>Retail</td><td>Shoes, shirts, bags, watches</td></tr></table><h2 id="3-classification-vs-detection-vs-segmentation"><strong>3. Classification vs Detection vs Segmentation</strong></h2><p>This is a very important comparison.</p><img alt="Le Mystère du Sommeil Profond: Pourquoi les Chiens S’Endorment-ils Après une Longue Promenade? - Chien et Clebs" class="exported-media" src="https://images.openai.com/static-rsc-4/neDia0XfE0jAyxVcuRU204Cm8t2iJnFd5xOYxOPwSDBM3TGticWYY9LidPGsMN923AF8PNxhY2fdpqbKt7AxtWflLIuMyN70_7o_xz0W1q_4ugEEDfBkxd3fB8gGexzEmn9IUGfe2_RC-zUcqOEkbsR33Mu1Mx-1g5omXNPDSIU?purpose=inline"/><p><strong>Classification</strong></p><p>What is in the image?</p>Dog<img alt="Selective Search for Object Detection (C++ / Python) | LearnOpenCV" class="exported-media" src="https://images.openai.com/static-rsc-4/XVN7DFHUflvqYqQVQpUwUwm4-jsHOqn5H1sngwvONV3pMm_REO4-vPpHXHflzU1bDXlpr7h6vNmaJXx53P8R7j4dvHt4CPg3rgbw4aWnhUaoc37an1tGK1zc6YJduesHlEDxQ7L8jLU3RMkbDMZJ_aSgfkkuRzQer9B0Ii1l5-8?purpose=inline"/><p><strong>Detection</strong></p><p>What and where?</p>Dog + box<img alt="BRUNO FUGA ADV" class="exported-media" src="https://images.openai.com/static-rsc-4/GISndrRUCbrAKva-2oI3ljDzmLakLVWQopJ45lxBy3knouZNd479aEC9nZyUtVbmLNj2D-cym_Wb17tJC3_vBOu7HRoSAOyk0hoPpaGZnobnJia9RfcTI08RTISDSNAALHpnzSYBKHWbT6tPSSkPK0n_yeqyVILH4M3wVId6omA?purpose=inline"/><p><strong>Segmentation</strong></p><p>Which pixels?</p>Pixel mask<table><tr><th>Task</th><th>Output</th></tr><tr><td>Image classification</td><td>Class label</td></tr><tr><td>Object detection</td><td>Class + bounding box</td></tr><tr><td>Semantic segmentation</td><td>Class for every pixel</td></tr><tr><td>Instance segmentation</td><td>Individual object masks + classes</td></tr></table><p>Example: If an image contains two dogs:</p><ul><li><p>Classification: Dog.</p></li><li><p>Detection: Dog 1 and Dog 2 with bounding boxes.</p></li><li><p>Segmentation: Identifies pixels belonging to the dogs.</p></li></ul><h2 id="4-why-use-cnn-for-image-classification"><strong>4. Why Use CNN for Image Classification?</strong></h2><p>Traditional methods use manually designed features such as HOG and SIFT, followed by a classifier such as SVM.</p><p>CNNs automatically learn:</p><ol><li><p>Edges.</p></li><li><p>Corners.</p></li><li><p>Textures.</p></li><li><p>Shapes.</p></li><li><p>Object parts.</p></li><li><p>Complete object representations.</p></li></ol><p>This makes CNNs effective for image classification.</p><h2 id="5-how-does-cnn-understand-an-image"><strong>5. How Does CNN Understand an Image?</strong></h2><p>Consider an image of a cat.</p><p>The CNN gradually learns:</p><table><tr><th>Network depth</th><th>Learned information</th></tr><tr><td>Early layers</td><td>Horizontal, vertical and diagonal edges</td></tr><tr><td>Middle layers</td><td>Curves, textures, eyes, ears</td></tr><tr><td>Deep layers</td><td>Face, head and body</td></tr><tr><td>Final layers</td><td>Complete cat representation</td></tr></table><p>The final features are used by the classifier to identify the image.</p><h2 id="6-representation-of-an-image"><strong>6. Representation of an Image</strong></h2><p>An image is represented as numerical values.</p><h3 id="grayscale"><strong>Grayscale</strong></h3><p>A grayscale image contains one channel.</p><p>Example:</p>
+
+<div class="math-display">$$
+28\times28
+$$</div>
+
+<p>Each pixel typically ranges from:</p>
+
+<div class="math-display">$$
+0\text{ to }255
+$$</div>
+
+<ul><li><p>0 = Black.</p></li><li><p>255 = White.</p></li></ul><h3 id="rgb"><strong>RGB</strong></h3><p>An RGB image has three channels:</p><ul><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Blue.</p></li></ul><p>Its dimensions are:</p>
+
+<div class="math-display">$$
+H\times W\times3
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+224\times224\times3
+$$</div>
+
+<p>This is the numerical representation given to the CNN.</p><h2 id="7-image-preprocessing"><strong>7. Image Preprocessing</strong></h2><p>Before providing images to CNNs, preprocessing is performed.</p><p>Three important techniques:</p><h3 id="a-resizing"><strong>A. Resizing</strong></h3><p>Images are converted into a common size.</p><p>Example:</p>
+
+<div class="math-display">$$
+500\times500\rightarrow224\times224
+$$</div>
+
+<p>This ensures consistent input dimensions.</p><h3 id="b-normalization"><strong>B. Normalization</strong></h3><p>Pixel values are scaled to a suitable range.</p><p>Common normalization:</p>
+
+<div class="math-display">$$
+\boxed{x_{\text{normalized}}=\frac{x}{255}}
+$$</div>
+
+<p>Example:</p><p>If a pixel value is 128:</p>
+
+<div class="math-display">$$
+\frac{128}{255}=0.502
+$$</div>
+
+<p>Therefore, the normalized value is approximately 0.502.</p><p>This can help numerical stability and training.</p><h3 id="c-data-augmentation"><strong>C. Data Augmentation</strong></h3><p>Data augmentation creates modified versions of training images.</p><p>Common operations:</p><ul><li><p>Rotation.</p></li><li><p>Horizontal flipping.</p></li><li><p>Cropping.</p></li><li><p>Zooming.</p></li><li><p>Translation.</p></li><li><p>Brightness changes.</p></li></ul><p>It improves data diversity and helps reduce overfitting.</p><h2 id="8-complete-cnn-image-classification-pipeline"><strong>8. Complete CNN Image Classification Pipeline</strong></h2><p>This is the most important diagram in this document.</p><p><strong>Input Image</strong></p><p><strong>Preprocessing</strong></p><p><strong>Convolution</strong></p><p><strong>Activation (ReLU)</strong></p><p><strong>Pooling</strong></p><p><strong>Additional Convolution + ReLU + Pooling</strong></p><p><strong>Deep Feature Extraction</strong></p><p><strong>Flatten / Global Average Pooling</strong></p><p><strong>Fully Connected Layer</strong></p><p><strong>Output Layer</strong></p><p><strong>Class Probabilities</strong></p>Predicted Class<h2 id="9-convolution-layer"><strong>9. Convolution Layer</strong></h2><p>The convolution layer extracts features from an image using filters or kernels.</p><p>For example, a 3 × 3 kernel moves over the image and performs multiplication and addition with corresponding pixel values.</p><p>The output is a feature map.</p>
+
+<div class="math-display">$$
+\text{Image}+\text{Kernel}
+\rightarrow\text{Feature Map}
+$$</div>
+
+<p>It detects edges, shapes, textures and other patterns.</p><h2 id="10-activation-function"><strong>10. Activation Function</strong></h2><p>After convolution, ReLU is generally applied.</p>
+
+<div class="math-display">$$
+ReLU(x)=\max(0,x)
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+[-3,-1,2,5]
+$$</div>
+
+<p>After ReLU:</p>
+
+<div class="math-display">$$
+[0,0,2,5]
+$$</div>
+
+<p>Why use ReLU?</p><ul><li><p>Introduces non-linearity.</p></li><li><p>Computationally simple.</p></li><li><p>Helps learn complex relationships.</p></li><li><p>Reduces some problems associated with very small gradients.</p></li></ul><h2 id="11-pooling-layer"><strong>11. Pooling Layer</strong></h2><p>Pooling reduces the spatial dimensions of feature maps.</p><p>The two important methods are:</p><p><strong>Max Pooling:</strong> Selects the maximum value from a region.</p><p><strong>Average Pooling:</strong> Calculates the average value of a region.</p><p>Advantages:</p><ul><li><p>Reduces spatial dimensions.</p></li><li><p>Reduces computation.</p></li><li><p>Reduces memory requirements.</p></li><li><p>Provides some tolerance to small translations.</p></li></ul><h2 id="12-feature-hierarchy"><strong>12. Feature Hierarchy</strong></h2><p>CNN learns increasingly complex features.</p>
+
+<div class="math-display">$$
+Pixels\rightarrow Edges\rightarrow
+Corners/Textures\rightarrow Shapes
+$$</div>
+
+<div class="math-display">$$
+\rightarrow Object\ Parts\rightarrow Complete\ Object
+$$</div>
+
+<p>For example, in face recognition:</p><p>Pixels → Edges → Eyes/Nose/Mouth → Face structure → Face.</p><h2 id="13-flattening"><strong>13. Flattening</strong></h2><p>After convolution and pooling, we obtain multiple feature maps.</p><p>Flattening converts these feature maps into a one-dimensional vector.</p><p>Example:</p><p>Suppose the output feature map has dimensions:</p>
+
+<div class="math-display">$$
+7\times7\times64
+$$</div>
+
+<p>Number of values:</p>
+
+<div class="math-display">$$
+7\times7\times64=3136
+$$</div>
+
+<p>After flattening:</p>
+
+<div class="math-display">$$
+3136\times1
+$$</div>
+
+<p>This vector is passed to the fully connected layer.</p><p><strong>Important:</strong> Modern CNN architectures may use Global Average Pooling instead of a large flattening layer to reduce the number of parameters.</p><h2 id="14-fully-connected-layer"><strong>14. Fully Connected Layer</strong></h2><p>A fully connected layer combines extracted features to make the final classification decision.</p><p>Example:</p>
+
+<div class="math-display">$$
+\text{CNN Features}
+\rightarrow\text{Flatten}
+\rightarrow\text{Dense Layer}
+\rightarrow\text{Output}
+$$</div>
+
+<p>The dense layers learn how different features contribute to the final class.</p><h2 id="15-output-layer"><strong>15. Output Layer</strong></h2><p>The output layer depends on the type of classification problem.</p><p>There are three important types.</p><h3 id="a-binary-classification"><strong>A. Binary Classification</strong></h3><p>Binary classification involves two classes.</p><p>Example:</p><ul><li><p>Cat.</p></li><li><p>Dog.</p></li></ul><p>Usually, sigmoid activation is used.</p>
+
+<div class="math-display">$$
+\sigma(x)=\frac{1}{1+e^{-x}}
+$$</div>
+
+<p>Example:</p>
+
+<div class="math-display">$$
+P(\text{Dog})=0.87
+$$</div>
+
+<p>The model predicts Dog, assuming the classification threshold is 0.5.</p><h3 id="b-multi-class-classification"><strong>B. Multi-Class Classification</strong></h3><p>Multi-class classification involves more than two classes, but each image belongs to only one class.</p><p>Example:</p><ul><li><p>Cat.</p></li><li><p>Dog.</p></li><li><p>Horse.</p></li></ul><p>Softmax is generally used.</p>
+
+<div class="math-display">$$
+P_i=\frac{e^{z_i}}{\sum_j e^{z_j}}
+$$</div>
+
+<p>The resulting probabilities sum to 1.</p><h4 id="softmax-numerical-example"><strong>Softmax numerical example</strong></h4><p>Suppose the logits are:</p><ul><li><p>Cat = 1.</p></li><li><p>Dog = 2.</p></li><li><p>Horse = 0.</p></li></ul><p>Formula:</p>
+
+<div class="math-display">$$
+P_i=\frac{e^{z_i}}{\sum_j e^{z_j}}
+$$</div>
+
+<p>First calculate:</p>
+
+<div class="math-display">$$
+e^1=2.718,\quad e^2=7.389,\quad e^0=1
+$$</div>
+
+<p>Sum:</p>
+
+<div class="math-display">$$
+2.718+7.389+1=11.107
+$$</div>
+
+<p>Probabilities:</p>
+
+<div class="math-display">$$
+P(Cat)=\frac{2.718}{11.107}=0.245
+$$</div>
+
+<div class="math-display">$$
+P(Dog)=\frac{7.389}{11.107}=0.665
+$$</div>
+
+<div class="math-display">$$
+P(Horse)=\frac{1}{11.107}=0.090
+$$</div>
+
+Prediction: Dog<h3 id="c-multi-label-classification"><strong>C. Multi-Label Classification</strong></h3><p>In multi-label classification, one image can contain multiple correct labels simultaneously.</p><p>Example: A traffic image may contain:</p><ul><li><p>Car.</p></li><li><p>Person.</p></li><li><p>Traffic light.</p></li></ul><p>The model may predict:</p><table><tr><th>Label</th><th>Probability</th></tr><tr><td>Person</td><td>0.91</td></tr><tr><td>Car</td><td>0.87</td></tr><tr><td>Traffic light</td><td>0.76</td></tr></table><p>Sigmoid is typically used independently for each class.</p><h3 id="multi-class-vs-multi-label"><strong>Multi-Class vs Multi-Label</strong></h3><table><tr><th>Multi-Class</th><th>Multi-Label</th></tr><tr><td>One correct class per image</td><td>Multiple correct labels possible</td></tr><tr><td>Classes are mutually exclusive</td><td>Classes can coexist</td></tr><tr><td>Usually Softmax</td><td>Usually independent Sigmoid outputs</td></tr><tr><td>Example: Cat or Dog</td><td>Example: Car + Person + Traffic light</td></tr></table><h2 id="16-training-a-cnn-classifier"><strong>16. Training a CNN Classifier</strong></h2><p>A CNN classifier learns from labelled training images.</p><p>Example:</p><p>Actual class = Dog.</p><p>Initial prediction:</p><ul><li><p>Cat = 0.60.</p></li><li><p>Dog = 0.30.</p></li><li><p>Horse = 0.10.</p></li></ul><p>The model calculates loss, performs backpropagation, calculates gradients and updates weights.</p><p>After repeated training, the model should improve its predictions.</p><h2 id="17-training-validation-and-testing"><strong>17. Training, Validation and Testing</strong></h2><p>These three datasets have different purposes.</p><ul><li><p>Training set: Learns model parameters.</p></li><li><p>Validation set: Monitors performance and tunes the model.</p></li><li><p>Test set: Measures final performance.</p></li></ul><p>The test set should ideally remain unseen during model development.</p><h2 id="18-confusion-matrix"><strong>18. Confusion Matrix</strong></h2><p>A confusion matrix is used to evaluate a classification model by comparing actual and predicted classes.</p><p>For binary classification:</p><p><strong>Confusion Matrix</strong></p><p>Rows = Actual class; Columns = Predicted class</p><table><tr><td></td><td>Predicted Positive</td><td>Predicted Negative</td></tr><tr><td>Actual Positive</td><td>TPTrue Positive</td><td>FNFalse Negative</td></tr><tr><td>Actual Negative</td><td>FPFalse Positive</td><td>TNTrue Negative</td></tr></table><p>Definitions:</p><ul><li><p><strong>TP:</strong> Correctly predicted positive.</p></li><li><p><strong>TN:</strong> Correctly predicted negative.</p></li><li><p><strong>FP:</strong> Incorrectly predicted positive.</p></li><li><p><strong>FN:</strong> Incorrectly predicted negative.</p></li></ul><p>Example: In disease detection:</p><ul><li><p>TP: Diseased patient correctly identified.</p></li><li><p>TN: Healthy patient correctly identified.</p></li><li><p>FP: Healthy patient incorrectly identified as diseased.</p></li><li><p>FN: Diseased patient incorrectly identified as healthy.</p></li></ul><h2 id="19-classification-evaluation-metrics"><strong>19. Classification Evaluation Metrics</strong></h2><p>Four important evaluation metrics are Accuracy, Precision, Recall and F1-score.</p><h3 id="a-accuracy"><strong>A. Accuracy</strong></h3><p>Accuracy measures the proportion of all predictions that are correct.</p>
+
+<div class="math-display">$$
+\boxed{Accuracy=\frac{TP+TN}{TP+TN+FP+FN}}
+$$</div>
+
+<h3 id="b-precision"><strong>B. Precision</strong></h3><p>Precision measures how many predicted positive cases are actually positive.</p>
+
+<div class="math-display">$$
+\boxed{Precision=\frac{TP}{TP+FP}}
+$$</div>
+
+<p>High precision means fewer false positives.</p><h3 id="c-recall"><strong>C. Recall</strong></h3><p>Recall measures how many actual positive cases are correctly identified.</p>
+
+<div class="math-display">$$
+\boxed{Recall=\frac{TP}{TP+FN}}
+$$</div>
+
+<p>High recall means fewer false negatives.</p><h3 id="d-f1-score"><strong>D. F1-Score</strong></h3><p>F1-score is the harmonic mean of precision and recall.</p>
+
+<div class="math-display">$$
+\boxed{F1=2\times\frac{Precision\times Recall}
+{Precision+Recall}}
+$$</div>
+
+<p>It is particularly useful for imbalanced datasets.</p><h2 id="20-solved-numerical-example-evaluation-metrics"><strong>20. Solved Numerical Example – Evaluation Metrics</strong></h2><p>Suppose a disease detection model produces:</p><ul><li><p>TP = 80.</p></li><li><p>TN = 70.</p></li><li><p>FP = 10.</p></li><li><p>FN = 20.</p></li></ul><p><strong>Step 1: Calculate Accuracy</strong></p><p>Formula:</p>
+
+<div class="math-display">$$
+Accuracy=\frac{TP+TN}{TP+TN+FP+FN}
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+=\frac{80+70}{80+70+10+20}
+$$</div>
+
+<div class="math-display">$$
+=\frac{150}{180}\times100
+$$</div>
+
+<div class="math-display">$$
+\boxed{Accuracy=83.33\%}
+$$</div>
+
+<p><strong>Step 2: Calculate Precision</strong></p>
+
+<div class="math-display">$$
+Precision=\frac{TP}{TP+FP}
+$$</div>
+
+<div class="math-display">$$
+=\frac{80}{80+10}
+=\frac{80}{90}
+$$</div>
+
+<div class="math-display">$$
+\boxed{Precision=88.89\%}
+$$</div>
+
+<p><strong>Step 3: Calculate Recall</strong></p>
+
+<div class="math-display">$$
+Recall=\frac{TP}{TP+FN}
+$$</div>
+
+<div class="math-display">$$
+=\frac{80}{80+20}
+=\frac{80}{100}
+$$</div>
+
+<div class="math-display">$$
+\boxed{Recall=80\%}
+$$</div>
+
+<p><strong>Step 4: Calculate F1-Score</strong></p>
+
+<div class="math-display">$$
+F1=2\times\frac{P\times R}{P+R}
+$$</div>
+
+<div class="math-display">$$
+=2\times\frac{0.8889\times0.80}{0.8889+0.80}
+$$</div>
+
+<div class="math-display">$$
+\boxed{F1\approx84.21\%}
+$$</div>
+
+<p><strong>Final results</strong></p><h1 id="8333"><strong>83.33%</strong></h1><p>Accuracy</p><h1 id="8889"><strong>88.89%</strong></h1><p>Precision</p><h1 id="80"><strong>80%</strong></h1><p>Recall</p><h1 id="8421"><strong>84.21%</strong></h1><p>F1-score</p><h2 id="21-why-accuracy-can-be-misleading"><strong>21. Why Accuracy Can Be Misleading</strong></h2><p>Consider a dataset containing:</p><ul><li><p>950 normal images.</p></li><li><p>50 disease images.</p></li></ul><p>Suppose the model predicts every image as Normal.</p><p>Accuracy:</p>
+
+<div class="math-display">$$
+Accuracy=\frac{950}{1000}\times100=95\%
+$$</div>
+
+<p>It appears that the model performs extremely well.</p><p>However, it detected zero disease cases.</p><p>Therefore, accuracy alone is insufficient, especially in medical applications.</p><p>Precision, recall, F1-score and the confusion matrix provide additional information.</p><h2 id="22-overfitting-in-cnn-classification"><strong>22. Overfitting in CNN Classification</strong></h2><p>Example:</p><ul><li><p>Training accuracy = 99%.</p></li><li><p>Validation accuracy = 78%.</p></li></ul><p>This suggests possible overfitting.</p><h3 id="causes"><strong>Causes</strong></h3><ol><li><p>Small training dataset.</p></li><li><p>Excessively complex model.</p></li><li><p>Too many training epochs.</p></li><li><p>Insufficient regularization.</p></li><li><p>Noisy data.</p></li><li><p>Poor data diversity.</p></li></ol><h2 id="23-methods-to-reduce-overfitting"><strong>23. Methods to Reduce Overfitting</strong></h2><p>The important techniques are:</p><ol><li><p>Data augmentation – creates variations of training images.</p></li><li><p>Dropout – randomly deactivates neurons during training.</p></li><li><p>Regularization – penalizes excessively large weights.</p></li><li><p>Early stopping – stops training when validation performance stops improving.</p></li><li><p>Transfer learning – reuses pre-trained CNN features instead of training a large model from scratch.</p></li></ol><h2 id="24-example-cnn-classification-architecture"><strong>24. Example CNN Classification Architecture</strong></h2><p>A simple CNN classifier may have the following architecture:</p><p><strong>Input: 224 × 224 × 3</strong></p><p><strong>Conv2D (32 filters, 3 × 3)</strong></p><p><strong>ReLU</strong></p><p><strong>Max Pooling</strong></p><p><strong>Conv2D (64 filters, 3 × 3)</strong></p><p><strong>ReLU</strong></p><p><strong>Max Pooling</strong></p><p><strong>Conv2D (128 filters, 3 × 3)</strong></p><p><strong>ReLU + Max Pooling</strong></p><p><strong>Flatten</strong></p><p><strong>Dense (128) + ReLU</strong></p><p><strong>Dense (3) + Softmax</strong></p>3 Classes<p>Explanation:</p><ul><li><p>Conv2D extracts features.</p></li><li><p>ReLU introduces non-linearity.</p></li><li><p>Max Pooling reduces feature map dimensions.</p></li><li><p>Flatten converts feature maps into a vector.</p></li><li><p>Dense combines learned features.</p></li><li><p>Softmax generates class probabilities.</p></li></ul><h2 id="25-image-classification-using-transfer-learning"><strong>25. Image Classification Using Transfer Learning</strong></h2><p>Instead of training an entire CNN from scratch, we can use a pre-trained model.</p><p>Examples:</p><ul><li><p>VGG.</p></li><li><p>ResNet.</p></li><li><p>Inception.</p></li><li><p>MobileNet.</p></li><li><p>EfficientNet.</p></li></ul><p>Steps:</p><ol><li><p>Select a pre-trained CNN.</p></li><li><p>Load pre-trained weights.</p></li><li><p>Replace the original classification layer.</p></li><li><p>Add a new classifier.</p></li><li><p>Freeze the pre-trained layers.</p></li><li><p>Train the new classifier.</p></li><li><p>Optionally fine-tune selected layers.</p></li></ol><p>This is useful when the target dataset is small or training resources are limited.</p><h1 id="part-3-most-important-concepts-to-remember"><strong>Part 3: Most Important Concepts to Remember</strong></h1><p>These are the concepts that connect all five documents. Make sure you understand these before attempting examination questions.</p><h2 id="1-important-formulas-complete-formula-sheet"><strong>1. Important formulas – Complete formula sheet</strong></h2><table><tr><th>Concept</th><th>Formula</th></tr><tr><td>Neuron output</td><td>$z=\sum w_ix_i+b$</td></tr><tr><td>ReLU</td><td>$f(x)=\max(0,x)$</td></tr><tr><td>Sigmoid</td><td>$\frac{1}{1+e^{-x}}$</td></tr><tr><td>Softmax</td><td>$\frac{e^{z_i}}{\sum_j e^{z_j}}$</td></tr><tr><td>MSE</td><td>$\frac{1}{n}\sum(y_i-\hat y_i)^2$</td></tr><tr><td>Cross-entropy</td><td>$-\sum y_i\log(\hat y_i)$</td></tr><tr><td>Gradient descent</td><td>$w_{\text{new}}=w_{\text{old}}-\eta\nabla L$</td></tr><tr><td>Iterations per epoch</td><td>$\frac{\text{Dataset size}}{\text{Batch size}}$</td></tr><tr><td>Normalization</td><td>$\frac{x}{255}$</td></tr><tr><td>Accuracy</td><td>$\frac{TP+TN}{TP+TN+FP+FN}$</td></tr><tr><td>Precision</td><td>$\frac{TP}{TP+FP}$</td></tr><tr><td>Recall</td><td>$\frac{TP}{TP+FN}$</td></tr><tr><td>F1-score</td><td>$2\frac{P\times R}{P+R}$</td></tr><tr><td>Residual connection</td><td>$y=F(x)+x$</td></tr></table><h2 id="2-important-differences-for-examinations"><strong>2. Important differences for examinations</strong></h2><table><tr><th>Comparison</th><th>Main difference</th></tr><tr><td>AI vs ML vs DL</td><td>Broad intelligence vs learning from data vs multi-layer neural networks</td></tr><tr><td>Traditional CV vs DL</td><td>Manual features vs automatic features</td></tr><tr><td>ANN vs CNN</td><td>General neural network vs spatial feature-learning network</td></tr><tr><td>Convolution vs Pooling</td><td>Feature extraction vs dimensionality reduction</td></tr><tr><td>Forward vs Backpropagation</td><td>Prediction process vs gradient calculation</td></tr><tr><td>Parameter vs Hyperparameter</td><td>Learned value vs selected configuration</td></tr><tr><td>Epoch vs Batch vs Iteration</td><td>Full dataset vs data subset vs update step</td></tr><tr><td>Overfitting vs Underfitting</td><td>Memorization vs insufficient learning</td></tr><tr><td>Feature Extraction vs Fine-Tuning</td><td>Freeze pre-trained layers vs retrain selected layers</td></tr><tr><td>Binary vs Multi-class vs Multi-label</td><td>Two classes vs one of many classes vs multiple simultaneous labels</td></tr><tr><td>Classification vs Detection vs Segmentation</td><td>Class vs location + class vs pixel-level output</td></tr></table><h2 id="3-topics-to-prioritize-for-your-examination"><strong>3. Topics to prioritize for your examination</strong></h2><h2 id="study-priority-checklist"><strong>Study priority checklist</strong></h2><p>0 / 36 completed</p><p><strong>0</strong><strong>%</strong></p><p><strong>1</strong><strong>. </strong><strong>Introduction to Deep Learning</strong></p>AI vs ML vs DLTraditional CV vs Deep LearningANN architecture and neuronReLU, Sigmoid, Tanh and SoftmaxForward propagation and backpropagationGradient descent and learning rateEpoch, batch and iterationCNN architectures – LeNet, AlexNet, VGG, Inception and ResNet<p><strong>2</strong><strong>. </strong><strong>CNN Architecture</strong></p>Convolution and numerical problemsFilters, kernels and feature mapsReLU activationMax pooling and average poolingFeature hierarchyWhy CNN instead of fully connected networks<p><strong>3</strong><strong>. </strong><strong>CNN Training and Optimization</strong></p>CNN training cycleCross-entropy lossBackpropagation and gradientsWeight update numerical problemsOptimizers – SGD, Momentum, RMSProp and AdamTraining, validation and testingOverfitting and underfittingData augmentation, dropout, regularization and early stopping<p><strong>4</strong><strong>. </strong><strong>Transfer Learning</strong></p>Transfer learning and pre-trained modelsFeature extractionFreezing layersFine-tuningFeature extraction vs fine-tuningTransfer learning pipeline<p><strong>5</strong><strong>. </strong><strong>Image Classification</strong></p>Complete CNN classification pipelineImage preprocessing and normalizationFlattening and fully connected layersBinary, multi-class and multi-label classificationSigmoid vs SoftmaxConfusion matrixAccuracy, precision, recall and F1-scoreCNN architecture numerical and conceptual questions<h2 id="4-the-most-important-overall-understanding"><strong>4. The most important overall understanding</strong></h2><p>Understand how all five documents are connected:</p><ol><li><p><strong>Introduction:</strong> Understand how deep learning and neural networks learn from data.</p></li><li><p><strong>CNN:</strong> Understand how convolution, ReLU and pooling extract image features.</p></li><li><p><strong>CNN Training:</strong> Understand how forward propagation, loss, backpropagation and optimizers train the network.</p></li><li><p><strong>Transfer Learning:</strong> Understand how previously learned features can be reused for new tasks.</p></li><li><p><strong>Image Classification:</strong> Understand how the complete CNN predicts image classes and how its performance is evaluated.</p></li></ol><p><strong>Final conclusion:</strong> A CNN takes an image, extracts hierarchical features, learns through backpropagation and optimization, and produces predictions. Transfer learning makes this process more efficient by reusing previously learned features.</p><p><em>Study material basis:</em> Your five uploaded documents – Introduction to Deep Learning for Computer Vision, CNN, 5.3 CNN Training and Optimization, 5.4 Transfer Learning, and 5.5 Image Classification Using CNNs. Introduction to Deep Learning for Computer Vision.docx CNN(1).docx 5.3(1).docx 5.4(1).docx 5.5(1).docx</p>
+<div class="references"><strong>References:</strong><ol><li><a href="https://www.pbs.org/video/cat-tales-lhavhy/?utm_source=chatgpt.com">pbs.org</a></li><li><a href="https://www.v7labs.com/blog/convolutional-neural-networks-guide?utm_source=chatgpt.com">v7labs.com</a></li><li><a href="https://www.mdpi.com/2072-4292/14/18/4648?utm_source=chatgpt.com">mdpi.com</a></li><li><a href="https://medium.com/data-reply-it-datatech/transfer-learning-feature-extraction-and-fine-tuning-db7d82767992?utm_source=chatgpt.com">medium.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
