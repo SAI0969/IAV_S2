@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explain Feature Descriptors</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#part-1-feature-descriptors-33">PART 1: FEATURE DESCRIPTORS (3.3)</a></li>
+<li class="toc-level-1"><a href="#1-what-is-a-feature-descriptor">1. What is a Feature Descriptor?</a></li>
+<li class="toc-level-3"><a href="#why-do-we-need-feature-descriptors">Why do we need feature descriptors?</a></li>
+<li class="toc-level-3"><a href="#common-feature-descriptors">Common feature descriptors</a></li>
+<li class="toc-level-1"><a href="#2-sift-algorithm">2. SIFT Algorithm</a></li>
+<li class="toc-level-3"><a href="#applications-of-sift">Applications of SIFT</a></li>
+<li class="toc-level-2"><a href="#21-complete-sift-algorithm">2.1 Complete SIFT algorithm</a></li>
+<li class="toc-level-2"><a href="#step-1-input-image">Step 1: Input Image</a></li>
+<li class="toc-level-2"><a href="#step-2-construct-scale-space">Step 2: Construct Scale Space</a></li>
+<li class="toc-level-3"><a href="#what-is-gaussian-smoothing">What is Gaussian smoothing?</a></li>
+<li class="toc-level-2"><a href="#step-3-difference-of-gaussian-dog">Step 3: Difference of Gaussian (DoG)</a></li>
+<li class="toc-level-3"><a href="#simple-example">Simple example</a></li>
+<li class="toc-level-2"><a href="#step-4-find-local-extrema">Step 4: Find Local Extrema</a></li>
+<li class="toc-level-3"><a href="#example">Example</a></li>
+<li class="toc-level-2"><a href="#step-5-keypoint-localization">Step 5: Keypoint Localization</a></li>
+<li class="toc-level-3"><a href="#a-remove-low-contrast-points">A. Remove low-contrast points</a></li>
+<li class="toc-level-3"><a href="#b-remove-edge-like-points">B. Remove edge-like points</a></li>
+<li class="toc-level-2"><a href="#step-6-assign-orientation-to-each-keypoint">Step 6: Assign Orientation to Each Keypoint</a></li>
+<li class="toc-level-2"><a href="#step-7-create-orientation-histogram">Step 7: Create Orientation Histogram</a></li>
+<li class="toc-level-2"><a href="#step-8-why-assign-orientation">Step 8: Why Assign Orientation?</a></li>
+<li class="toc-level-2"><a href="#step-9-generate-the-sift-descriptor">Step 9: Generate the SIFT Descriptor</a></li>
+<li class="toc-level-2"><a href="#step-10-create-orientation-histogram-for-each-region">Step 10: Create Orientation Histogram for Each Region</a></li>
+<li class="toc-level-3"><a href="#very-important-numerical">Very important numerical</a></li>
+<li class="toc-level-2"><a href="#step-11-normalize-the-descriptor">Step 11: Normalize the Descriptor</a></li>
+<li class="toc-level-2"><a href="#step-12-complete-sift-flowchart">Step 12: Complete SIFT Flowchart</a></li>
+<li class="toc-level-2"><a href="#step-13-how-sift-matches-two-images">Step 13: How SIFT Matches Two Images</a></li>
+<li class="toc-level-3"><a href="#applications-of-sift-1">Applications of SIFT</a></li>
+<li class="toc-level-3"><a href="#why-is-sift-scale-invariant">Why is SIFT scale-invariant?</a></li>
+<li class="toc-level-3"><a href="#why-is-sift-rotation-invariant">Why is SIFT rotation-invariant?</a></li>
+<li class="toc-level-3"><a href="#four-main-stages-to-remember">Four main stages to remember</a></li>
+<li class="toc-level-1"><a href="#3-surf-algorithm">3. SURF Algorithm</a></li>
+<li class="toc-level-3"><a href="#why-do-we-need-surf">Why do we need SURF?</a></li>
+<li class="toc-level-3"><a href="#applications">Applications</a></li>
+<li class="toc-level-2"><a href="#31-important-concepts-used-in-surf">3.1 Important concepts used in SURF</a></li>
+<li class="toc-level-2"><a href="#step-1-input-image-1">Step 1: Input Image</a></li>
+<li class="toc-level-2"><a href="#step-2-integral-image">Step 2: Integral Image</a></li>
+<li class="toc-level-3"><a href="#numerical-example">Numerical example</a></li>
+<li class="toc-level-2"><a href="#step-3-why-is-the-integral-image-useful">Step 3: Why is the Integral Image Useful?</a></li>
+<li class="toc-level-2"><a href="#step-4-hessian-matrix">Step 4: Hessian Matrix</a></li>
+<li class="toc-level-3"><a href="#example-1">Example</a></li>
+<li class="toc-level-2"><a href="#step-5-surf-uses-box-filters">Step 5: SURF Uses Box Filters</a></li>
+<li class="toc-level-2"><a href="#step-6-detect-keypoints-at-different-scales">Step 6: Detect Keypoints at Different Scales</a></li>
+<li class="toc-level-2"><a href="#step-7-local-maximum-detection">Step 7: Local Maximum Detection</a></li>
+<li class="toc-level-2"><a href="#step-8-orientation-assignment">Step 8: Orientation Assignment</a></li>
+<li class="toc-level-3"><a href="#what-is-a-haar-wavelet">What is a Haar Wavelet?</a></li>
+<li class="toc-level-2"><a href="#step-9-generate-surf-descriptor">Step 9: Generate SURF Descriptor</a></li>
+<li class="toc-level-2"><a href="#step-10-calculate-four-values-for-each-region">Step 10: Calculate Four Values for Each Region</a></li>
+<li class="toc-level-3"><a href="#numerical-question">Numerical question</a></li>
+<li class="toc-level-2"><a href="#step-11-matching-surf-features">Step 11: Matching SURF Features</a></li>
+<li class="toc-level-2"><a href="#step-12-why-is-surf-faster-than-sift">Step 12: Why is SURF Faster than SIFT?</a></li>
+<li class="toc-level-2"><a href="#step-13-complete-surf-algorithm">Step 13: Complete SURF Algorithm</a></li>
+<li class="toc-level-3"><a href="#sift-vs-surf">SIFT vs SURF</a></li>
+<li class="toc-level-1"><a href="#4-hog-algorithm">4. HOG Algorithm</a></li>
+<li class="toc-level-2"><a href="#41-basic-idea-of-hog">4.1 Basic Idea of HOG</a></li>
+<li class="toc-level-2"><a href="#42-why-is-hog-needed">4.2 Why is HOG Needed?</a></li>
+<li class="toc-level-2"><a href="#43-complete-hog-algorithm">4.3 Complete HOG Algorithm</a></li>
+<li class="toc-level-2"><a href="#step-1-input-image-2">Step 1: Input Image</a></li>
+<li class="toc-level-2"><a href="#step-2-calculate-image-gradient">Step 2: Calculate Image Gradient</a></li>
+<li class="toc-level-2"><a href="#step-3-calculate-gradient-magnitude">Step 3: Calculate Gradient Magnitude</a></li>
+<li class="toc-level-3"><a href="#numerical-example-1">Numerical example</a></li>
+<li class="toc-level-2"><a href="#step-4-calculate-gradient-orientation">Step 4: Calculate Gradient Orientation</a></li>
+<li class="toc-level-2"><a href="#step-5-divide-the-image-into-cells">Step 5: Divide the Image into Cells</a></li>
+<li class="toc-level-2"><a href="#step-6-create-orientation-histogram">Step 6: Create Orientation Histogram</a></li>
+<li class="toc-level-3"><a href="#numerical-example-2">Numerical example</a></li>
+<li class="toc-level-2"><a href="#step-7-why-do-we-use-magnitude-as-weight">Step 7: Why Do We Use Magnitude as Weight?</a></li>
+<li class="toc-level-2"><a href="#step-8-a-more-realistic-numerical-example">Step 8: A More Realistic Numerical Example</a></li>
+<li class="toc-level-2"><a href="#step-9-group-cells-into-blocks">Step 9: Group Cells into Blocks</a></li>
+<li class="toc-level-2"><a href="#step-10-why-are-blocks-overlapping">Step 10: Why Are Blocks Overlapping?</a></li>
+<li class="toc-level-2"><a href="#step-11-normalize-the-block">Step 11: Normalize the Block</a></li>
+<li class="toc-level-2"><a href="#step-12-create-final-hog-descriptor">Step 12: Create Final HOG Descriptor</a></li>
+<li class="toc-level-2"><a href="#step-13-complete-hog-numerical-example">Step 13: Complete HOG Numerical Example</a></li>
+<li class="toc-level-3"><a href="#a-calculate-number-of-cells">A. Calculate number of cells</a></li>
+<li class="toc-level-3"><a href="#b-calculate-number-of-blocks">B. Calculate number of blocks</a></li>
+<li class="toc-level-3"><a href="#c-calculate-features-per-block">C. Calculate features per block</a></li>
+<li class="toc-level-3"><a href="#d-calculate-final-descriptor-size">D. Calculate final descriptor size</a></li>
+<li class="toc-level-2"><a href="#step-14-hog-with-human-example">Step 14: HOG with Human Example</a></li>
+<li class="toc-level-2"><a href="#step-15-hog-does-not-usually-find-keypoints">Step 15: HOG Does Not Usually Find Keypoints</a></li>
+<li class="toc-level-2"><a href="#step-16-sift-vs-surf-vs-hog">Step 16: SIFT vs SURF vs HOG</a></li>
+<li class="toc-level-2"><a href="#step-17-complete-hog-flowchart">Step 17: Complete HOG Flowchart</a></li>
+<li class="toc-level-3"><a href="#important-hog-terms">Important HOG terms</a></li>
+<li class="toc-level-1"><a href="#part-2-image-segmentation-34">PART 2: IMAGE SEGMENTATION (3.4)</a></li>
+<li class="toc-level-1"><a href="#5-introduction-to-image-segmentation">5. Introduction to Image Segmentation</a></li>
+<li class="toc-level-3"><a href="#simple-example-1">Simple example</a></li>
+<li class="toc-level-3"><a href="#why-is-image-segmentation-needed">Why is image segmentation needed?</a></li>
+<li class="toc-level-1"><a href="#6-what-is-threshold-based-segmentation">6. What is Threshold-Based Segmentation?</a></li>
+<li class="toc-level-3"><a href="#understand-with-an-example">Understand with an example</a></li>
+<li class="toc-level-3"><a href="#numerical-example-3">Numerical example</a></li>
+<li class="toc-level-1"><a href="#7-why-does-thresholding-work">7. Why Does Thresholding Work?</a></li>
+<li class="toc-level-1"><a href="#8-image-histogram-and-thresholding">8. Image Histogram and Thresholding</a></li>
+<li class="toc-level-1"><a href="#9-types-of-thresholding">9. Types of Thresholding</a></li>
+<li class="toc-level-1"><a href="#10-global-thresholding">10. Global Thresholding</a></li>
+<li class="toc-level-3"><a href="#example-2">Example</a></li>
+<li class="toc-level-3"><a href="#when-is-global-thresholding-suitable">When is Global Thresholding Suitable?</a></li>
+<li class="toc-level-3"><a href="#limitations-of-global-thresholding">Limitations of Global Thresholding</a></li>
+<li class="toc-level-1"><a href="#11-fixed-thresholding">11. Fixed Thresholding</a></li>
+<li class="toc-level-3"><a href="#example-3">Example</a></li>
+<li class="toc-level-3"><a href="#real-life-example">Real-life example</a></li>
+<li class="toc-level-1"><a href="#12-automatic-thresholding">12. Automatic Thresholding</a></li>
+<li class="toc-level-1"><a href="#13-otsus-thresholding">13. Otsu&#x27;s Thresholding</a></li>
+<li class="toc-level-3"><a href="#basic-idea">Basic idea</a></li>
+<li class="toc-level-3"><a href="#understand-with-a-histogram">Understand with a histogram</a></li>
+<li class="toc-level-2"><a href="#131-otsus-basic-principle">13.1 Otsu&#x27;s Basic Principle</a></li>
+<li class="toc-level-2"><a href="#132-within-class-variance">13.2 Within-Class Variance</a></li>
+<li class="toc-level-2"><a href="#133-between-class-variance">13.3 Between-Class Variance</a></li>
+<li class="toc-level-2"><a href="#134-otsu-mathematical-formulation">13.4 Otsu Mathematical Formulation</a></li>
+<li class="toc-level-2"><a href="#135-otsu-numerical-example">13.5 Otsu Numerical Example</a></li>
+<li class="toc-level-3"><a href="#step-1-calculate-the-mean-of-class-0">Step 1: Calculate the mean of Class 0</a></li>
+<li class="toc-level-3"><a href="#step-2-calculate-the-mean-of-class-1">Step 2: Calculate the mean of Class 1</a></li>
+<li class="toc-level-3"><a href="#step-3-calculate-class-probabilities">Step 3: Calculate class probabilities</a></li>
+<li class="toc-level-3"><a href="#step-4-calculate-between-class-variance">Step 4: Calculate Between-Class Variance</a></li>
+<li class="toc-level-3"><a href="#step-5-apply-threshold">Step 5: Apply Threshold</a></li>
+<li class="toc-level-3"><a href="#important-concept">Important concept</a></li>
+<li class="toc-level-1"><a href="#14-adaptive-thresholding">14. Adaptive Thresholding</a></li>
+<li class="toc-level-3"><a href="#understand-with-an-example-1">Understand with an example</a></li>
+<li class="toc-level-2"><a href="#141-basic-adaptive-thresholding-algorithm">14.1 Basic Adaptive Thresholding Algorithm</a></li>
+<li class="toc-level-2"><a href="#142-local-mean-thresholding">14.2 Local Mean Thresholding</a></li>
+<li class="toc-level-3"><a href="#numerical-example-4">Numerical example</a></li>
+<li class="toc-level-2"><a href="#143-global-vs-adaptive-thresholding">14.3 Global vs Adaptive Thresholding</a></li>
+<li class="toc-level-1"><a href="#15-multiple-thresholding">15. Multiple Thresholding</a></li>
+<li class="toc-level-2"><a href="#151-numerical-example">15.1 Numerical Example</a></li>
+<li class="toc-level-2"><a href="#152-binary-thresholding-vs-multilevel-thresholding">15.2 Binary Thresholding vs Multilevel Thresholding</a></li>
+<li class="toc-level-1"><a href="#16-threshold-selection">16. Threshold Selection</a></li>
+<li class="toc-level-3"><a href="#1-manual-selection">1. Manual Selection</a></li>
+<li class="toc-level-3"><a href="#2-histogram-based-selection">2. Histogram-Based Selection</a></li>
+<li class="toc-level-3"><a href="#3-otsus-method">3. Otsu&#x27;s Method</a></li>
+<li class="toc-level-3"><a href="#4-adaptive-thresholding">4. Adaptive Thresholding</a></li>
+<li class="toc-level-1"><a href="#17-effect-of-choosing-the-wrong-threshold">17. Effect of Choosing the Wrong Threshold</a></li>
+<li class="toc-level-3"><a href="#good-threshold">Good threshold</a></li>
+<li class="toc-level-3"><a href="#threshold-too-low">Threshold too low</a></li>
+<li class="toc-level-3"><a href="#threshold-too-high">Threshold too high</a></li>
+<li class="toc-level-1"><a href="#18-applications-of-thresholding">18. Applications of Thresholding</a></li>
+<li class="toc-level-2"><a href="#181-thresholding-in-document-processing">18.1 Thresholding in Document Processing</a></li>
+<li class="toc-level-2"><a href="#182-thresholding-in-medical-images">18.2 Thresholding in Medical Images</a></li>
+<li class="toc-level-2"><a href="#183-thresholding-in-industrial-inspection">18.3 Thresholding in Industrial Inspection</a></li>
+<li class="toc-level-2"><a href="#184-thresholding-for-object-extraction">18.4 Thresholding for Object Extraction</a></li>
+<li class="toc-level-1"><a href="#19-problems-in-threshold-based-segmentation">19. Problems in Threshold-Based Segmentation</a></li>
+<li class="toc-level-3"><a href="#1-uneven-illumination">1. Uneven Illumination</a></li>
+<li class="toc-level-3"><a href="#2-similar-object-and-background-intensity">2. Similar Object and Background Intensity</a></li>
+<li class="toc-level-3"><a href="#3-noise">3. Noise</a></li>
+<li class="toc-level-3"><a href="#4-shadows">4. Shadows</a></li>
+<li class="toc-level-3"><a href="#5-complex-backgrounds">5. Complex Backgrounds</a></li>
+<li class="toc-level-1"><a href="#20-thresholding-and-noise">20. Thresholding and Noise</a></li>
+<li class="toc-level-3"><a href="#1-erosion">1. Erosion</a></li>
+<li class="toc-level-3"><a href="#2-dilation">2. Dilation</a></li>
+<li class="toc-level-3"><a href="#3-opening">3. Opening</a></li>
+<li class="toc-level-3"><a href="#4-closing">4. Closing</a></li>
+<li class="toc-level-1"><a href="#21-thresholding-pipeline">21. Thresholding Pipeline</a></li>
+<li class="toc-level-1"><a href="#22-important-mathematical-representation">22. Important Mathematical Representation</a></li>
+<li class="toc-level-1"><a href="#23-inverse-thresholding">23. Inverse Thresholding</a></li>
+<li class="toc-level-3"><a href="#example-4">Example</a></li>
+<li class="toc-level-1"><a href="#24-thresholding-with-colour-images">24. Thresholding with Colour Images</a></li>
+<li class="toc-level-3"><a href="#example-green-object-detection">Example: Green Object Detection</a></li>
+<li class="toc-level-2"><a href="#241-hsv-colour-space">24.1 HSV Colour Space</a></li>
+<li class="toc-level-1"><a href="#25-grayscale-vs-colour-thresholding">25. Grayscale vs Colour Thresholding</a></li>
+<li class="toc-level-1"><a href="#26-comparison-of-major-thresholding-techniques">26. Comparison of Major Thresholding Techniques</a></li>
+<li class="toc-level-1"><a href="#27-advantages-of-threshold-based-segmentation">27. Advantages of Threshold-Based Segmentation</a></li>
+<li class="toc-level-1"><a href="#28-disadvantages-of-threshold-based-segmentation">28. Disadvantages of Threshold-Based Segmentation</a></li>
+<li class="toc-level-1"><a href="#29-thresholding-vs-other-segmentation-methods">29. Thresholding vs Other Segmentation Methods</a></li>
+<li class="toc-level-1"><a href="#30-complete-thresholding-example">30. Complete Thresholding Example</a></li>
+<li class="toc-level-1"><a href="#31-what-actually-happens-during-thresholding">31. What Actually Happens During Thresholding?</a></li>
+<li class="toc-level-1"><a href="#0">0</a></li>
+<li class="toc-level-1"><a href="#1">1</a></li>
+<li class="toc-level-1"><a href="#part-3-last-minute-exam-revision">PART 3: LAST-MINUTE EXAM REVISION</a></li>
+<li class="toc-level-2"><a href="#a-formula-sheet">A. Formula sheet</a></li>
+<li class="toc-level-2"><a href="#b-most-important-numerical-problems">B. Most important numerical problems</a></li>
+<li class="toc-level-2"><a href="#c-questions-you-should-definitely-prepare">C. Questions you should definitely prepare</a></li>
+<li class="toc-level-2"><a href="#d-the-most-important-things-to-remember">D. The most important things to remember</a></li>
+<li class="toc-level-1"><a href="#128-dimensions">128 dimensions</a></li>
+<li class="toc-level-1"><a href="#64-dimensions">64 dimensions</a></li>
+<li class="toc-level-1"><a href="#36-values-per-standard-block">36 values per standard block</a></li>
+<li class="toc-level-1"><a href="#maximum-between-class-variance">Maximum between-class variance</a></li>
+<li class="toc-level-1"><a href="#local-threshold">Local threshold</a></li>
+<li class="toc-level-1"><a href="#multiple-intensity-regions">Multiple intensity regions</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">Explain Feature Descriptors</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-19</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><p>Kinnuuuu, don't worry! ❤️ I've gone through <strong>both documents completely</strong>:</p><ol><li><p><strong>3.3(1).docx – Feature Descriptors:</strong> 51 pages.</p></li><li><p><strong>3.4(1).docx – Image Segmentation: Thresholding-Based Segmentation:</strong> 25 pages.</p></li></ol><p>There are four major topics:</p><ul><li><p>Feature Descriptors</p></li><li><p>SIFT Algorithm</p></li><li><p>SURF Algorithm</p></li><li><p>HOG Algorithm</p></li><li><p>Image Segmentation and all Thresholding Techniques</p></li></ul><p>I'll explain them from absolute basics, assuming you don't know anything about these topics. I'll include definitions, working steps, formulas, examples, numerical problems, comparisons, advantages and disadvantages.</p><h1 id="part-1-feature-descriptors-33"><strong>PART 1: FEATURE DESCRIPTORS (3.3)</strong></h1><h1 id="1-what-is-a-feature-descriptor"><strong>1. What is a Feature Descriptor?</strong></h1><p>First, let's understand three important terms.</p><p><strong>1. Keypoint</strong></p><p>A keypoint is an interesting or important location in an image.</p><p>Examples:</p><ul><li><p>Corner of a building.</p></li><li><p>Edge of a window.</p></li><li><p>Intersection of two lines.</p></li><li><p>Distinctive point on a face.</p></li></ul><p><strong>2. Feature</strong></p><p>A feature is a distinctive characteristic of an image region.</p><p>Examples:</p><ul><li><p>Brightness pattern.</p></li><li><p>Edge direction.</p></li><li><p>Corner structure.</p></li><li><p>Texture.</p></li></ul><p><strong>3. Feature Descriptor</strong></p><p>A feature descriptor is a collection of numbers that describes the appearance of a small region around a keypoint.</p><p>In simple words:</p><p>Imagine you take two photographs of the same building.</p><p>The computer needs to identify whether a particular corner in the first photograph is the same corner in the second photograph.</p><p>It does this by converting the information around that corner into numbers.</p><p>Those numbers are called a feature descriptor.</p><img alt="Image matching example with kornia local features: TFeat, MKD, OriNet, HyNet and OpenCV detector – Kornia" class="exported-media" src="https://images.openai.com/static-rsc-4/7xzPMKAq_0MGSlAQVjNjHBWe4Q5P3lt1nF40kUvJHsoy2WzINK6YxUA5bOVsuRRqtc4wQIp5NGSGgE1SZpwNpLZCyXzJm49AebhERUJqurcXTVkbuoPv_V_1BlIzRSRKxiTho0lyyc4w_jEKLrwxeB5fX6GGXZw2x8YRtZYMAsA?purpose=inline"/><a href="https://www.kornia.org/tutorials/nbs/descriptors_matching.html?utm_source=chatgpt.com">kornia.org</a><p><strong>Remember this for exams:</strong></p><table><tr><th>Term</th><th>Meaning</th></tr><tr><td>Keypoint</td><td>Where is the interesting point?</td></tr><tr><td>Feature</td><td>What is interesting about that point?</td></tr><tr><td>Descriptor</td><td>Numerical representation of that feature</td></tr></table><h3 id="why-do-we-need-feature-descriptors"><strong>Why do we need feature descriptors?</strong></h3><p>Suppose:</p><ul><li><p>Image A contains a building.</p></li><li><p>Image B contains the same building from a different angle.</p></li></ul><p>The computer compares the descriptors of both images.</p><ul><li><p>Similar descriptors → probably the same feature.</p></li><li><p>Different descriptors → probably different features.</p></li></ul><p>This process is called <strong>Feature Matching</strong>.</p><h3 id="common-feature-descriptors"><strong>Common feature descriptors</strong></h3><table><tr><th>Descriptor</th><th>Description size</th></tr><tr><td>SIFT</td><td>128 dimensions per keypoint</td></tr><tr><td>SURF</td><td>64 dimensions per keypoint (standard)</td></tr><tr><td>HOG</td><td>Depends on image and configuration</td></tr></table><h1 id="2-sift-algorithm"><strong>2. SIFT Algorithm</strong></h1>Important exam topic<p><strong>SIFT = Scale-Invariant Feature Transform</strong></p><p>SIFT is an algorithm used to detect important points in an image and create descriptors for those points.</p><p>It helps computers recognize the same object even when:</p><ul><li><p>Its size changes.</p></li><li><p>The image is rotated.</p></li><li><p>Lighting changes slightly.</p></li><li><p>The camera angle changes.</p></li></ul><h3 id="applications-of-sift"><strong>Applications of SIFT</strong></h3><ol><li><p>Image matching.</p></li><li><p>Object recognition.</p></li><li><p>Image stitching.</p></li><li><p>Panorama generation.</p></li><li><p>Image registration.</p></li><li><p>3D reconstruction.</p></li></ol><img alt="What is Scale-Invariant Feature Transform (SIFT)?" class="exported-media" src="https://images.openai.com/static-rsc-4/dWvoJxLFAK7zYVf61CU56I8zQ-WivurhfHxhd3P5Zc9iDQSCC-AiTUURe6lLMK4Shi1wqXDZqeyon796fe_S-tflDnmwZYsdB8ppwH6i_We75dbRIVlaxefiQpOAzWyg8Ldi0oN_JG0fanvquYqPdPHNlk4_P5BY106tcdqhQ9Y?purpose=inline"/><img alt="SIFT | Nishant Mishra" class="exported-media" src="https://images.openai.com/static-rsc-4/HSwKayRabwJBSaG-fUPBZwj6p0t-J_kJclzTIkEbYIQftiyGkQ3gGamIIXFeOsNNoA_cIxC0MjarNC1eH7HD4StCQYyY2Y6u9s3B_aKuDBSc932zP48UjNZYP6Kv9b4mS4IUmgrFIuyKy6OF8kpkSzTBY905hPdRv8RzWlLeVno?purpose=inline"/><img alt="vSLAMNet（三）-特征点-SIFT算法 | 学步" class="exported-media" src="https://images.openai.com/static-rsc-4/xGytNrMK55QpTKecbzQ-8fOfgNblp-CHpxCt5KagvvMb1DKom4JksrF4ueHd3SxFFkAsttIgO4c40akMt84zvnEPP7gD5KzPL7lvztWcNix5si1Dk4iji0OmdGeuAXwzXDjkMvpPhz5Vi82hTOoE4youMGH6ON-CyJzjxKDv9Mw?purpose=inline"/><h2 id="21-complete-sift-algorithm"><strong>2.1 Complete SIFT algorithm</strong></h2><p>Remember these five stages:</p><ol><li><p>Construct Scale Space.</p></li><li><p>Calculate Difference of Gaussian (DoG).</p></li><li><p>Find and localize keypoints.</p></li><li><p>Assign orientation.</p></li><li><p>Generate descriptor.</p></li></ol><p>Let's understand each one.</p><h2 id="step-1-input-image"><strong>Step 1: Input Image</strong></h2><p>First, we take an image.</p><p>Usually, SIFT starts with a grayscale image.</p><p>Why grayscale?</p><p>Because grayscale images contain intensity information, which is sufficient for detecting brightness changes, edges and corners.</p><p>For example:</p><p>Imagine a photograph of a building. SIFT tries to find:</p><ul><li><p>Corners.</p></li><li><p>Blobs.</p></li><li><p>Textured regions.</p></li><li><p>Distinctive structures.</p></li></ul><p>These points can be recognized later in another image.</p><h2 id="step-2-construct-scale-space"><strong>Step 2: Construct Scale Space</strong></h2><p><strong>Why is scale space needed?</strong></p><p>Imagine taking two photographs of the same building.</p><ul><li><p>Photograph 1: Building looks small.</p></li><li><p>Photograph 2: Building looks large.</p></li></ul><p>The computer should recognize that both contain the same building.</p><p>For this reason, SIFT examines the image at different scales.</p><p>It applies Gaussian smoothing with different values of sigma (σ).</p><h3 id="what-is-gaussian-smoothing"><strong>What is Gaussian smoothing?</strong></h3><p>Gaussian smoothing is a technique used to blur an image and reduce small details and noise.</p><p>For example:</p><img alt="PPT - Lecture 2: Convolution and edge detection PowerPoint Presentation - ID:294992" class="exported-media" src="https://images.openai.com/static-rsc-4/rspywaWhFMeRKQrqxBXdmfU9jKpYD3K2xk7Z_plnHryAxRCKhFuEuMpxdvSUYwjJHCDd-uN5JrUdWY1E7eG4UeXMPwq15hXL1jbawmCRkOgwNtRprAvbyz-Ok6e-550w50KBQWmU1mS7NuqP1agKjz1iINkP8TI2UfseytvBYU8?purpose=inline"/><a href="https://www.slideserve.com/gafna/lecture-2-convolution-and-edge-detection?utm_source=chatgpt.com">slideserve.com</a><p>The process:</p>Plain text<code>Original Image
+      ↓
+Gaussian Blur (σ)
+      ↓
+Gaussian Blur (kσ)
+      ↓
+Gaussian Blur (k²σ)
+      ↓
+Different scales of image</code><p>Here:</p><ul><li><p>Original image = input image.</p></li><li><p>Gaussian filter = smoothing operation.</p></li><li><p>σ = scale parameter.</p></li><li><p>Larger σ = more smoothing.</p></li></ul><p><strong>Important:</strong> SIFT creates multiple blurred versions of the same image.</p><p>This helps detect objects at different sizes.</p><h2 id="step-3-difference-of-gaussian-dog"><strong>Step 3: Difference of Gaussian (DoG)</strong></h2><p>Now SIFT subtracts two consecutive Gaussian-blurred images.</p><p>The result is called Difference of Gaussian.</p><p>Formula:</p>
+
+<div class="math-display">$$
+D(x,y,\sigma)=L(x,y,k\sigma)-L(x,y,\sigma)
+$$</div>
+
+<p>Where:</p><ul><li><p>D = Difference of Gaussian.</p></li><li><p>L = Gaussian-blurred image.</p></li><li><p>σ = scale.</p></li><li><p>kσ = next scale.</p></li></ul><h3 id="simple-example"><strong>Simple example</strong></h3><p>Suppose:</p><p>Gaussian Image 1:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+10&20\\
+30&40
+\end{bmatrix}
+$$</div>
+
+<p>Gaussian Image 2:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+5&10\\
+15&20
+\end{bmatrix}
+$$</div>
+
+<p>Subtract:</p>
+
+<div class="math-display">$$
+DoG=
+\begin{bmatrix}
+5&10\\
+15&20
+\end{bmatrix}
+$$</div>
+
+<p>The DoG image highlights structures that change significantly between scales.</p><p><strong>Important exam point:</strong> DoG is an efficient approximation to the scale-normalized Laplacian of Gaussian (LoG).</p><h2 id="step-4-find-local-extrema"><strong>Step 4: Find Local Extrema</strong></h2><p>After calculating DoG, SIFT searches for important points.</p><p>It compares each pixel with its neighbouring pixels.</p><p>It checks three scales:</p><ul><li><p>Current scale.</p></li><li><p>Scale above.</p></li><li><p>Scale below.</p></li></ul><p>The center pixel is compared with <strong>26 neighbouring samples</strong>.</p><p>Why 26?</p><ul><li><p>9 neighbours in the scale above.</p></li><li><p>8 neighbours in the current scale.</p></li><li><p>9 neighbours in the scale below.</p></li></ul><p>Total:</p>
+
+<div class="math-display">$$
+9+8+9=26
+$$</div>
+
+<p>A pixel becomes a candidate keypoint if it is:</p><ul><li><p>Greater than all 26 neighbours → Local Maximum.</p></li><li><p>Smaller than all 26 neighbours → Local Minimum.</p></li></ul><h3 id="example"><strong>Example</strong></h3>
+
+<div class="math-display">$$
+\begin{bmatrix}
+2&3&2\\
+3&9&3\\
+2&3&2
+\end{bmatrix}
+$$</div>
+
+<p>Here, the center value is 9.</p><p>It is greater than all its neighbours.</p><p>Therefore, it is a local maximum and can become a candidate keypoint.</p><h2 id="step-5-keypoint-localization"><strong>Step 5: Keypoint Localization</strong></h2><p>Not every detected point is useful.</p><p>SIFT removes unstable points.</p><p>There are two important removals.</p><h3 id="a-remove-low-contrast-points"><strong>A. Remove low-contrast points</strong></h3><p>Consider:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+100&101&100\\
+101&102&101\\
+100&101&100
+\end{bmatrix}
+$$</div>
+
+<p>The values are almost the same.</p><p>There is very little contrast.</p><p>Therefore, this point is not distinctive and SIFT discards it.</p><h3 id="b-remove-edge-like-points"><strong>B. Remove edge-like points</strong></h3><p>Consider a straight edge.</p><p>A point on a straight edge might have a strong response, but its exact position along that edge is difficult to determine.</p><p>For example, if you move a little along a straight line, the appearance remains almost the same.</p><p>Such points are unstable.</p><p>SIFT uses the Hessian matrix and local curvature information to identify poorly localized edge responses.</p><p>The Hessian matrix is:</p>
+
+<div class="math-display">$$
+H=
+\begin{bmatrix}
+I_{xx}&I_{xy}\\
+I_{xy}&I_{yy}
+\end{bmatrix}
+$$</div>
+
+<p>Where:</p><ul><li><p>$I_{xx}$ = second derivative in x direction.</p></li><li><p>$I_{yy}$ = second derivative in y direction.</p></li><li><p>$I_{xy}$ = mixed second derivative.</p></li></ul><p>After removing weak and edge-like points, only stable keypoints remain.</p><h2 id="step-6-assign-orientation-to-each-keypoint"><strong>Step 6: Assign Orientation to Each Keypoint</strong></h2><p>Now SIFT determines the dominant direction around each keypoint.</p><p>Why?</p><p>Because an image might be rotated.</p><p>The same corner may point in a different direction in another photograph.</p><p>SIFT calculates two things:</p><p><strong>1. Gradient Magnitude</strong></p><p>Measures the strength of intensity change.</p>
+
+<div class="math-display">$$
+m(x,y)=\sqrt{L_x^2+L_y^2}
+$$</div>
+
+<p><strong>2. Gradient Orientation</strong></p><p>Measures the direction of intensity change.</p>
+
+<div class="math-display">$$
+\theta(x,y)=\tan^{-1}\left(\frac{L_y}{L_x}\right)
+$$</div>
+
+<p>Where:</p><ul><li><p>$L_x$ = horizontal gradient.</p></li><li><p>$L_y$ = vertical gradient.</p></li></ul><h2 id="step-7-create-orientation-histogram"><strong>Step 7: Create Orientation Histogram</strong></h2><p>SIFT collects gradient information around the keypoint and creates an orientation histogram.</p><p>Example:</p><table><tr><th>Direction</th><th>Strength</th></tr><tr><td>0°</td><td>3</td></tr><tr><td>45°</td><td>5</td></tr><tr><td>90°</td><td>11</td></tr><tr><td>135°</td><td>2</td></tr><tr><td>180°</td><td>1</td></tr><tr><td>225°</td><td>4</td></tr><tr><td>270°</td><td>2</td></tr><tr><td>315°</td><td>1</td></tr></table><p>The highest peak is 90°.</p><p>Therefore, the dominant orientation is 90°.</p><p>This orientation is assigned to the keypoint.</p><h2 id="step-8-why-assign-orientation"><strong>Step 8: Why Assign Orientation?</strong></h2><p>This helps SIFT achieve <strong>rotation invariance</strong>.</p><p>Imagine an image is rotated by 90°.</p><p>The gradient directions also change.</p><p>But SIFT adjusts the reference direction according to the dominant orientation.</p><p>Therefore, it can generate a similar descriptor even after rotation.</p><h2 id="step-9-generate-the-sift-descriptor"><strong>Step 9: Generate the SIFT Descriptor</strong></h2><p>Now SIFT knows:</p><ul><li><p>Keypoint position.</p></li><li><p>Keypoint scale.</p></li><li><p>Keypoint orientation.</p></li></ul><p>It takes a small neighbourhood around the keypoint.</p><p>It divides this neighbourhood into:</p>
+
+<div class="math-display">$$
+4\times4=16\text{ regions}
+$$</div>
+
+<img alt="PPT - Feature Descriptors in Computer Vision PowerPoint Presentation, free download - ID:8830627" class="exported-media" src="https://images.openai.com/static-rsc-4/A9UZoW-zqExyZiSjtFIWRI5ELkGB3I6FdTJl_X7NI_Q09TxibtDbeO5Bm0tpgur0fI2GiHcbw45YxCYFFJMhaCswcyEnD70udFNtSIe-iXqTRMabz24elWUkTWAsZu5fJyACNguOyArErBTwrILXNxyEJYpzLCLjiazCb0HPJ3A?purpose=inline"/><a href="https://www.slideserve.com/wlynn/lecture-5-feature-descriptors-and-matching-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a><h2 id="step-10-create-orientation-histogram-for-each-region"><strong>Step 10: Create Orientation Histogram for Each Region</strong></h2><p>Each of the 16 regions contains an orientation histogram with 8 bins.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+16\times8=128
+$$</div>
+
+Remember: 128 dimensions<p>Every keypoint produces a 128-dimensional descriptor.</p><h3 id="very-important-numerical"><strong>Very important numerical</strong></h3><p>Question: SIFT divides a neighbourhood into 4 × 4 regions. Each region contains 8 orientation bins. Calculate the descriptor size.</p><p>Solution:</p><p>Number of regions:</p>
+
+<div class="math-display">$$
+4\times4=16
+$$</div>
+
+<p>Bins per region = 8.</p><p>Total descriptor:</p>
+
+<div class="math-display">$$
+16\times8=\boxed{128}
+$$</div>
+
+<p>Answer: 128-dimensional descriptor.</p><h2 id="step-11-normalize-the-descriptor"><strong>Step 11: Normalize the Descriptor</strong></h2><p>Normalization means adjusting the numerical values of the descriptor.</p><p>Why?</p><p>Lighting and contrast can change between images.</p><p>Normalization reduces the effect of these changes.</p><p>A simplified normalization formula is:</p>
+
+<div class="math-display">$$
+v_{\text{normalized}}=
+\frac{v}{\|v\|}
+$$</div>
+
+<p>Where:</p><ul><li><p>v = original descriptor vector.</p></li><li><p>$\|v\|$ = magnitude of the vector.</p></li></ul><p>The normalized vector becomes the final SIFT descriptor.</p><h2 id="step-12-complete-sift-flowchart"><strong>Step 12: Complete SIFT Flowchart</strong></h2><p><strong>INPUT IMAGE</strong></p><p>Convert to Grayscale</p><p>Construct Gaussian Scale Space</p><p>Calculate Difference of Gaussian (DoG)</p><p>Find Local Maxima and Minima</p><p>Keypoint Localization</p><p>Remove Low-Contrast and Edge-Like Points</p><p>Assign Dominant Orientation</p><p>Divide Neighbourhood into 4 × 4 Regions</p><p>8-Bin Orientation Histograms</p><p><strong>4 × 4 × 8 = 128</strong></p><p><strong>FINAL SIFT DESCRIPTOR</strong></p><h2 id="step-13-how-sift-matches-two-images"><strong>Step 13: How SIFT Matches Two Images</strong></h2><p>Suppose:</p><ul><li><p>Image A produces a descriptor of 128 numbers.</p></li><li><p>Image B produces a descriptor of 128 numbers.</p></li></ul><p>The computer compares them using Euclidean distance.</p><p>Formula:</p>
+
+<div class="math-display">$$
+d(A,B)=\sqrt{\sum_{i=1}^{n}(A_i-B_i)^2}
+$$</div>
+
+<p>Where:</p><ul><li><p>A and B = two descriptors.</p></li><li><p>n = number of descriptor values.</p></li></ul><p>Interpretation:</p><ul><li><p>Small distance = similar features.</p></li><li><p>Large distance = different features.</p></li></ul><h3 id="applications-of-sift-1"><strong>Applications of SIFT</strong></h3><ol><li><p>Image stitching.</p></li><li><p>Object recognition.</p></li><li><p>Image registration.</p></li><li><p>Panorama generation.</p></li><li><p>3D reconstruction.</p></li></ol><h3 id="why-is-sift-scale-invariant"><strong>Why is SIFT scale-invariant?</strong></h3><p>Because it searches for features at multiple scales using Gaussian scale space.</p><h3 id="why-is-sift-rotation-invariant"><strong>Why is SIFT rotation-invariant?</strong></h3><p>Because it assigns a dominant orientation to each keypoint.</p><h3 id="four-main-stages-to-remember"><strong>Four main stages to remember</strong></h3><table><tr><th>Stage</th><th>Work</th></tr><tr><td>1. Detection</td><td>Detect keypoints using DoG</td></tr><tr><td>2. Localization</td><td>Remove weak and edge-like points</td></tr><tr><td>3. Orientation</td><td>Calculate dominant gradient direction</td></tr><tr><td>4. Description</td><td>Generate 128-dimensional descriptor</td></tr></table><p><strong>Memory trick:</strong></p><p>SIFT = Detect → Filter → Orient → Describe.</p><h1 id="3-surf-algorithm"><strong>3. SURF Algorithm</strong></h1>Important exam topic<p><strong>SURF = Speeded-Up Robust Features</strong></p><p>SURF is similar to SIFT.</p><p>It detects important points in an image and generates descriptors for those points.</p><p>However, SURF is designed to perform the operations faster.</p><h3 id="why-do-we-need-surf"><strong>Why do we need SURF?</strong></h3><p>Suppose we have two photographs of the same building.</p><p>The building may appear:</p><ul><li><p>Smaller.</p></li><li><p>Larger.</p></li><li><p>Rotated.</p></li><li><p>Brighter.</p></li><li><p>Darker.</p></li></ul><p>SURF identifies corresponding points between the images.</p><h3 id="applications"><strong>Applications</strong></h3><ol><li><p>Image matching.</p></li><li><p>Object recognition.</p></li><li><p>Image registration.</p></li><li><p>Tracking.</p></li><li><p>Image stitching.</p></li></ol><img alt="PPT - Real Time Object Recognition Using the SURF Algorithm PowerPoint Presentation - ID:3703133" class="exported-media" src="https://images.openai.com/static-rsc-4/DY0GOCnjA-9LkfJHnJY0jeZo9zLp22Bp4z_OTiI02OsU8Yif4KSJJf9QqChwN2Q31svaWxXHvVG9lAgjfa0hcXkBD_GeX3y0YE81ha7eepw7jd7G7sjRdY4Cs_j_0GPTY0h9I1udZsLlTxkKbpg6kVM8AM2uxcfTwr8n47vJdoA?purpose=inline"/><img alt="PPT - SURF : Speeded-Up Robust Features PowerPoint Presentation, free download - ID:1621186" class="exported-media" src="https://images.openai.com/static-rsc-4/l7ZkhGqViMpl4nut6-yf_92gilIjSbXMrUsoIIj2_hfv1IIxAb1Js3YKaSrFaZtS3ozhZRgrgiYl_6CWK0oBtBfMsgsGSEHAMSI29-rUc914-qMd6bTCVbjta2O7XGiPZPcGUfyVdzTdwosyZwGthjuJnYv-cVgn5ls3FkRp_ks?purpose=inline"/><img alt="PPT - SURF: Speeded Up Robust Features PowerPoint Presentation, free download - ID:4149392" class="exported-media" src="https://images.openai.com/static-rsc-4/24td691a0djBc2IHp8loyTGwShA0HbIvcMqMoRSC0_Q0sq8j6DosvWAbfewBteV77uPnux9BULs6Dbv1_WdNEBuH9FvhS-THXhbYXHuMihrYwJgzQ7p2ZikgT8rXS_AfmOrjoa1hgQSRvv1wf3B-K48EfYN2CEYZBDchYD4DC3c?purpose=inline"/><h2 id="31-important-concepts-used-in-surf"><strong>3.1 Important concepts used in SURF</strong></h2><p>SURF mainly uses four important concepts:</p><ol><li><p>Integral Images.</p></li><li><p>Box Filters.</p></li><li><p>Hessian Matrix.</p></li><li><p>Haar Wavelets.</p></li></ol><p>Let's understand them one by one.</p><h2 id="step-1-input-image-1"><strong>Step 1: Input Image</strong></h2><p>First, we take an image.</p><p>SURF searches for distinctive points such as:</p><ul><li><p>Corners.</p></li><li><p>Blobs.</p></li><li><p>Intersections.</p></li><li><p>Textured regions.</p></li></ul><h2 id="step-2-integral-image"><strong>Step 2: Integral Image</strong></h2>Very important<p>An integral image stores the cumulative sum of all pixel values above and to the left of each pixel, including that pixel.</p><p>Why do we need it?</p><p>Normally, when we want to calculate the sum of a rectangular area, we add all the pixels individually.</p><p>This takes time.</p><p>An integral image allows us to calculate rectangular sums using only four values.</p><h3 id="numerical-example"><strong>Numerical example</strong></h3><p>Original image:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+1&2&3\\
+4&5&6\\
+7&8&9
+\end{bmatrix}
+$$</div>
+
+<p>Integral image:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+1&3&6\\
+5&12&21\\
+12&27&45
+\end{bmatrix}
+$$</div>
+
+<p>Let's understand how these values are calculated.</p><p>First row:</p><ul><li><p>First value = 1.</p></li><li><p>Second value = 1 + 2 = 3.</p></li><li><p>Third value = 1 + 2 + 3 = 6.</p></li></ul><p>Second row:</p><ul><li><p>First value = 1 + 4 = 5.</p></li><li><p>Second value = 1 + 2 + 4 + 5 = 12.</p></li><li><p>Third value = 1 + 2 + 3 + 4 + 5 + 6 = 21.</p></li></ul><p>Third row:</p><ul><li><p>First value = 1 + 4 + 7 = 12.</p></li><li><p>Second value = 1 + 2 + 4 + 5 + 7 + 8 = 27.</p></li><li><p>Third value = sum of all nine pixels = 45.</p></li></ul>Numerical answer
+
+<div class="math-display">$$
+\boxed{
+\begin{bmatrix}
+1&3&6\\
+5&12&21\\
+12&27&45
+\end{bmatrix}
+}
+$$</div>
+
+<h2 id="step-3-why-is-the-integral-image-useful"><strong>Step 3: Why is the Integral Image Useful?</strong></h2><p>Suppose you want the sum of a rectangular region.</p><p>Without an integral image, you may need to add every pixel.</p><p>With an integral image, you use four corner-related values.</p><p>The formula is:</p>
+
+<div class="math-display">$$
+S=D-B-C+A
+$$</div>
+
+<p>Where:</p><ul><li><p>D = bottom-right integral value.</p></li><li><p>B = top-right integral value.</p></li><li><p>C = bottom-left integral value.</p></li><li><p>A = top-left value just outside the rectangle.</p></li></ul><p>This makes rectangular calculations much faster.</p><p><strong>Exam point:</strong> Integral images are the main reason SURF can apply large box filters efficiently.</p><h2 id="step-4-hessian-matrix"><strong>Step 4: Hessian Matrix</strong></h2><p>SURF uses the Hessian matrix to detect important points.</p><p>The Hessian matrix measures how image intensity changes in different directions.</p><p>It contains second-order derivatives.</p>
+
+<div class="math-display">$$
+H=
+\begin{bmatrix}
+I_{xx}&I_{xy}\\
+I_{xy}&I_{yy}
+\end{bmatrix}
+$$</div>
+
+<p>Where:</p><ul><li><p>$I_{xx}$ = second derivative in x direction.</p></li><li><p>$I_{yy}$ = second derivative in y direction.</p></li><li><p>$I_{xy}$ = mixed derivative.</p></li></ul><p>The determinant is:</p>
+
+<div class="math-display">$$
+\det(H)=I_{xx}I_{yy}-(I_{xy})^2
+$$</div>
+
+<p>A strong Hessian response indicates a potentially interesting blob-like structure.</p><h3 id="example-1"><strong>Example</strong></h3><p>Flat region:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+100&100&100\\
+100&100&100\\
+100&100&100
+\end{bmatrix}
+$$</div>
+
+<p>There is almost no intensity change.</p><p>Now consider:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+100&100&100\\
+100&250&100\\
+100&100&100
+\end{bmatrix}
+$$</div>
+
+<p>The center has a strong intensity difference.</p><p>It may produce a strong Hessian response and become a keypoint candidate.</p><h2 id="step-5-surf-uses-box-filters"><strong>Step 5: SURF Uses Box Filters</strong></h2><p>Calculating exact second derivatives using Gaussian filters can be computationally expensive.</p><p>SURF approximates these operations using box filters.</p><p>A box filter uses rectangular patterns to measure intensity changes.</p><img alt="SURF算子 | GuoYi的博客" class="exported-media" src="https://images.openai.com/static-rsc-4/qf_oEHGbtD5XMNLB0wUttdN3A5iazFA2WjTG3-If_GX65p5ktFSXasNB8vqqFapu46RI7JTKHtYSqSbvmn0w_e9a09uV0UaCQ3KmXFOLtSM5HZC8mXZgCMRp1MyGTonsPUgvNEBlEp_dYoHZklCmsu2GItqwP4ntYfBQwP66V8Y?purpose=inline"/><a href="https://gy23333.github.io/2020/04/24/SURF%E7%AE%97%E5%AD%90/?utm_source=chatgpt.com">gy23333.github.io</a><p>Why are box filters useful?</p><p>Because the integral image allows their rectangular sums to be calculated quickly.</p><p>This is the key reason behind the word "Speeded-Up".</p><h2 id="step-6-detect-keypoints-at-different-scales"><strong>Step 6: Detect Keypoints at Different Scales</strong></h2><p>Objects can appear at different sizes.</p><p>For example:</p><ul><li><p>Small blob.</p></li><li><p>Medium blob.</p></li><li><p>Large blob.</p></li></ul><p>SURF examines different filter sizes.</p>Plain text<code>Small filter
+     ↓
+Medium filter
+     ↓
+Large filter
+     ↓
+Very large filter</code><p>At each scale, SURF calculates the Hessian response.</p><p>If a point has a strong response compared with neighbouring locations and scales, it can become a keypoint.</p><h2 id="step-7-local-maximum-detection"><strong>Step 7: Local Maximum Detection</strong></h2><p>Suppose Hessian responses are:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+2&3&2\\
+3&9&3\\
+2&3&2
+\end{bmatrix}
+$$</div>
+
+<p>The center value is 9.</p><p>It is greater than all its neighbours.</p><p>Therefore, it becomes a keypoint candidate.</p><p>SURF performs similar comparisons across neighbouring locations and scales.</p><h2 id="step-8-orientation-assignment"><strong>Step 8: Orientation Assignment</strong></h2><p>Now SURF has detected a keypoint.</p><p>But what happens if the image is rotated?</p><p>SURF determines the dominant orientation around the keypoint.</p><p>It uses Haar-wavelet responses.</p><p>It calculates:</p><ul><li><p>Horizontal response $d_x$.</p></li><li><p>Vertical response $d_y$.</p></li></ul><p>The direction is:</p>
+
+<div class="math-display">$$
+\theta=\tan^{-1}\left(\frac{d_y}{d_x}\right)
+$$</div>
+
+<h3 id="what-is-a-haar-wavelet"><strong>What is a Haar Wavelet?</strong></h3><p>A Haar wavelet is a simple rectangular pattern used to measure intensity changes.</p><p>For example:</p><ul><li><p>Horizontal response measures changes in the horizontal direction.</p></li><li><p>Vertical response measures changes in the vertical direction.</p></li></ul><img alt="SURF: A Complete Guide. In the rapidly evolving landscape of… | by Prudhvi Gudla | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/d0enDoO2Pzx1kFbOogGaMAUiRNfH2rbzTlLkqtIvm2z26MRD1SnHVicIVaVisRnH2J9tfUtUDMtZnLnEFkI8CUpbWXT9CG0H5UjA_dH0zeROsDk_5hR8aJ-wpKjd7zxgIusNkJd4DxZF3E-0S7dXUVP17-Bso3rd0K6CuM-_ykg?purpose=inline"/><a href="https://medium.com/%40prudhvigudla2579/surf-a-complete-guide-a9656b34a1d3?utm_source=chatgpt.com">medium.com</a><p>The responses are collected around the keypoint.</p><p>The strongest direction becomes the dominant orientation.</p><p>This helps SURF handle image rotation.</p><h2 id="step-9-generate-surf-descriptor"><strong>Step 9: Generate SURF Descriptor</strong></h2><p>Now we know:</p><ul><li><p>Keypoint location.</p></li><li><p>Scale.</p></li><li><p>Orientation.</p></li></ul><p>SURF takes a square neighbourhood around the keypoint.</p><p>It divides it into:</p>
+
+<div class="math-display">$$
+4\times4=16\text{ subregions}
+$$</div>
+
+<img alt="PPT - SURF: Speeded Up Robust Features PowerPoint Presentation, free download - ID:4149392" class="exported-media" src="https://images.openai.com/static-rsc-4/24td691a0djBc2IHp8loyTGwShA0HbIvcMqMoRSC0_Q0sq8j6DosvWAbfewBteV77uPnux9BULs6Dbv1_WdNEBuH9FvhS-THXhbYXHuMihrYwJgzQ7p2ZikgT8rXS_AfmOrjoa1hgQSRvv1wf3B-K48EfYN2CEYZBDchYD4DC3c?purpose=inline"/><a href="https://www.slideserve.com/greta/surf-speeded-up-robust-features?utm_source=chatgpt.com">slideserve.com</a><h2 id="step-10-calculate-four-values-for-each-region"><strong>Step 10: Calculate Four Values for Each Region</strong></h2><p>For each subregion, SURF calculates four quantities:</p><ol><li><p>$\sum d_x$ = overall horizontal gradient response.</p></li><li><p>$\sum d_y$ = overall vertical gradient response.</p></li><li><p>$\sum |d_x|$ = total strength of horizontal changes.</p></li><li><p>$\sum |d_y|$ = total strength of vertical changes.</p></li></ol><p>Each region gives 4 values.</p><p>There are 16 regions.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+16\times4=\boxed{64}
+$$</div>
+
+Remember: 64 dimensions<h3 id="numerical-question"><strong>Numerical question</strong></h3><p>Question: SURF divides the neighbourhood into 4 × 4 subregions. Each region generates four values. Calculate the descriptor size.</p><p>Solution:</p>
+
+<div class="math-display">$$
+4\times4=16\text{ regions}
+$$</div>
+
+<div class="math-display">$$
+16\times4=64
+$$</div>
+
+<p>Answer: 64-dimensional SURF descriptor.</p><h2 id="step-11-matching-surf-features"><strong>Step 11: Matching SURF Features</strong></h2><p>SURF compares the descriptors from two images.</p><p>Each keypoint produces 64 values.</p><p>The descriptors are compared using Euclidean distance.</p>
+
+<div class="math-display">$$
+d(A,B)=\sqrt{\sum_{i=1}^{64}(A_i-B_i)^2}
+$$</div>
+
+<ul><li><p>Small distance = similar features.</p></li><li><p>Large distance = different features.</p></li></ul><h2 id="step-12-why-is-surf-faster-than-sift"><strong>Step 12: Why is SURF Faster than SIFT?</strong></h2><p>This is a very important theory question.</p><table><tr><th>SURF technique</th><th>Purpose</th></tr><tr><td>Integral images</td><td>Fast rectangular sum calculation</td></tr><tr><td>Box filters</td><td>Approximate expensive Gaussian derivatives</td></tr><tr><td>Hessian approximation</td><td>Efficient keypoint detection</td></tr><tr><td>Haar wavelets</td><td>Obtain local gradient information</td></tr></table><p>SIFT uses Gaussian-based calculations and DoG.</p><p>SURF uses integral images and box-filter approximations, making it faster in its intended implementation.</p><h2 id="step-13-complete-surf-algorithm"><strong>Step 13: Complete SURF Algorithm</strong></h2><p><strong>INPUT IMAGE</strong></p><p>Generate Integral Image</p><p>Apply Approximate Hessian Filters</p><p>Calculate Hessian Determinant</p><p>Search Multiple Scales</p><p>Find Local Extrema</p><p>SURF Keypoints</p><p>Assign Orientation Using Haar Wavelets</p><p>Divide into 4 × 4 Regions</p><p>Calculate Four Values Per Region</p><p><strong>16 × 4 = 64</strong></p><p><strong>FINAL SURF DESCRIPTOR</strong></p><h3 id="sift-vs-surf"><strong>SIFT vs SURF</strong></h3><table><tr><th>Property</th><th>SIFT</th><th>SURF</th></tr><tr><td>Full form</td><td>Scale-Invariant Feature Transform</td><td>Speeded-Up Robust Features</td></tr><tr><td>Detection</td><td>DoG</td><td>Hessian determinant</td></tr><tr><td>Processing</td><td>Gaussian-based</td><td>Box-filter approximation</td></tr><tr><td>Descriptor</td><td>Gradient histograms</td><td>Haar responses</td></tr><tr><td>Descriptor size</td><td>128-D</td><td>64-D</td></tr><tr><td>Speed</td><td>More computationally expensive</td><td>Designed to be faster</td></tr><tr><td>Main purpose</td><td>Feature matching</td><td>Fast feature matching</td></tr></table><p><strong>Memory trick for SURF:</strong></p><p>Integral → Hessian → Haar → 64.</p><h1 id="4-hog-algorithm"><strong>4. HOG Algorithm</strong></h1>Important exam topic<p><strong>HOG = Histogram of Oriented Gradients</strong></p><p>HOG is a feature descriptor used to describe the shape of an object by studying the directions and strengths of edges in small regions of an image.</p><p>It is especially useful for:</p><ul><li><p>Human detection.</p></li><li><p>Pedestrian detection.</p></li><li><p>Object detection.</p></li><li><p>Shape recognition.</p></li></ul><img alt="PPT - Viola/Jones: features PowerPoint Presentation, free download - ID:6034410" class="exported-media" src="https://images.openai.com/static-rsc-4/-6IX0wiUyB9w147GVQALRvIQSnlF8ebWAkXExVEoPfao2qD75Z_YPc_fYAtg9sYAoSrM8Z7Ae3GefJoTW45vrtYcByZjvf8-V98pWgb24GWUUZ5jC02hdxFMcWi7XV1Xi9iBCWrftxih4DXmNHj8M2Waf9EegvfD20GdK2LTkQc?purpose=inline"/><img alt="【opencv】传统目标检测：HOG+SVM实现行人检测 - 水果好好吃哦 - 博客园" class="exported-media" src="https://images.openai.com/static-rsc-4/h6jU7Q5CIsJJiQ-5hpD0HvYHQrJw6kI499w9PQOHYKn_moR4ZIBGzayoqUkOqfbCFhz4kc9QtG7_21kbc07kyp2fwqkrx-VpqTvX_xlqwMULh4ZCcqDM4hBrm5zEHpTa5ZdvrZrSNqsDQitt4d2eCvOmG579mFnkHq7Xbb4VKuM?purpose=inline"/><img alt="PPT - Histograms of Oriented Gradients for Human Detection PowerPoint Presentation - ID:1908412" class="exported-media" src="https://images.openai.com/static-rsc-4/phh9yj1GjNt2QHTipO_N0wr09T8YZNy5zUcK-SSLo8M1Qs0w3aLZOXHWJYUaiL9QLlkRIGoA1xFFonTqslTnJrsniw-a0_ZVP224wUSqn-oPVXmItics6zwARo8ey_dRkhNaQdN9mZEVTbUzy0IoLx_6fAR4BlGkuq7caD3JVLk?purpose=inline"/><h2 id="41-basic-idea-of-hog"><strong>4.1 Basic Idea of HOG</strong></h2><p>Suppose we have an image of a person.</p><p>The computer doesn't need to remember every pixel value.</p><p>Instead, it looks at:</p><ul><li><p>Where are the edges?</p></li><li><p>How strong are the edges?</p></li><li><p>In which direction are the edges pointing?</p></li></ul><p>For example:</p><ul><li><p>Vertical edge.</p></li><li><p>Horizontal edge.</p></li><li><p>Diagonal edge.</p></li></ul><p>HOG converts this information into histograms.</p><h2 id="42-why-is-hog-needed"><strong>4.2 Why is HOG Needed?</strong></h2><p>Suppose two photographs contain the same person.</p><p>Their pixel values may differ because of:</p><ul><li><p>Lighting.</p></li><li><p>Background.</p></li><li><p>Clothing.</p></li><li><p>Image quality.</p></li></ul><p>But the person's general shape and edge structure may remain similar.</p><p>HOG captures that shape and edge information.</p><h2 id="43-complete-hog-algorithm"><strong>4.3 Complete HOG Algorithm</strong></h2><p>Remember these steps:</p><ol><li><p>Input image.</p></li><li><p>Calculate gradients.</p></li><li><p>Calculate magnitude and orientation.</p></li><li><p>Divide image into cells.</p></li><li><p>Create orientation histograms.</p></li><li><p>Group cells into blocks.</p></li><li><p>Normalize blocks.</p></li><li><p>Concatenate features.</p></li></ol><p>Let's understand every step.</p><h2 id="step-1-input-image-2"><strong>Step 1: Input Image</strong></h2><p>Suppose we have this grayscale image:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+10&10&10&20&20\\
+10&10&10&20&20\\
+10&10&10&20&20\\
+10&10&10&20&20
+\end{bmatrix}
+$$</div>
+
+<p>Notice that the first three columns have intensity 10, while the last two columns have intensity 20.</p><p>There is an intensity change between the regions.</p><p>HOG detects these changes.</p><h2 id="step-2-calculate-image-gradient"><strong>Step 2: Calculate Image Gradient</strong></h2><p>Gradient tells us:</p><p>How quickly is image intensity changing, and in which direction?</p><p>We calculate:</p><ul><li><p>Horizontal gradient $G_x$.</p></li><li><p>Vertical gradient $G_y$.</p></li></ul><p>In practice, Sobel filters or simple derivative filters can be used.</p><h2 id="step-3-calculate-gradient-magnitude"><strong>Step 3: Calculate Gradient Magnitude</strong></h2><p>Magnitude tells us the strength of the edge.</p><p>Formula:</p>
+
+<div class="math-display">$$
+G=\sqrt{G_x^2+G_y^2}
+$$</div>
+
+<h3 id="numerical-example-1"><strong>Numerical example</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+G_x=3,\quad G_y=4
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+G=\sqrt{3^2+4^2}
+$$</div>
+
+<div class="math-display">$$
+G=\sqrt{9+16}
+$$</div>
+
+<div class="math-display">$$
+G=\sqrt{25}
+$$</div>
+
+<div class="math-display">$$
+\boxed{G=5}
+$$</div>
+
+<p>Therefore, edge strength is 5.</p><h2 id="step-4-calculate-gradient-orientation"><strong>Step 4: Calculate Gradient Orientation</strong></h2><p>Orientation tells us the direction of the edge gradient.</p><p>Formula:</p>
+
+<div class="math-display">$$
+\theta=\tan^{-1}\left(\frac{G_y}{G_x}\right)
+$$</div>
+
+<p>Using the previous example:</p>
+
+<div class="math-display">$$
+G_x=3,\quad G_y=4
+$$</div>
+
+<div class="math-display">$$
+\theta=\tan^{-1}\left(\frac43\right)
+$$</div>
+
+<div class="math-display">$$
+\boxed{\theta\approx53.13^\circ}
+$$</div>
+
+<p>Therefore:</p><ul><li><p>Magnitude = 5.</p></li><li><p>Orientation = approximately 53°.</p></li></ul><p><strong>Important:</strong> The gradient points towards the direction of increasing intensity.</p><h2 id="step-5-divide-the-image-into-cells"><strong>Step 5: Divide the Image into Cells</strong></h2><p>HOG divides the image into small regions called cells.</p><p>A common configuration uses:</p>
+
+<div class="math-display">$$
+8\times8\text{ pixels per cell}
+$$</div>
+
+<p>For example:</p><img alt="Advancing vehicle detection for autonomous driving: integrating computer vision and machine learning techniques for real-world deployment: Journal of Control and Decision: Vol 0, No 0 - Get Access" class="exported-media" src="https://images.openai.com/static-rsc-4/PIEjUH331fSAI-E9363kFK11e3PzfTxyhc2Mm8dmCWj_Pe7leMD7fr2iIDjtvWffsi-p6U_tHxB-OTiX8Byc7xOOORe8Jz6DbkGeh782HVcpmmxpKNwaKbxBtr3z7HiJirELdYVkWN_Jm9EmXcaVk4c1mcLEb0ruLq8ErHXmvkc?purpose=inline"/><a href="https://www.tandfonline.com/doi/full/10.1080/23307706.2025.2469893?af=R&amp;utm_source=chatgpt.com">tandfonline.com</a><p>Each cell contains multiple pixels.</p><p>For every pixel, we already know:</p><ul><li><p>Gradient magnitude.</p></li><li><p>Gradient orientation.</p></li></ul><h2 id="step-6-create-orientation-histogram"><strong>Step 6: Create Orientation Histogram</strong></h2><p>This is the heart of HOG.</p><p>For each cell, HOG creates a histogram of gradient directions.</p><p>A common configuration uses <strong>9 orientation bins</strong> for unsigned gradients.</p><p>The range is 0° to 180°.</p><p>The bins represent directions such as:</p><p>0°, 20°, 40°, 60°, 80°, 100°, 120°, 140°, 160°.</p><p>Each pixel contributes to the appropriate orientation bin.</p><p>But remember one important point:</p><p><strong>Each pixel contributes according to its gradient magnitude.</strong></p><h3 id="numerical-example-2"><strong>Numerical example</strong></h3><p>Suppose a cell contains three important pixels.</p><table><tr><th>Pixel</th><th>Magnitude</th><th>Orientation</th></tr><tr><td>P1</td><td>5</td><td>40°</td></tr><tr><td>P2</td><td>3</td><td>40°</td></tr><tr><td>P3</td><td>7</td><td>80°</td></tr></table><p>Calculate the histogram:</p><p>40° bin:</p>
+
+<div class="math-display">$$
+5+3=8
+$$</div>
+
+<p>80° bin:</p>
+
+<div class="math-display">$$
+7
+$$</div>
+
+<p>Therefore:</p><table><tr><th>Orientation</th><th>Histogram value</th></tr><tr><td>40°</td><td>8</td></tr><tr><td>80°</td><td>7</td></tr><tr><td>Other bins</td><td>0</td></tr></table><p>The histogram tells us which edge directions are strongest in that cell.</p><h2 id="step-7-why-do-we-use-magnitude-as-weight"><strong>Step 7: Why Do We Use Magnitude as Weight?</strong></h2><p>Suppose two pixels have the same orientation.</p><p>Pixel A has magnitude 2.</p><p>Pixel B has magnitude 8.</p><p>Which pixel has the stronger edge?</p><p>Pixel B.</p><p>Therefore, Pixel B should contribute more to the histogram.</p><p>This is why HOG uses gradient magnitude as a weight.</p><h2 id="step-8-a-more-realistic-numerical-example"><strong>Step 8: A More Realistic Numerical Example</strong></h2><p>Suppose a cell has the following pixels:</p><table><tr><th>Pixel</th><th>Gx</th><th>Gy</th></tr><tr><td>P1</td><td>3</td><td>4</td></tr><tr><td>P2</td><td>4</td><td>3</td></tr><tr><td>P3</td><td>0</td><td>5</td></tr><tr><td>P4</td><td>-4</td><td>3</td></tr></table><p>Let's calculate magnitude and orientation.</p><p>For P1:</p>
+
+<div class="math-display">$$
+G=\sqrt{3^2+4^2}=5
+$$</div>
+
+<div class="math-display">$$
+\theta=\tan^{-1}(4/3)=53.13^\circ
+$$</div>
+
+<p>For P2:</p>
+
+<div class="math-display">$$
+G=\sqrt{4^2+3^2}=5
+$$</div>
+
+<div class="math-display">$$
+\theta=\tan^{-1}(3/4)=36.87^\circ
+$$</div>
+
+<p>For P3:</p>
+
+<div class="math-display">$$
+G=\sqrt{0^2+5^2}=5
+$$</div>
+
+<div class="math-display">$$
+\theta=90^\circ
+$$</div>
+
+<p>For P4:</p>
+
+<div class="math-display">$$
+G=\sqrt{(-4)^2+3^2}=5
+$$</div>
+
+<div class="math-display">$$
+\theta=143.13^\circ
+$$</div>
+
+<p>Now these orientations are accumulated into the appropriate histogram bins.</p><p>The histogram represents the edge structure of the cell.</p><h2 id="step-9-group-cells-into-blocks"><strong>Step 9: Group Cells into Blocks</strong></h2><p>One cell alone may be affected by lighting changes.</p><p>Therefore, HOG groups neighbouring cells into blocks.</p><p>A common configuration uses:</p>
+
+<div class="math-display">$$
+2\times2\text{ cells per block}
+$$</div>
+
+<img alt="HOG implementation and object detection" class="exported-media" src="https://images.openai.com/static-rsc-4/lPssVM9T-MUedrJQ-B2PI1AO9hAifEW0EzJhYyWHrimGMDd8WH9k5N1Ev_Ek1XBT1lw_f_IssBcvPT3uBsySjGt8O-N1q-CydUFD19KnR0BzUEOUtAYSSeYoFF5in49W2MXziwJC7vlc8WJQnIkp162fm8kfJT77OFYXUK0Y8Ao?purpose=inline"/><a href="https://kgeorge.github.io/2014/06/03/hog-implementation-and-object-detection?utm_source=chatgpt.com">kgeorge.github.io</a><p>Each cell has 9 histogram values.</p><p>Therefore, one block contains:</p>
+
+<div class="math-display">$$
+2\times2\times9
+$$</div>
+
+<div class="math-display">$$
+\boxed{36\text{ values}}
+$$</div>
+
+<h2 id="step-10-why-are-blocks-overlapping"><strong>Step 10: Why Are Blocks Overlapping?</strong></h2><p>HOG usually uses overlapping blocks.</p><p>For example:</p><p>A 3 × 3 arrangement of cells:</p>Plain text<code>C1  C2  C3
+C4  C5  C6
+C7  C8  C9</code><p>Block 1:</p>Plain text<code>C1  C2
+C4  C5</code><p>Block 2:</p>Plain text<code>C2  C3
+C5  C6</code><p>Block 3:</p>Plain text<code>C4  C5
+C7  C8</code><p>Overlapping blocks provide more spatial information and make the descriptor more robust.</p><h2 id="step-11-normalize-the-block"><strong>Step 11: Normalize the Block</strong></h2><p>Now the 36 values in each block are normalized.</p><p>Why?</p><p>Because lighting can change gradient magnitudes.</p><p>For example:</p><ul><li><p>Normal lighting produces a particular gradient vector.</p></li><li><p>Stronger lighting may produce a larger version of the same vector.</p></li></ul><p>Normalization reduces the effect of overall changes in magnitude.</p><p>One common normalization is:</p>
+
+<div class="math-display">$$
+v_{\text{norm}}=
+\frac{v}{\sqrt{\|v\|^2+\epsilon^2}}
+$$</div>
+
+<p>Where:</p><ul><li><p>v = block vector.</p></li><li><p>ε = small constant.</p></li></ul><h2 id="step-12-create-final-hog-descriptor"><strong>Step 12: Create Final HOG Descriptor</strong></h2><p>Finally, all normalized block vectors are concatenated.</p><p>This produces one large feature vector.</p><p>Its size depends on:</p><ul><li><p>Image dimensions.</p></li><li><p>Cell size.</p></li><li><p>Block size.</p></li><li><p>Number of orientation bins.</p></li></ul><h2 id="step-13-complete-hog-numerical-example"><strong>Step 13: Complete HOG Numerical Example</strong></h2>Important numerical<p>Let's use the standard configuration from the notes.</p><p>Assume:</p><ul><li><p>Image size = 64 × 128 pixels.</p></li><li><p>Cell size = 8 × 8 pixels.</p></li><li><p>Block size = 2 × 2 cells.</p></li><li><p>Orientation bins = 9.</p></li></ul><h3 id="a-calculate-number-of-cells"><strong>A. Calculate number of cells</strong></h3><p>Width:</p>
+
+<div class="math-display">$$
+64/8=8
+$$</div>
+
+<p>Height:</p>
+
+<div class="math-display">$$
+128/8=16
+$$</div>
+
+<p>Total cells:</p>
+
+<div class="math-display">$$
+8\times16=128
+$$</div>
+
+<h3 id="b-calculate-number-of-blocks"><strong>B. Calculate number of blocks</strong></h3><p>Each block contains 2 × 2 cells.</p><p>Because blocks overlap, the number of blocks horizontally is:</p>
+
+<div class="math-display">$$
+8-2+1=7
+$$</div>
+
+<p>Number vertically:</p>
+
+<div class="math-display">$$
+16-2+1=15
+$$</div>
+
+<p>Total blocks:</p>
+
+<div class="math-display">$$
+7\times15=105
+$$</div>
+
+<h3 id="c-calculate-features-per-block"><strong>C. Calculate features per block</strong></h3>
+
+<div class="math-display">$$
+2\times2\times9=36
+$$</div>
+
+<p>Each block contains 36 values.</p><h3 id="d-calculate-final-descriptor-size"><strong>D. Calculate final descriptor size</strong></h3>
+
+<div class="math-display">$$
+105\times36
+$$</div>
+
+<div class="math-display">$$
+\boxed{3780}
+$$</div>
+
+Final answer: 3780 features<h2 id="step-14-hog-with-human-example"><strong>Step 14: HOG with Human Example</strong></h2><p>Why is HOG useful for detecting humans?</p><p>The human body has characteristic edge structures.</p><table><tr><th>Body part</th><th>Typical edge structure</th></tr><tr><td>Head</td><td>Circular/curved</td></tr><tr><td>Shoulders</td><td>Horizontal/diagonal</td></tr><tr><td>Arms</td><td>Diagonal</td></tr><tr><td>Body</td><td>Vertical</td></tr><tr><td>Legs</td><td>Diagonal/vertical</td></tr></table><p>HOG creates local orientation histograms.</p><p>A classifier can learn the combined pattern of:</p><ul><li><p>Head.</p></li><li><p>Shoulders.</p></li><li><p>Torso.</p></li><li><p>Legs.</p></li></ul><p>It can then distinguish a person from objects such as trees.</p><h2 id="step-15-hog-does-not-usually-find-keypoints"><strong>Step 15: HOG Does Not Usually Find Keypoints</strong></h2><p>This is an important difference between SIFT, SURF and HOG.</p><p><strong>SIFT:</strong></p><ul><li><p>Detects individual keypoints.</p></li><li><p>Creates a descriptor for each keypoint.</p></li></ul><p><strong>SURF:</strong></p><ul><li><p>Detects individual keypoints.</p></li><li><p>Creates a descriptor for each keypoint.</p></li></ul><p><strong>HOG:</strong></p><ul><li><p>Normally works on a complete image or image window.</p></li><li><p>Divides it into cells.</p></li><li><p>Creates histograms.</p></li><li><p>Produces one feature vector.</p></li></ul><h2 id="step-16-sift-vs-surf-vs-hog"><strong>Step 16: SIFT vs SURF vs HOG</strong></h2><table><tr><th>Property</th><th>SIFT</th><th>SURF</th><th>HOG</th></tr><tr><td>Main purpose</td><td>Feature matching</td><td>Fast feature matching</td><td>Shape/object detection</td></tr><tr><td>Keypoint detection</td><td>Yes</td><td>Yes</td><td>No, normally</td></tr><tr><td>Main information</td><td>Gradient orientation</td><td>Haar responses</td><td>Gradient orientation</td></tr><tr><td>Scale invariant</td><td>Yes</td><td>Yes</td><td>No</td></tr><tr><td>Rotation invariant</td><td>Yes</td><td>Yes</td><td>No</td></tr><tr><td>Descriptor</td><td>128-D/keypoint</td><td>64-D/keypoint</td><td>Depends on configuration</td></tr><tr><td>Famous application</td><td>Image matching</td><td>Image matching</td><td>Pedestrian detection</td></tr></table><h2 id="step-17-complete-hog-flowchart"><strong>Step 17: Complete HOG Flowchart</strong></h2><p><strong>INPUT IMAGE</strong></p><p>Calculate Gx and Gy</p><p>Calculate Gradient Magnitude and Orientation</p><p>Divide Image into Cells</p><p>Create Orientation Histograms</p><p>Group Cells into Blocks</p><p>Normalize Blocks</p><p>Concatenate All Features</p><p><strong>FINAL HOG FEATURE VECTOR</strong></p><h3 id="important-hog-terms"><strong>Important HOG terms</strong></h3><table><tr><th>Term</th><th>Meaning</th></tr><tr><td>Gradient</td><td>Measures intensity change</td></tr><tr><td>Magnitude</td><td>Strength of change</td></tr><tr><td>Orientation</td><td>Direction of change</td></tr><tr><td>Cell</td><td>Small region of image</td></tr><tr><td>Histogram</td><td>Counts gradient directions weighted by magnitude</td></tr><tr><td>Block</td><td>Group of neighbouring cells</td></tr><tr><td>Normalization</td><td>Reduces sensitivity to illumination and contrast</td></tr></table><h1 id="part-2-image-segmentation-34"><strong>PART 2: IMAGE SEGMENTATION (3.4)</strong></h1><p>Now let's move to your second document.</p><h1 id="5-introduction-to-image-segmentation"><strong>5. Introduction to Image Segmentation</strong></h1><p><strong>Image segmentation is the process of dividing an image into meaningful regions or groups of pixels.</strong></p><p>The main objective is to separate:</p><ul><li><p>Foreground = object of interest.</p></li><li><p>Background = remaining area.</p></li></ul><h3 id="simple-example-1"><strong>Simple example</strong></h3><p>Imagine a photograph of a white ball on a black background.</p><p>The computer needs to separate the ball from the background.</p><p>After segmentation, the output may become a binary image.</p><ul><li><p>1 = Foreground/object.</p></li><li><p>0 = Background.</p></li></ul><img alt="python - How to add multiple binary masks? - Stack Overflow" class="exported-media" src="https://images.openai.com/static-rsc-4/mmo_LDLeHkEWTWVsfnaSpHZaaGvO3Chw1AijbGEoZs4-q6LXyYA0JHiA4hQ-YACoR51JowpEYdI1oSwVX203kL3pTUg_KqDE9xZP1IRWq3OaV-MGCxE7-jIKZJrK3ldsX_qLgYkBVyEHci4s68dpE8ifLsY3hyOGLVd6Mb53HWA?purpose=inline"/><img alt="What is background subtraction?" class="exported-media" src="https://images.openai.com/static-rsc-4/mLLI9MNQDwrIbLdZ8BI50d1vHvMfcf5O4ZHjZ4STNuATNv5B7meMd0fiVZLUlhLgqoNY1m_GrL0YiQGuDr7-Ir4V-bQ_KEJCUxKIAA0QZLcMr7ptJOZhlw6m_MzjkfBaUt2QvqAY9YniIaw58Alv2Z-7Pr0cozr4dDgf__GJO_Y?purpose=inline"/><img alt="OpenCV GrabCut: Foreground Segmentation and Extraction - PyImageSearch" class="exported-media" src="https://images.openai.com/static-rsc-4/SNwUJwcIXxXqzZlSdOdxbRcsg1akxQ8OzQFMIbBIZt4yOiq5lWjHap-ampQsFRyRdExcLz9B4Hup6y4LsIVxSgZzlOgdTYAtzS_pAmqc2KeRTjDP-Q08EYEey4xU1WXsPouJTKMX4zFNIwWPLmsnU5gEy21mC3j6JseUa1vDxKQ?purpose=inline"/><h3 id="why-is-image-segmentation-needed"><strong>Why is image segmentation needed?</strong></h3><ol><li><p>Object detection.</p></li><li><p>Medical image analysis.</p></li><li><p>Face recognition.</p></li><li><p>Document processing.</p></li><li><p>Industrial inspection.</p></li><li><p>Autonomous vehicles.</p></li></ol><h1 id="6-what-is-threshold-based-segmentation"><strong>6. What is Threshold-Based Segmentation?</strong></h1>Very important<p>Thresholding is one of the simplest image segmentation techniques.</p><p>The basic idea is:</p><p>Choose an intensity value called a <strong>threshold (T)</strong> and classify every pixel according to its relationship with that threshold.</p><h3 id="understand-with-an-example"><strong>Understand with an example</strong></h3><p>Suppose a grayscale image contains:</p><ul><li><p>Dark background.</p></li><li><p>Bright object.</p></li></ul><p>We choose a threshold of 100.</p><p>Then:</p><ul><li><p>Pixels below or equal to 100 → Background.</p></li><li><p>Pixels greater than 100 → Foreground.</p></li></ul><p>Mathematical formula:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+1,&f(x,y)>T\\
+0,&f(x,y)\leq T
+\end{cases}
+$$</div>
+
+<p>Where:</p><ul><li><p>$f(x,y)$ = original image.</p></li><li><p>$g(x,y)$ = segmented image.</p></li><li><p>T = threshold.</p></li></ul><h3 id="numerical-example-3"><strong>Numerical example</strong></h3><p>Consider this image:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+20&30&40\\
+150&180&200\\
+50&210&220
+\end{bmatrix}
+$$</div>
+
+<p>Choose:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>Compare every pixel with 100.</p><p>Original:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+20&30&40\\
+150&180&200\\
+50&210&220
+\end{bmatrix}
+$$</div>
+
+<p>After thresholding:</p>
+
+<div class="math-display">$$
+\boxed{
+\begin{bmatrix}
+0&0&0\\
+1&1&1\\
+0&1&1
+\end{bmatrix}
+}
+$$</div>
+
+<p>Explanation:</p><ul><li><p>20, 30, 40 are below 100 → 0.</p></li><li><p>150, 180, 200 are above 100 → 1.</p></li><li><p>50 is below 100 → 0.</p></li><li><p>210 and 220 are above 100 → 1.</p></li></ul><p>Thus, the image is divided into two regions.</p><h1 id="7-why-does-thresholding-work"><strong>7. Why Does Thresholding Work?</strong></h1><p>Thresholding works well when foreground and background have different intensity distributions.</p><p>Example:</p><table><tr><th>Background</th><th>Object</th></tr><tr><td>20–50</td><td>180–230</td></tr><tr><td>Dark</td><td>Bright</td></tr></table><p>There is a clear gap between these two groups.</p><p>We can choose a threshold between 50 and 180.</p><p>For example:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>Then the computer can easily distinguish the object from the background.</p><h1 id="8-image-histogram-and-thresholding"><strong>8. Image Histogram and Thresholding</strong></h1><p>A histogram represents the distribution of pixel intensities in an image.</p><p>For an 8-bit grayscale image:</p>
+
+<div class="math-display">$$
+0\leq I\leq255
+$$</div>
+
+<p>Where:</p><ul><li><p>0 = Black.</p></li><li><p>255 = White.</p></li></ul><img alt="Mammogram Images Thresholding for Breast Cancer Detection Using Different Thresholding Methods" class="exported-media" src="https://images.openai.com/static-rsc-4/XEWsm9fG5kW-0hSTyBrtGKFryGf_LgAOXupEWnYARRpDdpOyDqDevbzPSkAOKrw6cWRI_rpqMXFid3gL0WKpWXD8guDCdjMCPhUU8WcN3ARiNkyUUyrPacuA3QFaQ4QppNtGwLpCheuRYusFXOTyHMh0ITfZFqHobClrRscuzAc?purpose=inline"/><a href="https://www.scirp.org/journal/paperinformation?paperid=33738&amp;utm_source=chatgpt.com">scirp.org</a><p>A histogram has:</p><ul><li><p>X-axis = Pixel intensity.</p></li><li><p>Y-axis = Number of pixels.</p></li></ul><p>Suppose there are two major groups:</p><ol><li><p>Dark pixels.</p></li><li><p>Bright pixels.</p></li></ol><p>The threshold is selected between the two peaks.</p><p>This is called a <strong>Bimodal Histogram</strong>.</p><p>Remember:</p><p>Bimodal = Two peaks.</p><h1 id="9-types-of-thresholding"><strong>9. Types of Thresholding</strong></h1><p>Your document explains six important methods.</p><ol><li><p>Global Thresholding.</p></li><li><p>Fixed Thresholding.</p></li><li><p>Automatic Thresholding.</p></li><li><p>Otsu's Thresholding.</p></li><li><p>Adaptive/Local Thresholding.</p></li><li><p>Multiple Thresholding.</p></li></ol><p>Let's study each.</p><h1 id="10-global-thresholding"><strong>10. Global Thresholding</strong></h1><p>In global thresholding, a single threshold is used for the entire image.</p><p>For every pixel, we use the same threshold T.</p><h3 id="example-2"><strong>Example</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=128
+$$</div>
+
+<p>The classification rule is:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+1,&f(x,y)>128\\
+0,&f(x,y)\leq128
+\end{cases}
+$$</div>
+
+<p>Now classify:</p><table><tr><th>Pixel intensity</th><th>Output</th></tr><tr><td>50</td><td>0</td></tr><tr><td>100</td><td>0</td></tr><tr><td>127</td><td>0</td></tr><tr><td>128</td><td>0</td></tr><tr><td>150</td><td>1</td></tr><tr><td>200</td><td>1</td></tr><tr><td>250</td><td>1</td></tr></table><p>Every pixel uses the same threshold.</p><h3 id="when-is-global-thresholding-suitable"><strong>When is Global Thresholding Suitable?</strong></h3><p>It works well when:</p><ol><li><p>Lighting is uniform.</p></li><li><p>Background is simple.</p></li><li><p>Object and background have different intensities.</p></li><li><p>Histogram has clearly separated peaks.</p></li></ol><p>Example: White object on a black background.</p><h3 id="limitations-of-global-thresholding"><strong>Limitations of Global Thresholding</strong></h3><p>Suppose an image has uneven illumination.</p><p>The same object might appear:</p><ul><li><p>Bright on the left.</p></li><li><p>Dark on the right.</p></li></ul><p>A single threshold may correctly classify one side but incorrectly classify the other.</p><p>Therefore, adaptive thresholding is more suitable in such cases.</p><h1 id="11-fixed-thresholding"><strong>11. Fixed Thresholding</strong></h1><p>In fixed thresholding, the user manually selects the threshold based on prior knowledge.</p><h3 id="example-3"><strong>Example</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>Then:</p><ul><li><p>Intensity less than 100 → Background.</p></li><li><p>Intensity greater than or equal to 100 → Object.</p></li></ul><p>This is useful when imaging conditions are controlled.</p><h3 id="real-life-example"><strong>Real-life example</strong></h3><p>Suppose an industrial camera always captures:</p><ul><li><p>Background = 0–50.</p></li><li><p>Object = 180–255.</p></li></ul><p>We can permanently use a threshold of 100.</p><p>There is no need to calculate a new threshold for every image if the conditions remain consistent.</p><h1 id="12-automatic-thresholding"><strong>12. Automatic Thresholding</strong></h1><p>Instead of manually selecting the threshold, an algorithm determines a suitable threshold automatically from the image.</p><p>One important automatic thresholding method is <strong>Otsu's Thresholding</strong>.</p><p>The computer examines the pixel intensity distribution and selects an appropriate threshold.</p><h1 id="13-otsus-thresholding"><strong>13. Otsu's Thresholding</strong></h1>Extremely important exam topic<p>Otsu's method automatically determines an appropriate threshold using the image histogram.</p><h3 id="basic-idea"><strong>Basic idea</strong></h3><p>Find a threshold that separates the image pixels into two classes as effectively as possible.</p><p>The two classes are:</p><ul><li><p>Class 0 = Background.</p></li><li><p>Class 1 = Foreground.</p></li></ul><h3 id="understand-with-a-histogram"><strong>Understand with a histogram</strong></h3><p>Suppose the histogram has two peaks.</p><img alt="Binary Image Analysis used in a variety of" class="exported-media" src="https://images.openai.com/static-rsc-4/-wJZqnZOvgvnMqHd16nLgVgbeM8MOhCR1zbOERhRbZPMXCuAWL2h_Cpd2ggYNLFS5O4THNE_OURXQo8GdGSgSD_oO8dwFYWFguABU27Xtaanf6MKkbM7fZci4UcCJdIDz4grg675fmCpvN4Pjz8bT2YoNwc9Ylj90kuK5pqzoPs?purpose=inline"/><a href="https://slidetodoc.com/binary-image-analysis-used-in-a-variety-of/?utm_source=chatgpt.com">slidetodoc.com</a><p>One peak represents dark pixels.</p><p>The other peak represents bright pixels.</p><p>There is a valley between them.</p><p>Otsu attempts to find the threshold that provides the best separation between the two groups.</p><h2 id="131-otsus-basic-principle"><strong>13.1 Otsu's Basic Principle</strong></h2><p>For every possible threshold T, divide pixels into two classes.</p><p>Class 0:</p>
+
+<div class="math-display">$$
+C_0=\{I(x,y)\leq T\}
+$$</div>
+
+<p>Class 1:</p>
+
+<div class="math-display">$$
+C_1=\{I(x,y)>T\}
+$$</div>
+
+<p>Then calculate how effectively the two classes are separated.</p><p>The threshold producing the best separation is selected.</p><h2 id="132-within-class-variance"><strong>13.2 Within-Class Variance</strong></h2><p>Within-class variance measures how spread out the pixel values are inside each class.</p><p>A good threshold should produce compact classes.</p><p>We want:</p>
+
+<div class="math-display">$$
+\text{Within-class variance}\rightarrow\text{Minimum}
+$$</div>
+
+<p>Imagine two groups of students.</p><p>If the marks within each group are very similar, the groups are compact.</p><p>The same idea applies to pixel intensity values.</p><h2 id="133-between-class-variance"><strong>13.3 Between-Class Variance</strong></h2><p>Between-class variance measures how different the two classes are from each other.</p><p>We want:</p>
+
+<div class="math-display">$$
+\text{Between-class variance}\rightarrow\text{Maximum}
+$$</div>
+
+<p>Imagine one group has marks around 30 and another group has marks around 90.</p><p>The difference between the groups is large.</p><p>That is good separation.</p><p><strong>Important:</strong> Otsu selects the threshold that maximizes between-class variance.</p><h2 id="134-otsu-mathematical-formulation"><strong>13.4 Otsu Mathematical Formulation</strong></h2><p>Let:</p><ul><li><p>$w_0$ = probability of class 0.</p></li><li><p>$w_1$ = probability of class 1.</p></li><li><p>$\mu_0$ = mean intensity of class 0.</p></li><li><p>$\mu_1$ = mean intensity of class 1.</p></li></ul><p>The between-class variance is:</p>
+
+<div class="math-display">$$
+\sigma_B^2=w_0w_1(\mu_0-\mu_1)^2
+$$</div>
+
+<p>Otsu selects:</p>
+
+<div class="math-display">$$
+\boxed{T^*=\arg\max_T\sigma_B^2(T)}
+$$</div>
+
+<p>In simple words:</p><p>Try different thresholds, calculate the separation for each, and choose the threshold with maximum separation.</p><h2 id="135-otsu-numerical-example"><strong>13.5 Otsu Numerical Example</strong></h2>Practice this numerical<p>Suppose we have 12 pixels:</p>
+
+<div class="math-display">$$
+10,10,20,20,10,20,80,80,90,90,80,90
+$$</div>
+
+<p>There are two obvious groups.</p><p>Dark pixels:</p>
+
+<div class="math-display">$$
+10,10,20,20,10,20
+$$</div>
+
+<p>Bright pixels:</p>
+
+<div class="math-display">$$
+80,80,90,90,80,90
+$$</div>
+
+<h3 id="step-1-calculate-the-mean-of-class-0"><strong>Step 1: Calculate the mean of Class 0</strong></h3>
+
+<div class="math-display">$$
+\mu_0=\frac{10+10+20+20+10+20}{6}
+$$</div>
+
+<div class="math-display">$$
+\mu_0=\frac{90}{6}=15
+$$</div>
+
+<h3 id="step-2-calculate-the-mean-of-class-1"><strong>Step 2: Calculate the mean of Class 1</strong></h3>
+
+<div class="math-display">$$
+\mu_1=\frac{80+80+90+90+80+90}{6}
+$$</div>
+
+<div class="math-display">$$
+\mu_1=\frac{510}{6}=85
+$$</div>
+
+<h3 id="step-3-calculate-class-probabilities"><strong>Step 3: Calculate class probabilities</strong></h3><p>There are 6 pixels in each class.</p><p>Total pixels = 12.</p>
+
+<div class="math-display">$$
+w_0=\frac6{12}=0.5
+$$</div>
+
+<div class="math-display">$$
+w_1=\frac6{12}=0.5
+$$</div>
+
+<h3 id="step-4-calculate-between-class-variance"><strong>Step 4: Calculate Between-Class Variance</strong></h3><p>Formula:</p>
+
+<div class="math-display">$$
+\sigma_B^2=w_0w_1(\mu_0-\mu_1)^2
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+=0.5\times0.5\times(15-85)^2
+$$</div>
+
+<div class="math-display">$$
+=0.25\times(-70)^2
+$$</div>
+
+<div class="math-display">$$
+=0.25\times4900
+$$</div>
+
+<div class="math-display">$$
+\boxed{\sigma_B^2=1225}
+$$</div>
+
+<p>This is a large separation.</p><p>Therefore, a threshold between 20 and 80 is suitable.</p><p>For example:</p>
+
+<div class="math-display">$$
+T=50
+$$</div>
+
+<h3 id="step-5-apply-threshold"><strong>Step 5: Apply Threshold</strong></h3><p>Original:</p>
+
+<div class="math-display">$$
+10,10,20,20,10,20,80,80,90,90,80,90
+$$</div>
+
+<p>After thresholding:</p>
+
+<div class="math-display">$$
+0,0,0,0,0,0,1,1,1,1,1,1
+$$</div>
+
+<p>Where:</p><ul><li><p>0 = Background.</p></li><li><p>1 = Foreground.</p></li></ul><p><strong>Final answer:</strong> Otsu finds a threshold around the valley between the two intensity groups.</p><h3 id="important-concept"><strong>Important concept</strong></h3><p>Otsu does not simply guess 50.</p><p>It tries different thresholds and selects the one that gives the maximum between-class variance.</p><h1 id="14-adaptive-thresholding"><strong>14. Adaptive Thresholding</strong></h1>Important exam topic<p>Adaptive thresholding is useful when illumination varies across the image.</p><p>Unlike global thresholding, adaptive thresholding uses different thresholds for different local regions.</p><h3 id="understand-with-an-example-1"><strong>Understand with an example</strong></h3><p>Suppose you take a photograph of a document.</p><p>One side is bright.</p><p>The other side is dark.</p><p>A single global threshold may fail.</p><p>Adaptive thresholding divides the image into small neighbourhoods.</p><p>For example:</p><ul><li><p>Region 1 → T1.</p></li><li><p>Region 2 → T2.</p></li><li><p>Region 3 → T3.</p></li><li><p>Region 4 → T4.</p></li></ul><p>Each region gets an appropriate threshold.</p><img alt="Digitize Receipts with Receipt OCR &amp; Automated Receipt OCR" class="exported-media" src="https://images.openai.com/static-rsc-4/s2XhAH8HVMhMFK8MHkM2KD-dJ9j1dU45hhTMET2H-xJm8qxJSujpFJu9WZL1srCtIwB8W1H2XAvQ3q8h8Hn9TckjWczR4b6iYkf9gHHBimq1eI9LOzTwpq3JuozKGYxfnspXBwDdK_Eh8U2sV5ISNBRIF3bxL2aaO3fXy3WGFsk?purpose=inline"/><a href="https://nanonets.com/blog/receipt-ocr/?utm_source=chatgpt.com">nanonets.com</a><h2 id="141-basic-adaptive-thresholding-algorithm"><strong>14.1 Basic Adaptive Thresholding Algorithm</strong></h2><p><strong>Step 1:</strong> Select a local window.</p><p>For example, a 3 × 3 window.</p><p><strong>Step 2:</strong> Calculate local statistics.</p><p>Examples:</p><ul><li><p>Mean.</p></li><li><p>Weighted mean.</p></li></ul><p><strong>Step 3:</strong> Calculate local threshold.</p><p><strong>Step 4:</strong> Compare the center pixel with the local threshold.</p><p><strong>Step 5:</strong> Move the window and repeat for the remaining pixels.</p><h2 id="142-local-mean-thresholding"><strong>14.2 Local Mean Thresholding</strong></h2><p>A simple adaptive method is local mean thresholding.</p><p>Formula:</p>
+
+<div class="math-display">$$
+T(x,y)=m(x,y)-C
+$$</div>
+
+<p>Where:</p><ul><li><p>$m(x,y)$ = mean intensity of the local neighbourhood.</p></li><li><p>C = constant.</p></li></ul><p>The pixel is classified using its local threshold.</p><h3 id="numerical-example-4"><strong>Numerical example</strong></h3><p>Suppose the local neighbourhood has these pixel values:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+80&90&100\\
+90&100&110\\
+100&110&120
+\end{bmatrix}
+$$</div>
+
+<p>Calculate the mean:</p>
+
+<div class="math-display">$$
+m=\frac{80+90+100+90+100+110+100+110+120}{9}
+$$</div>
+
+<div class="math-display">$$
+m=\frac{900}{9}=100
+$$</div>
+
+<p>Suppose:</p>
+
+<div class="math-display">$$
+C=10
+$$</div>
+
+<p>Then:</p>
+
+<div class="math-display">$$
+T=100-10=90
+$$</div>
+
+<p>If the center pixel is 100:</p>
+
+<div class="math-display">$$
+100>90
+$$</div>
+
+<p>Therefore, it is classified as foreground.</p><h2 id="143-global-vs-adaptive-thresholding"><strong>14.3 Global vs Adaptive Thresholding</strong></h2><table><tr><th>Global</th><th>Adaptive</th></tr><tr><td>One threshold</td><td>Different local thresholds</td></tr><tr><td>Threshold remains constant</td><td>Threshold varies</td></tr><tr><td>Simple</td><td>More computationally expensive</td></tr><tr><td>Uniform illumination</td><td>Uneven illumination</td></tr><tr><td>Simple images</td><td>Complex lighting conditions</td></tr></table><h1 id="15-multiple-thresholding"><strong>15. Multiple Thresholding</strong></h1><p>Sometimes an image contains more than two intensity groups.</p><p>For example:</p><table><tr><th>Region</th><th>Intensity</th></tr><tr><td>Dark</td><td>0–70</td></tr><tr><td>Medium</td><td>71–160</td></tr><tr><td>Bright</td><td>161–255</td></tr></table><p>Instead of using one threshold, we use multiple thresholds.</p><p>Suppose:</p>
+
+<div class="math-display">$$
+T_1=70,\quad T_2=150
+$$</div>
+
+<p>Then:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+0,&I\leq70\\
+1,&70<I\leq150\\
+2,&I>150
+\end{cases}
+$$</div>
+
+<p>This produces three different regions.</p><h2 id="151-numerical-example"><strong>15.1 Numerical Example</strong></h2><p>Suppose pixel intensities are:</p>
+
+<div class="math-display">$$
+20,50,80,100,130,170,200,240
+$$</div>
+
+<p>Choose:</p>
+
+<div class="math-display">$$
+T_1=70,\quad T_2=150
+$$</div>
+
+<p>Classification:</p><table><tr><th>Intensity</th><th>Region</th></tr><tr><td>20</td><td>Region 0</td></tr><tr><td>50</td><td>Region 0</td></tr><tr><td>80</td><td>Region 1</td></tr><tr><td>100</td><td>Region 1</td></tr><tr><td>130</td><td>Region 1</td></tr><tr><td>170</td><td>Region 2</td></tr><tr><td>200</td><td>Region 2</td></tr><tr><td>240</td><td>Region 2</td></tr></table><p>Final output:</p>
+
+<div class="math-display">$$
+0,0,1,1,1,2,2,2
+$$</div>
+
+<h2 id="152-binary-thresholding-vs-multilevel-thresholding"><strong>15.2 Binary Thresholding vs Multilevel Thresholding</strong></h2><table><tr><th>Binary Thresholding</th><th>Multilevel Thresholding</th></tr><tr><td>One threshold</td><td>Multiple thresholds</td></tr><tr><td>Two classes</td><td>Multiple classes</td></tr><tr><td>Separates foreground and background</td><td>Separates several intensity regions</td></tr><tr><td>Simple images</td><td>Images with multiple intensity groups</td></tr></table><h1 id="16-threshold-selection"><strong>16. Threshold Selection</strong></h1><p>Choosing the correct threshold is the most important part of threshold-based segmentation.</p><p>There are four approaches.</p><h3 id="1-manual-selection"><strong>1. Manual Selection</strong></h3><p>The user selects the threshold manually.</p><p>Example:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<h3 id="2-histogram-based-selection"><strong>2. Histogram-Based Selection</strong></h3><p>The threshold is selected based on the shape of the histogram.</p><p>If two peaks are clearly separated, choose a threshold between them.</p><h3 id="3-otsus-method"><strong>3. Otsu's Method</strong></h3><p>Automatically selects the threshold by maximizing between-class variance.</p><h3 id="4-adaptive-thresholding"><strong>4. Adaptive Thresholding</strong></h3><p>Calculates the threshold locally for different regions.</p><h1 id="17-effect-of-choosing-the-wrong-threshold"><strong>17. Effect of Choosing the Wrong Threshold</strong></h1><p>Suppose:</p><ul><li><p>Background intensity = 20–80.</p></li><li><p>Object intensity = 100–200.</p></li></ul><h3 id="good-threshold"><strong>Good threshold</strong></h3><p>Choose a threshold between 80 and 100.</p><p>The object and background are separated correctly.</p><h3 id="threshold-too-low"><strong>Threshold too low</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=40
+$$</div>
+
+<p>Some background pixels may be classified as foreground.</p><p>This creates false foreground pixels.</p><h3 id="threshold-too-high"><strong>Threshold too high</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=180
+$$</div>
+
+<p>Many object pixels with intensities between 100 and 180 will be lost.</p><p><strong>Conclusion:</strong> Correct threshold selection is essential for accurate segmentation.</p><h1 id="18-applications-of-thresholding"><strong>18. Applications of Thresholding</strong></h1><p>Your notes explain four major applications.</p><h2 id="181-thresholding-in-document-processing"><strong>18.1 Thresholding in Document Processing</strong></h2><p>Consider a scanned document.</p><p>Original:</p><ul><li><p>White paper.</p></li><li><p>Black text.</p></li></ul><p>Thresholding converts it into a binary image.</p><p>Example:</p>Plain text<code>111111111111
+110001111111
+111011111111
+110001111111
+111111111111</code><p>Where:</p><ul><li><p>1 = White background.</p></li><li><p>0 = Black text.</p></li></ul><p>This simplifies:</p><ol><li><p>OCR (Optical Character Recognition).</p></li><li><p>Character recognition.</p></li><li><p>Document analysis.</p></li></ol><h2 id="182-thresholding-in-medical-images"><strong>18.2 Thresholding in Medical Images</strong></h2><p>Suppose a medical image contains a bright abnormal region.</p><p>Process:</p>Plain text<code>Original Medical Image
+          ↓
+Choose Threshold
+          ↓
+Separate Bright Region
+          ↓
+Segmented Region</code><p>Thresholding is useful when the abnormal region has intensity values significantly different from surrounding tissue.</p><p>However, medical images can have complex intensity distributions.</p><p>Therefore, thresholding alone may not always be sufficient.</p><h2 id="183-thresholding-in-industrial-inspection"><strong>18.3 Thresholding in Industrial Inspection</strong></h2><p>Suppose we need to identify defects in a manufactured product.</p><ul><li><p>Normal surface = Similar intensity.</p></li><li><p>Defect = Significantly darker intensity.</p></li></ul><p>A threshold can separate:</p><p>Normal region vs Defect region.</p><p>This is computationally fast and useful for real-time inspection.</p><h2 id="184-thresholding-for-object-extraction"><strong>18.4 Thresholding for Object Extraction</strong></h2><p>Suppose we have a white ball on a dark background.</p><p>Given:</p><ul><li><p>Background = 0–50.</p></li><li><p>Object = 200–255.</p></li></ul><p>Choose:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>The bright ball can easily be extracted from the dark background.</p><h1 id="19-problems-in-threshold-based-segmentation"><strong>19. Problems in Threshold-Based Segmentation</strong></h1><p>Thresholding is simple, but it has limitations.</p><h3 id="1-uneven-illumination"><strong>1. Uneven Illumination</strong></h3><p>The same object may appear bright on one side and dark on another.</p><p>A single threshold may fail.</p><h3 id="2-similar-object-and-background-intensity"><strong>2. Similar Object and Background Intensity</strong></h3><p>If the object and background have similar intensity values, separating them becomes difficult.</p><h3 id="3-noise"><strong>3. Noise</strong></h3><p>Noise creates unwanted isolated pixels.</p><p>Example:</p>Plain text<code>000001000
+000000000</code><p>The isolated 1 may be incorrectly classified as an object.</p><h3 id="4-shadows"><strong>4. Shadows</strong></h3><p>Shadows can have intensity values similar to the object.</p><p>Therefore, the computer may incorrectly classify shadows as objects.</p><h3 id="5-complex-backgrounds"><strong>5. Complex Backgrounds</strong></h3><p>A complicated background may contain pixels with intensities similar to the foreground.</p><p>A single threshold may not distinguish them.</p><h1 id="20-thresholding-and-noise"><strong>20. Thresholding and Noise</strong></h1><p>Suppose the desired object is:</p>Plain text<code>111111
+111111
+111111</code><p>But noise creates:</p>Plain text<code>111001
+110111
+111101</code><p>Thresholding alone may produce unwanted small regions.</p><p>Therefore, thresholding is often followed by morphological operations.</p><p>Your notes mention four operations.</p><img alt="【python】OpenCV—Blur, Threshold, Gradient, Morphology（2）_opencv blur-CSDN博客" class="exported-media" src="https://images.openai.com/static-rsc-4/1YEtEyyVEBt-jbYrFFSW-1ItbwVi3wQxJfn48tLSJlFnYfQnjqKpQ0nHudztlrn_QJVK4WrpmtzY4htTX2tHkfHF73Gml1W3CffSvl-ozJE5dGWT1WYS5efgWDpU6PtV8zJruCOItaWfI7zGYUcdqxMIs-0mKG7YWYb4HbbnvSQ?purpose=inline"/><img alt="OpenCV Dilate | Delft Stack" class="exported-media" src="https://images.openai.com/static-rsc-4/6TWH7x-9mazFFmcRinF6NLtMU2alioxNIrLv4WW4ufMiuetpblDSCuLvvZljl4oYS_VGCCVnIaIotwJD2CfxdaFiKBlNOXVK6MtZEWG7Lzq2SUt97sDwA_VF6QaNiRW9LwH4Gcyfvm8HFugrWlFJG7QyqAzv3oIF_qEJWwAL_nI?purpose=inline"/><img alt="Binary images and Morphology - Computer Vision | PDF" class="exported-media" src="https://images.openai.com/static-rsc-4/17hx6SdQnvba8_JlMN61wL381W2eTY7492iXynOlvdOA6UI1V9aHqZXsYroAh-lVXD40bGuzCzAqgLZemPS7Zjm2tMWi7WufwJ3dBJ-ggiCDw3Evyx3r31Qd-1Fp2LnQYVYkr-ikKHyEwnFGRTjxmxgm14zWHyfmfB8J_KXtBkk?purpose=inline"/><h3 id="1-erosion"><strong>1. Erosion</strong></h3><p>Erosion removes pixels from the boundaries of foreground objects.</p><p>It can help remove small noise and shrink objects.</p><h3 id="2-dilation"><strong>2. Dilation</strong></h3><p>Dilation adds pixels to object boundaries.</p><p>It expands foreground objects.</p><h3 id="3-opening"><strong>3. Opening</strong></h3><p>Opening means:</p>
+
+<div class="math-display">$$
+\text{Opening}=\text{Erosion followed by Dilation}
+$$</div>
+
+<p>It is useful for removing small isolated noise.</p><h3 id="4-closing"><strong>4. Closing</strong></h3><p>Closing means:</p>
+
+<div class="math-display">$$
+\text{Closing}=\text{Dilation followed by Erosion}
+$$</div>
+
+<p>It is useful for filling small gaps and holes.</p><h1 id="21-thresholding-pipeline"><strong>21. Thresholding Pipeline</strong></h1><p>A practical threshold-based segmentation system follows these steps.</p><p><strong>INPUT IMAGE</strong></p><p>Convert to Grayscale</p><p>Pre-processing</p><p>Calculate Histogram</p><p>Select Threshold</p><p>Apply Threshold</p><p>Binary Image</p><p>Morphological Processing</p><p><strong>FINAL SEGMENTATION</strong></p><p>Let's understand the steps.</p><ol><li><p>Input image: Take the original image.</p></li><li><p>Convert to grayscale: Convert colour image into intensity values.</p></li><li><p>Pre-processing: Prepare the image and reduce noise.</p></li><li><p>Calculate histogram: Understand the distribution of pixel intensities.</p></li><li><p>Select threshold: Choose an appropriate threshold.</p></li><li><p>Apply threshold: Classify every pixel.</p></li><li><p>Binary image: Obtain foreground and background.</p></li><li><p>Morphological processing: Improve the result and remove unwanted noise.</p></li></ol><h1 id="22-important-mathematical-representation"><strong>22. Important Mathematical Representation</strong></h1><p>Given an original image:</p>
+
+<div class="math-display">$$
+f(x,y)
+$$</div>
+
+<p>Thresholding produces:</p>
+
+<div class="math-display">$$
+g(x,y)
+$$</div>
+
+<p>Using:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+1,&f(x,y)>T\\
+0,&f(x,y)\leq T
+\end{cases}
+$$</div>
+
+<p>This is the fundamental thresholding equation.</p><p>Remember it for exams.</p><h1 id="23-inverse-thresholding"><strong>23. Inverse Thresholding</strong></h1><p>Sometimes the object is darker than the background.</p><p>For example:</p><ul><li><p>Black object.</p></li><li><p>White background.</p></li></ul><p>In normal thresholding, bright pixels are classified as foreground.</p><p>But here we want dark pixels to be foreground.</p><p>Therefore, we reverse the classification.</p><p>Formula:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+1,&f(x,y)\leq T\\
+0,&f(x,y)>T
+\end{cases}
+$$</div>
+
+<h3 id="example-4"><strong>Example</strong></h3><p>Suppose:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>Pixel values:</p>
+
+<div class="math-display">$$
+20,50,100,150,200
+$$</div>
+
+<p>Normal thresholding:</p>
+
+<div class="math-display">$$
+0,0,0,1,1
+$$</div>
+
+<p>Inverse thresholding:</p>
+
+<div class="math-display">$$
+1,1,1,0,0
+$$</div>
+
+<p>This helps extract dark objects from bright backgrounds.</p><h1 id="24-thresholding-with-colour-images"><strong>24. Thresholding with Colour Images</strong></h1><p>Thresholding is not limited to grayscale images.</p><p>We can also threshold colour images.</p><p>We can use:</p><ol><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Blue.</p></li><li><p>Hue.</p></li><li><p>Saturation.</p></li><li><p>Brightness.</p></li></ol><h3 id="example-green-object-detection"><strong>Example: Green Object Detection</strong></h3><p>Suppose we want to identify a green object in an image.</p><p>We can select pixels based on:</p><ul><li><p>Green component being sufficiently high.</p></li><li><p>Red component being sufficiently low.</p></li><li><p>Blue component being sufficiently low.</p></li></ul><p>This helps separate the green object from other objects.</p><h2 id="241-hsv-colour-space"><strong>24.1 HSV Colour Space</strong></h2><p>HSV stands for:</p><ul><li><p>H = Hue.</p></li><li><p>S = Saturation.</p></li><li><p>V = Value (brightness).</p></li></ul><img alt="OpenCV cvtColor | Delft Stack" class="exported-media" src="https://images.openai.com/static-rsc-4/JiRyHKx0hSJocydGduPfgIY3BI7P3utwSRixO1R76TapEry1LIEdIivIFoFD3qBYNqfQxQYJk9lvnxD16Fjzs4LCh57CN4cVNyB061Vv3DoNLqWEuTUtWaXyvVwZsvvAHGxXhqNMeQELK3y1XJoKeGVqLnUmkPGuj3BSyRV9jj0?purpose=inline"/><a href="https://www.delftstack.com/howto/python/opencv-cvtcolor/?utm_source=chatgpt.com">delftstack.com</a><p><strong>Hue:</strong> Represents the actual colour.</p><p><strong>Saturation:</strong> Represents how pure or intense the colour is.</p><p><strong>Value:</strong> Represents brightness.</p><p>HSV is useful because colour information can be separated from brightness.</p><p>For example, green objects can be selected using a suitable Hue range.</p><h1 id="25-grayscale-vs-colour-thresholding"><strong>25. Grayscale vs Colour Thresholding</strong></h1><table><tr><th>Grayscale Thresholding</th><th>Colour Thresholding</th></tr><tr><td>Uses intensity values</td><td>Uses multiple colour components</td></tr><tr><td>Usually one intensity threshold</td><td>Uses colour ranges</td></tr><tr><td>Works when brightness differs</td><td>Works when colours differ</td></tr><tr><td>Simpler</td><td>More complex</td></tr></table><p>Example:</p><ul><li><p>Grayscale: Separate white object from black background.</p></li><li><p>Colour: Separate a green ball from a red background.</p></li></ul><h1 id="26-comparison-of-major-thresholding-techniques"><strong>26. Comparison of Major Thresholding Techniques</strong></h1>Important exam table<table><tr><th>Method</th><th>Threshold</th><th>Best use</th></tr><tr><td>Fixed</td><td>Manually selected</td><td>Controlled environment</td></tr><tr><td>Global</td><td>One threshold</td><td>Uniform illumination</td></tr><tr><td>Otsu</td><td>Automatically calculated</td><td>Two well-separated intensity classes</td></tr><tr><td>Adaptive</td><td>Local threshold</td><td>Uneven illumination</td></tr><tr><td>Multilevel</td><td>Multiple thresholds</td><td>Multiple intensity regions</td></tr><tr><td>Colour</td><td>Colour ranges</td><td>Objects distinguished by colour</td></tr></table><h1 id="27-advantages-of-threshold-based-segmentation"><strong>27. Advantages of Threshold-Based Segmentation</strong></h1><p>Your notes mention five major advantages.</p><p><strong>1. Simple</strong></p><p>The algorithm is easy to understand.</p><p><strong>2. Fast</strong></p><p>It requires relatively little computation.</p><p><strong>3. Easy to Implement</strong></p><p>The basic operation is simply comparing pixel intensity with a threshold.</p><p><strong>4. Suitable for Real-Time Applications</strong></p><p>Because it is computationally inexpensive.</p><p><strong>5. Effective for Simple Images</strong></p><p>Especially when foreground and background are clearly separated.</p><h1 id="28-disadvantages-of-threshold-based-segmentation"><strong>28. Disadvantages of Threshold-Based Segmentation</strong></h1><ol><li><p>Sensitive to illumination.</p></li><li><p>Sensitive to threshold selection.</p></li><li><p>Does not inherently use spatial connectivity.</p></li><li><p>Can be affected by noise.</p></li><li><p>Difficult when object and background intensity distributions overlap.</p></li><li><p>Global thresholding performs poorly under non-uniform illumination.</p></li><li><p>Complex objects may require more sophisticated segmentation methods.</p></li></ol><h1 id="29-thresholding-vs-other-segmentation-methods"><strong>29. Thresholding vs Other Segmentation Methods</strong></h1><p>Your document also compares thresholding with four other methods.</p><table><tr><th>Method</th><th>Main principle</th></tr><tr><td>Thresholding</td><td>Separates based on intensity or colour</td></tr><tr><td>Region Growing</td><td>Groups connected pixels with similar properties</td></tr><tr><td>K-Means</td><td>Groups similar pixels into clusters</td></tr><tr><td>Edge-Based</td><td>Finds boundaries and edges</td></tr><tr><td>Watershed</td><td>Treats the image as a topographic surface</td></tr></table><p>Let's understand the difference simply.</p><ul><li><p>Thresholding: Separates pixels using a threshold.</p></li><li><p>Region Growing: Starts from a seed pixel and adds neighbouring similar pixels.</p></li><li><p>K-Means: Groups pixels into clusters based on similarity.</p></li><li><p>Edge-Based: Finds object boundaries using edges.</p></li><li><p>Watershed: Treats bright and dark regions like hills and valleys to separate regions.</p></li></ul><h1 id="30-complete-thresholding-example"><strong>30. Complete Thresholding Example</strong></h1><p>Suppose we have:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+20&30&40\\
+180&200&220\\
+50&210&230
+\end{bmatrix}
+$$</div>
+
+<p>Choose:</p>
+
+<div class="math-display">$$
+T=100
+$$</div>
+
+<p>Apply:</p>
+
+<div class="math-display">$$
+g(x,y)=
+\begin{cases}
+1,&f(x,y)>100\\
+0,&f(x,y)\leq100
+\end{cases}
+$$</div>
+
+<p>Result:</p>
+
+<div class="math-display">$$
+\boxed{
+\begin{bmatrix}
+0&0&0\\
+1&1&1\\
+0&1&1
+\end{bmatrix}
+}
+$$</div>
+
+<p>Interpretation:</p><ul><li><p>0 = Background.</p></li><li><p>1 = Foreground.</p></li></ul><p>Thus, the bright region is successfully segmented.</p><h1 id="31-what-actually-happens-during-thresholding"><strong>31. What Actually Happens During Thresholding?</strong></h1><p>This is the simplest way to understand the entire concept.</p><p>For every pixel:</p><p><strong>Take a pixel</strong></p><p>Check its intensity</p><p>Compare with threshold T</p><p><strong>Intensity ≤ T</strong></p><p>Background</p><h1 id="0"><strong>0</strong></h1><p><strong>Intensity &gt; T</strong></p><p>Foreground</p><h1 id="1"><strong>1</strong></h1><p>The computer performs this decision-making operation for every pixel in the image.</p><h1 id="part-3-last-minute-exam-revision"><strong>PART 3: LAST-MINUTE EXAM REVISION</strong></h1><p>Here is the important formula and numerical revision from both documents.</p><h2 id="a-formula-sheet"><strong>A. Formula sheet</strong></h2><table><tr><th>Topic</th><th>Formula</th></tr><tr><td>SIFT gradient magnitude</td><td>$m=\sqrt{L_x^2+L_y^2}$</td></tr><tr><td>SIFT gradient orientation</td><td>$\theta=\tan^{-1}(L_y/L_x)$</td></tr><tr><td>SIFT descriptor size</td><td>$4\times4\times8=128$</td></tr><tr><td>Hessian determinant</td><td>$I_{xx}I_{yy}-I_{xy}^2$</td></tr><tr><td>SURF descriptor size</td><td>$4\times4\times4=64$</td></tr><tr><td>SURF orientation</td><td>$\theta=\tan^{-1}(d_y/d_x)$</td></tr><tr><td>HOG magnitude</td><td>$G=\sqrt{G_x^2+G_y^2}$</td></tr><tr><td>HOG orientation</td><td>$\theta=\tan^{-1}(G_y/G_x)$</td></tr><tr><td>HOG features per block</td><td>$2\times2\times9=36$</td></tr><tr><td>HOG final descriptor</td><td>Number of blocks × features per block</td></tr><tr><td>Otsu variance</td><td>$\sigma_B^2=w_0w_1(\mu_0-\mu_1)^2$</td></tr><tr><td>Local mean threshold</td><td>$T(x,y)=m(x,y)-C$</td></tr><tr><td>Opening</td><td>Erosion → Dilation</td></tr><tr><td>Closing</td><td>Dilation → Erosion</td></tr></table><h2 id="b-most-important-numerical-problems"><strong>B. Most important numerical problems</strong></h2><table><tr><th>Numerical</th><th>Answer</th></tr><tr><td>SIFT: 4 × 4 regions, 8 bins</td><td>128</td></tr><tr><td>SURF: 16 regions, 4 values</td><td>64</td></tr><tr><td>HOG: Gx = 3, Gy = 4</td><td>Magnitude = 5</td></tr><tr><td>HOG: Gx = 3, Gy = 4</td><td>Orientation ≈ 53.13°</td></tr><tr><td>HOG: 2 × 2 cells, 9 bins</td><td>36 features/block</td></tr><tr><td>HOG: 64 × 128 image, standard configuration</td><td>3780 features</td></tr><tr><td>Otsu example</td><td>Between-class variance = 1225</td></tr><tr><td>Local mean example</td><td>Threshold = 90</td></tr></table><h2 id="c-questions-you-should-definitely-prepare"><strong>C. Questions you should definitely prepare</strong></h2><p><strong>Exam preparation checklist</strong></p>0/29 completedDefine feature descriptor. Differentiate keypoint, feature and descriptor.Explain the SIFT algorithm with a neat flowchart.Explain Gaussian Scale Space and Difference of Gaussian.Explain keypoint localization and orientation assignment in SIFT.How does SIFT generate a 128-dimensional descriptor?Explain SURF algorithm with a neat flowchart.What is an integral image? Solve the 3 × 3 example.Explain Hessian matrix and its importance in SURF.Why is SURF faster than SIFT?Explain HOG algorithm with a neat flowchart.Calculate gradient magnitude and orientation in HOG.Explain cells, blocks, histograms and normalization in HOG.Solve the HOG descriptor-size numerical.Compare SIFT, SURF and HOG.Define image segmentation and threshold-based segmentation.Explain global thresholding with an example.Explain Otsu's thresholding with its mathematical principle and numerical.Differentiate within-class and between-class variance.Explain adaptive thresholding and local mean thresholding.Explain multiple thresholding with an example.Explain the effect of selecting a wrong threshold.Explain thresholding applications in document processing, medical images and industry.Explain problems in threshold-based segmentation.Explain erosion, dilation, opening and closing.Explain the thresholding pipeline.Differentiate grayscale and colour thresholding.Compare all major thresholding techniques.Explain advantages and disadvantages of threshold-based segmentation.Compare thresholding, region growing, K-Means, edge-based and watershed methods.<h2 id="d-the-most-important-things-to-remember"><strong>D. The most important things to remember</strong></h2><p><strong>SIFT</strong></p><h1 id="128-dimensions"><strong>128 dimensions</strong></h1><p>Detect → Filter → Orient → Describe.</p><p><strong>SURF</strong></p><h1 id="64-dimensions"><strong>64 dimensions</strong></h1><p>Integral → Hessian → Haar → Descriptor.</p><p><strong>HOG</strong></p><h1 id="36-values-per-standard-block"><strong>36 values per standard block</strong></h1><p>Gradient → Cells → Histograms → Blocks → Normalization.</p><p><strong>Otsu</strong></p><h1 id="maximum-between-class-variance"><strong>Maximum between-class variance</strong></h1><p>Automatically finds the best threshold.</p><p><strong>Adaptive Thresholding</strong></p><h1 id="local-threshold"><strong>Local threshold</strong></h1><p>Best suited for uneven illumination.</p><p><strong>Multiple Thresholding</strong></p><h1 id="multiple-intensity-regions"><strong>Multiple intensity regions</strong></h1><p>Uses more than one threshold.</p><p><strong>One important note:</strong> I have covered all 31 sections of the feature-descriptor material and all 44 sections of the thresholding material, including the HOG material at the end of the first document. Some equations in the original DOCX are embedded as images or have missing mathematical rendering in the extracted text, so I've written out the corresponding formulas wherever their meaning is clear from the notes.</p><p>My suggestion: Start with SIFT, SURF and HOG comparisons, then practise their numericals, and finally study Otsu and adaptive thresholding. These are the concepts where understanding the actual steps matters more than memorising definitions. ❤️</p><p>If you want, I can:</p><ul><li>Explain the HOG Algorithm in Detail</li><li>Explain Thresholding-Based Image Segmentation</li><li>Compare and Contrast SIFT, SURF, and HOG Algorithms</li></ul>
+<div class="references"><strong>References:</strong><ol><li><a href="https://www.kornia.org/tutorials/nbs/descriptors_matching.html?utm_source=chatgpt.com">kornia.org</a></li><li><a href="https://www.slideserve.com/gafna/lecture-2-convolution-and-edge-detection?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://www.slideserve.com/wlynn/lecture-5-feature-descriptors-and-matching-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://gy23333.github.io/2020/04/24/SURF%E7%AE%97%E5%AD%90/?utm_source=chatgpt.com">gy23333.github.io</a></li><li><a href="https://medium.com/%40prudhvigudla2579/surf-a-complete-guide-a9656b34a1d3?utm_source=chatgpt.com">medium.com</a></li><li><a href="https://www.slideserve.com/greta/surf-speeded-up-robust-features?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://www.tandfonline.com/doi/full/10.1080/23307706.2025.2469893?af=R&amp;utm_source=chatgpt.com">tandfonline.com</a></li><li><a href="https://kgeorge.github.io/2014/06/03/hog-implementation-and-object-detection?utm_source=chatgpt.com">kgeorge.github.io</a></li><li><a href="https://www.scirp.org/journal/paperinformation?paperid=33738&amp;utm_source=chatgpt.com">scirp.org</a></li><li><a href="https://slidetodoc.com/binary-image-analysis-used-in-a-variety-of/?utm_source=chatgpt.com">slidetodoc.com</a></li><li><a href="https://nanonets.com/blog/receipt-ocr/?utm_source=chatgpt.com">nanonets.com</a></li><li><a href="https://www.delftstack.com/howto/python/opencv-cvtcolor/?utm_source=chatgpt.com">delftstack.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
