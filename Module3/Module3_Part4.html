@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explain Shape Texture Analysis</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#document-1-37-shape-and-texture-analysis">DOCUMENT 1: 3.7 – SHAPE AND TEXTURE ANALYSIS</a></li>
+<li class="toc-level-2"><a href="#part-a-shape-analysis">PART A – SHAPE ANALYSIS</a></li>
+<li class="toc-level-3"><a href="#1-introduction-to-shape-and-texture-analysis">1. Introduction to Shape and Texture Analysis</a></li>
+<li class="toc-level-3"><a href="#2-why-shape-and-texture-analysis">2. Why Shape and Texture Analysis?</a></li>
+<li class="toc-level-3"><a href="#3-shape-analysis">3. Shape Analysis</a></li>
+<li class="toc-level-3"><a href="#4-input-to-shape-analysis">4. Input to Shape Analysis</a></li>
+<li class="toc-level-3"><a href="#5-example-of-binary-object">5. Example of Binary Object</a></li>
+<li class="toc-level-3"><a href="#6-area">6. Area</a></li>
+<li class="toc-level-3"><a href="#7-perimeter">7. Perimeter</a></li>
+<li class="toc-level-3"><a href="#8-area-vs-perimeter">8. Area vs Perimeter</a></li>
+<li class="toc-level-3"><a href="#9-centroid">9. Centroid</a></li>
+<li class="toc-level-3"><a href="#10-bounding-box">10. Bounding Box</a></li>
+<li class="toc-level-3"><a href="#11-aspect-ratio">11. Aspect Ratio</a></li>
+<li class="toc-level-3"><a href="#12-why-aspect-ratio-is-useful">12. Why Aspect Ratio Is Useful?</a></li>
+<li class="toc-level-3"><a href="#13-circularity">13. Circularity</a></li>
+<li class="toc-level-3"><a href="#14-understanding-circularity">14. Understanding Circularity</a></li>
+<li class="toc-level-3"><a href="#15-compactness">15. Compactness</a></li>
+<li class="toc-level-3"><a href="#16-eccentricity">16. Eccentricity</a></li>
+<li class="toc-level-3"><a href="#17-orientation">17. Orientation</a></li>
+<li class="toc-level-3"><a href="#18-shape-descriptors">18. Shape Descriptors</a></li>
+<li class="toc-level-3"><a href="#19-shape-moments">19. Shape Moments</a></li>
+<li class="toc-level-3"><a href="#20-zeroth-moment">20. Zeroth Moment</a></li>
+<li class="toc-level-3"><a href="#21-first-order-moments">21. First-Order Moments</a></li>
+<li class="toc-level-3"><a href="#22-why-moments-are-useful">22. Why Moments Are Useful?</a></li>
+<li class="toc-level-3"><a href="#23-hu-moments">23. Hu Moments</a></li>
+<li class="toc-level-3"><a href="#24-shape-analysis-pipeline">24. Shape Analysis Pipeline</a></li>
+<li class="toc-level-2"><a href="#part-b-texture-analysis">PART B – TEXTURE ANALYSIS</a></li>
+<li class="toc-level-3"><a href="#25-texture-analysis">25. Texture Analysis</a></li>
+<li class="toc-level-3"><a href="#26-texture-examples">26. Texture Examples</a></li>
+<li class="toc-level-3"><a href="#27-why-texture-is-important">27. Why Texture Is Important?</a></li>
+<li class="toc-level-3"><a href="#28-categories-of-texture-analysis">28. Categories of Texture Analysis</a></li>
+<li class="toc-level-3"><a href="#29-first-order-texture-features">29. First-Order Texture Features</a></li>
+<li class="toc-level-3"><a href="#30-mean">30. Mean</a></li>
+<li class="toc-level-3"><a href="#31-variance">31. Variance</a></li>
+<li class="toc-level-3"><a href="#32-standard-deviation">32. Standard Deviation</a></li>
+<li class="toc-level-3"><a href="#33-entropy">33. Entropy</a></li>
+<li class="toc-level-3"><a href="#34-simple-entropy-example">34. Simple Entropy Example</a></li>
+<li class="toc-level-3"><a href="#35-second-order-texture-features">35. Second-Order Texture Features</a></li>
+<li class="toc-level-3"><a href="#36-what-is-glcm">36. What Is GLCM?</a></li>
+<li class="toc-level-3"><a href="#37-simple-glcm-concept">37. Simple GLCM Concept</a></li>
+<li class="toc-level-3"><a href="#38-glcm-matrix">38. GLCM Matrix</a></li>
+<li class="toc-level-3"><a href="#39-glcm-normalization">39. GLCM Normalization</a></li>
+<li class="toc-level-3"><a href="#40-glcm-contrast">40. GLCM Contrast</a></li>
+<li class="toc-level-3"><a href="#41-glcm-energy">41. GLCM Energy</a></li>
+<li class="toc-level-3"><a href="#42-glcm-homogeneity">42. GLCM Homogeneity</a></li>
+<li class="toc-level-3"><a href="#43-glcm-correlation">43. GLCM Correlation</a></li>
+<li class="toc-level-3"><a href="#44-glcm-features-summary">44. GLCM Features Summary</a></li>
+<li class="toc-level-3"><a href="#45-texture-directionality">45. Texture Directionality</a></li>
+<li class="toc-level-3"><a href="#46-texture-using-fourier-transform">46. Texture Using Fourier Transform</a></li>
+<li class="toc-level-3"><a href="#47-gabor-filters">47. Gabor Filters</a></li>
+<li class="toc-level-3"><a href="#48-wavelet-based-texture-analysis">48. Wavelet-Based Texture Analysis</a></li>
+<li class="toc-level-3"><a href="#49-shape-vs-texture">49. Shape vs Texture</a></li>
+<li class="toc-level-3"><a href="#50-shape-texture-together">50. Shape + Texture Together</a></li>
+<li class="toc-level-3"><a href="#51-complete-analysis-pipeline">51. Complete Analysis Pipeline</a></li>
+<li class="toc-level-3"><a href="#52-example-fruit-classification">52. Example: Fruit Classification</a></li>
+<li class="toc-level-3"><a href="#53-example-medical-image">53. Example: Medical Image</a></li>
+<li class="toc-level-3"><a href="#54-example-industrial-inspection">54. Example: Industrial Inspection</a></li>
+<li class="toc-level-1"><a href="#document-2-38-object-detection-fundamentals-and-basic-pattern-recognition-concepts">DOCUMENT 2: 3.8 – OBJECT DETECTION FUNDAMENTALS AND BASIC PATTERN RECOGNITION CONCEPTS</a></li>
+<li class="toc-level-2"><a href="#part-a-object-detection-fundamentals">PART A – OBJECT DETECTION FUNDAMENTALS</a></li>
+<li class="toc-level-3"><a href="#1-introduction-to-object-detection">1. Introduction to Object Detection</a></li>
+<li class="toc-level-3"><a href="#2-classification-vs-localization-vs-detection">2. Classification vs Localization vs Detection</a></li>
+<li class="toc-level-3"><a href="#3-object-detection-output">3. Object Detection Output</a></li>
+<li class="toc-level-3"><a href="#4-bounding-box">4. Bounding Box</a></li>
+<li class="toc-level-3"><a href="#5-confidence-score">5. Confidence Score</a></li>
+<li class="toc-level-3"><a href="#6-basic-object-detection-pipeline">6. Basic Object Detection Pipeline</a></li>
+<li class="toc-level-3"><a href="#7-feature-extraction-for-object-detection">7. Feature Extraction for Object Detection</a></li>
+<li class="toc-level-3"><a href="#8-candidate-object-regions">8. Candidate Object Regions</a></li>
+<li class="toc-level-3"><a href="#9-sliding-window-object-detection">9. Sliding Window Object Detection</a></li>
+<li class="toc-level-3"><a href="#10-traditional-object-detection-methods">10. Traditional Object Detection Methods</a></li>
+<li class="toc-level-3"><a href="#11-iou-intersection-over-union">11. IoU – Intersection over Union</a></li>
+<li class="toc-level-3"><a href="#12-why-iou-is-important">12. Why IoU Is Important?</a></li>
+<li class="toc-level-3"><a href="#13-non-maximum-suppression-nms">13. Non-Maximum Suppression (NMS)</a></li>
+<li class="toc-level-3"><a href="#14-object-detection-approaches">14. Object Detection Approaches</a></li>
+<li class="toc-level-2"><a href="#part-b-basic-pattern-recognition-concepts">PART B – BASIC PATTERN RECOGNITION CONCEPTS</a></li>
+<li class="toc-level-3"><a href="#15-what-is-pattern-recognition">15. What Is Pattern Recognition?</a></li>
+<li class="toc-level-3"><a href="#16-pattern-recognition-pipeline">16. Pattern Recognition Pipeline</a></li>
+<li class="toc-level-3"><a href="#17-step-1-data-acquisition">17. Step 1 – Data Acquisition</a></li>
+<li class="toc-level-3"><a href="#18-step-2-preprocessing">18. Step 2 – Preprocessing</a></li>
+<li class="toc-level-3"><a href="#19-step-3-segmentation">19. Step 3 – Segmentation</a></li>
+<li class="toc-level-3"><a href="#20-step-4-feature-extraction">20. Step 4 – Feature Extraction</a></li>
+<li class="toc-level-3"><a href="#21-feature-vector">21. Feature Vector</a></li>
+<li class="toc-level-3"><a href="#22-feature-space">22. Feature Space</a></li>
+<li class="toc-level-3"><a href="#23-good-features">23. Good Features</a></li>
+<li class="toc-level-3"><a href="#24-feature-selection-vs-feature-extraction">24. Feature Selection vs Feature Extraction</a></li>
+<li class="toc-level-3"><a href="#25-classification">25. Classification</a></li>
+<li class="toc-level-3"><a href="#26-supervised-pattern-recognition">26. Supervised Pattern Recognition</a></li>
+<li class="toc-level-3"><a href="#27-unsupervised-pattern-recognition">27. Unsupervised Pattern Recognition</a></li>
+<li class="toc-level-3"><a href="#28-nearest-neighbor-classification">28. Nearest Neighbor Classification</a></li>
+<li class="toc-level-3"><a href="#29-euclidean-distance">29. Euclidean Distance</a></li>
+<li class="toc-level-3"><a href="#30-k-nearest-neighbors-knn">30. K-Nearest Neighbors (KNN)</a></li>
+<li class="toc-level-3"><a href="#31-example-of-knn">31. Example of KNN</a></li>
+<li class="toc-level-3"><a href="#32-importance-of-feature-scaling">32. Importance of Feature Scaling</a></li>
+<li class="toc-level-3"><a href="#33-template-matching">33. Template Matching</a></li>
+<li class="toc-level-3"><a href="#34-decision-boundary">34. Decision Boundary</a></li>
+<li class="toc-level-3"><a href="#35-pattern-recognition-example-fruit-classification">35. Pattern Recognition Example – Fruit Classification</a></li>
+<li class="toc-level-3"><a href="#36-relationship-between-shape-texture-and-pattern-recognition">36. Relationship Between Shape, Texture and Pattern Recognition</a></li>
+<li class="toc-level-3"><a href="#37-pattern-recognition-vs-object-detection">37. Pattern Recognition vs Object Detection</a></li>
+<li class="toc-level-3"><a href="#38-pattern-recognition-vs-image-segmentation">38. Pattern Recognition vs Image Segmentation</a></li>
+<li class="toc-level-3"><a href="#39-complete-classical-computer-vision-pipeline">39. Complete Classical Computer Vision Pipeline</a></li>
+<li class="toc-level-3"><a href="#40-performance-measures-for-object-detection">40. Performance Measures for Object Detection</a></li>
+<li class="toc-level-3"><a href="#41-example-of-precision-and-recall">41. Example of Precision and Recall</a></li>
+<li class="toc-level-3"><a href="#42-important-terminology">42. Important Terminology</a></li>
+<li class="toc-level-3"><a href="#43-important-conceptual-example">43. Important Conceptual Example</a></li>
+<li class="toc-level-3"><a href="#44-traditional-vs-deep-learning-object-detection">44. Traditional vs Deep Learning Object Detection</a></li>
+<li class="toc-level-3"><a href="#45-important-applications">45. Important Applications</a></li>
+<li class="toc-level-1"><a href="#final-exam-revision-both-documents">FINAL EXAM REVISION – BOTH DOCUMENTS</a></li>
+<li class="toc-level-2"><a href="#1-important-formulas-from-37-shape-and-texture-analysis">1. Important formulas from 3.7 – Shape and Texture Analysis</a></li>
+<li class="toc-level-2"><a href="#2-important-formulas-from-38-object-detection-and-pattern-recognition">2. Important formulas from 3.8 – Object Detection and Pattern Recognition</a></li>
+<li class="toc-level-2"><a href="#3-most-important-topics-to-practise-numerically">3. Most important topics to practise numerically</a></li>
+<li class="toc-level-2"><a href="#4-important-theory-questions-for-your-exam">4. Important theory questions for your exam</a></li>
+<li class="toc-level-2"><a href="#5-last-minute-concepts-you-must-not-confuse">5. Last-minute concepts you must not confuse</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">Explain Shape Texture Analysis</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-19</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><p>Kinnuuu, I've gone through both your uploaded documents:</p><ol><li><p><strong>3.7 – Shape and Texture Analysis</strong> (26 pages)</p></li><li><p><strong>3.8 – Object Detection Fundamentals and Basic Pattern Recognition Concepts</strong> (29 pages)</p></li></ol><p>I'll explain both documents topic by topic in very simple English, assuming you're starting from zero. I'll cover definitions, formulas, examples, differences, applications and numerical problems wherever applicable.</p><p>I won't intentionally skip any of the 54 topics in 3.7 or the 45 topics in 3.8. I'll also keep the terminology from your notes so you can write the answers in your IVA exam.</p><h1 id="document-1-37-shape-and-texture-analysis"><strong>DOCUMENT 1: 3.7 – SHAPE AND TEXTURE ANALYSIS</strong></h1><h2 id="part-a-shape-analysis"><strong>PART A – SHAPE ANALYSIS</strong></h2><h3 id="1-introduction-to-shape-and-texture-analysis"><strong>1. Introduction to Shape and Texture Analysis</strong></h3><p>First, understand what happens when a computer receives an image.</p><p>Suppose we give a computer an image of an apple.</p><p>The computer performs these operations:</p><ol><li><p>Takes the original image.</p></li><li><p>Segments the image to separate the apple from the background.</p></li><li><p>Extracts features from the apple.</p></li><li><p>Analyses its shape and texture.</p></li><li><p>Uses these features to identify the object.</p></li></ol><img alt="Red apple isolated on white background" class="exported-media" src="https://images.openai.com/static-rsc-4/FzVY-DVzU-2KklMMg8WTKJq8lMCKPXmdUxHLLvrGUyC1PP12UBa8mlhfleAieB4lTyWImy0hI6JMxZjGmcjB15_dUFRJgvWrKbX6P8F_kDL5cumjGqkbXgnvSuM3l4u1wI8F07cNgwCvx2vmaf9DVYPeVCI4pxEXVSJFZiMYRKoI6wqhpAJM1HFsciM7vpdE?purpose=inline"/><img alt="Лаборатория № 90 «Цифровых систем управления в агропромышленном комплексе» | ИПУ РАН" class="exported-media" src="https://images.openai.com/static-rsc-4/euAgYQz0QEv-bkelWiO2qo2jYCZtVccIlfJXWvU3rJxS_6eOwXLCy7XmryPoDFuVWfuh64miV0zg1Gd1QDQZ9IIghsO-1dl9pBWOgh2KzNl417Ywd4Ci2LS5gFVkBKMSsjVZdfpo8n1PpkEya1L2qejs1byK-130W1Y_85FZwu8?purpose=inline"/><img alt="Texture of red ripe apple as background." class="exported-media" src="https://images.openai.com/static-rsc-4/SvypjS0HKjklUdlVeMyD2tHDStCE53jc1kQ9vll0zENHN8hVi7axxTY22t2IBVqa_nHkNB5kZpX-QsMsYjzrtkPY39Z4orJHqr7Klqm8qACuX2LnH4kbW9YxgIVRwkh7mvGdlpdNd8cUue5sQGsEsJJngN8NTiktP8KgBiIUUIbO2gjBqDHiXGB5YjCtm375?purpose=inline"/><p>There are two important types of information:</p><p><strong>Shape</strong></p><p>Shape describes the geometrical structure or form of an object.</p><p>Examples:</p><ul><li><p>Circle</p></li><li><p>Rectangle</p></li><li><p>Triangle</p></li><li><p>Leaf</p></li><li><p>Vehicle</p></li><li><p>Tumor</p></li></ul><p><strong>Texture</strong></p><p>Texture describes the surface appearance or pattern of an object.</p><p>Examples:</p><ul><li><p>Smooth</p></li><li><p>Rough</p></li><li><p>Grainy</p></li><li><p>Regular</p></li><li><p>Random</p></li><li><p>Repetitive</p></li></ul><p><strong>Easy difference:</strong> Shape tells us what the object looks like from its outline. Texture tells us how its surface looks.</p><h3 id="2-why-shape-and-texture-analysis"><strong>2. Why Shape and Texture Analysis?</strong></h3><p>Imagine two objects:</p><ul><li><p>Object A is a circle.</p></li><li><p>Object B is a square.</p></li></ul><p>Both might have the same colour, but their shapes are different.</p><p>Now imagine two surfaces:</p><ul><li><p>Surface A is smooth.</p></li><li><p>Surface B is rough.</p></li></ul><p>Both might have the same average brightness, but their textures are different.</p><p>Therefore:</p><ul><li><p>Shape helps distinguish objects based on geometry.</p></li><li><p>Texture helps distinguish objects based on surface patterns.</p></li></ul><p>Both are useful because colour or pixel intensity alone may not be sufficient.</p><h3 id="3-shape-analysis"><strong>3. Shape Analysis</strong></h3><p><strong>Definition:</strong> Shape analysis is the process of extracting and analysing the geometric properties of an object or region in an image.</p><p>Important shape features:</p><ol><li><p>Area</p></li><li><p>Perimeter</p></li><li><p>Centroid</p></li><li><p>Bounding box</p></li><li><p>Aspect ratio</p></li><li><p>Circularity</p></li><li><p>Compactness</p></li><li><p>Orientation</p></li><li><p>Eccentricity</p></li><li><p>Moments</p></li></ol><p>We'll understand each one separately.</p><h3 id="4-input-to-shape-analysis"><strong>4. Input to Shape Analysis</strong></h3><p>Shape analysis generally works on a segmented object or binary image.</p><p>What is a binary image?</p><p>A binary image contains only two values:</p><ul><li><p>0 = Background</p></li><li><p>1 = Object</p></li></ul><p>For example:</p>Plain text<code>0000000000
+0001111000
+0011111100
+0011111100
+0001111000
+0000000000</code><p>Here:</p><ul><li><p>0 represents the background.</p></li><li><p>1 represents the object.</p></li></ul><p>The computer uses the pixels having value 1 to calculate the shape features.</p><h3 id="5-example-of-binary-object"><strong>5. Example of Binary Object</strong></h3><p>Consider the following binary image:</p>Plain text<code>0000000000
+0001111000
+0011111100
+0011111100
+0001111000
+0000000000</code><p>The white/foreground pixels represent the object.</p><p>From these pixels, the computer can calculate:</p><ul><li><p>Area</p></li><li><p>Perimeter</p></li><li><p>Centroid</p></li><li><p>Bounding box</p></li><li><p>Shape descriptors</p></li></ul><p>Remember: Binary images make shape measurement easier because the object is separated from the background.</p><h3 id="6-area"><strong>6. Area</strong></h3><p><strong>Definition:</strong> Area is the total number of pixels belonging to an object.</p><p>Formula:</p>
+
+<div class="math-display">$$
+A=\sum_{x,y} I(x,y)
+$$</div>
+
+<p>For a binary image, object pixels have value 1.</p><p>Therefore, simply count the number of 1s.</p><p><strong>Example:</strong></p><p>If an object contains 20 foreground pixels:</p>
+
+<div class="math-display">$$
+A=20\text{ pixels}
+$$</div>
+
+<p>So its area is 20 pixels.</p><p><strong>Applications:</strong></p><ul><li><p>Measuring the size of a tumor.</p></li><li><p>Measuring the size of a fruit.</p></li><li><p>Detecting defects in manufacturing.</p></li></ul><h3 id="7-perimeter"><strong>7. Perimeter</strong></h3><p><strong>Definition:</strong> Perimeter is the total length of the boundary surrounding an object.</p><p>Imagine drawing a line around an apple. The length of that boundary is its perimeter.</p><img alt="Geometry: Perimeter and Circumference Review Infographic | LivePhysics™" class="exported-media" src="https://images.openai.com/static-rsc-4/LN-1FmbWZD2TWjw7XTAluZQIJQfztUgk2-9qYEnQnmDR_19hOeAsqAUPOISkwNAor1KwgttB86vPxN0vQSTu4zb_abJJRL4ut3BtNJC-kgW9-SNoxu7DOUFb-rVWXyp9Qtl0-jUDXepgvaJOxSJ5IDUx0-9jb6lcmYBtt_bdX7I?purpose=inline"/><a href="https://livephysics.com/infographics/geometry-perimeter-and-circumference-review/?utm_source=chatgpt.com">livephysics.com</a><p>In digital images, perimeter is estimated using boundary pixels or contours.</p><p><strong>Example:</strong></p><p>A square having sides of 5 units:</p>
+
+<div class="math-display">$$
+P=4\times5=20
+$$</div>
+
+<p>Its perimeter is 20 units.</p><h3 id="8-area-vs-perimeter"><strong>8. Area vs Perimeter</strong></h3><p>These two concepts are different.</p><table><tr><th>Area</th><th>Perimeter</th></tr><tr><td>Measures the inside region</td><td>Measures the outer boundary</td></tr><tr><td>Counts object pixels</td><td>Measures boundary length</td></tr><tr><td>Represents object size</td><td>Represents boundary length</td></tr></table><p>Important point:</p><p>Two objects can have similar areas but different perimeters.</p><p>An irregular object generally has a larger perimeter compared with a compact object of similar area.</p><h3 id="9-centroid"><strong>9. Centroid</strong></h3><p><strong>Definition:</strong> Centroid is the geometrical centre of an object.</p><p>In simple words, imagine placing your finger under an object at its balancing point. That point is approximately its centroid.</p><p>For a binary object:</p>
+
+<div class="math-display">$$
+\bar{x}=\frac{\sum xI(x,y)}{\sum I(x,y)}
+$$</div>
+
+<div class="math-display">$$
+\bar{y}=\frac{\sum yI(x,y)}{\sum I(x,y)}
+$$</div>
+
+<p>Where:</p><ul><li><p>$\bar{x}$ = X-coordinate of centroid.</p></li><li><p>$\bar{y}$ = Y-coordinate of centroid.</p></li><li><p>$I(x,y)$ = pixel value.</p></li></ul><p><strong>Example:</strong></p><p>Suppose three object pixels are located at:</p>
+
+<div class="math-display">$$
+(1,1),(3,1),(2,4)
+$$</div>
+
+<p>Then:</p>
+
+<div class="math-display">$$
+\bar{x}=\frac{1+3+2}{3}=2
+$$</div>
+
+<div class="math-display">$$
+\bar{y}=\frac{1+1+4}{3}=2
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+Centroid=(2,2)
+$$</div>
+
+<p><strong>Uses:</strong></p><ul><li><p>Finding object position.</p></li><li><p>Object alignment.</p></li><li><p>Tracking objects.</p></li></ul><h3 id="10-bounding-box"><strong>10. Bounding Box</strong></h3><p><strong>Definition:</strong> A bounding box is the smallest rectangular box that completely encloses an object.</p><img alt="Design and implementation of a 6-DoF robot arm control with object detection based on machine learning using mini microcontroller | Scientific Reports" class="exported-media" src="https://images.openai.com/static-rsc-4/abVD0i23W3qGjjS0YDCCzzZGQ2s7UT2RvW3bMAJ9roTDvwr-R2IRtlsEjSXeTnUM9Gds2rJv0SFacBxqrbB0B2UUhzshnPvnhzibMO6WARvaXleLc6a7Fey4fjUwAZK4SWRCU_SUbbhCUsnVxd87FvXYGfbWx60DWTA9NnmI34o?purpose=inline"/><a href="https://www.nature.com/articles/s41598-026-35508-3?utm_source=chatgpt.com">nature.com</a><p>It is represented using four coordinates:</p><ul><li><p>$x_{\min}$: Leftmost coordinate.</p></li><li><p>$y_{\min}$: Topmost coordinate.</p></li><li><p>$x_{\max}$: Rightmost coordinate.</p></li><li><p>$y_{\max}$: Bottommost coordinate.</p></li></ul><p>Width:</p>
+
+<div class="math-display">$$
+Width=x_{\max}-x_{\min}
+$$</div>
+
+<p>Height:</p>
+
+<div class="math-display">$$
+Height=y_{\max}-y_{\min}
+$$</div>
+
+<p><strong>Example:</strong></p><p>Given:</p>
+
+<div class="math-display">$$
+x_{\min}=10,\quad x_{\max}=50
+$$</div>
+
+<div class="math-display">$$
+y_{\min}=20,\quad y_{\max}=80
+$$</div>
+
+<p>Width:</p>
+
+<div class="math-display">$$
+50-10=40
+$$</div>
+
+<p>Height:</p>
+
+<div class="math-display">$$
+80-20=60
+$$</div>
+
+<p>Therefore, bounding box dimensions are 40 × 60.</p><h3 id="11-aspect-ratio"><strong>11. Aspect Ratio</strong></h3><p><strong>Definition:</strong> Aspect ratio describes the relationship between the width and height of an object.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Aspect\ Ratio=\frac{Width}{Height}
+$$</div>
+
+<p>Example:</p><p>Width = 40</p><p>Height = 20</p>
+
+<div class="math-display">$$
+AR=\frac{40}{20}=2
+$$</div>
+
+<p>This means the object is twice as wide as it is tall.</p><p><strong>Important:</strong></p><ul><li><p>AR = 1 means width and height are equal.</p></li><li><p>AR greater than 1 means wider than tall.</p></li><li><p>AR less than 1 means taller than wide.</p></li></ul><h3 id="12-why-aspect-ratio-is-useful"><strong>12. Why Aspect Ratio Is Useful?</strong></h3><p>Consider two objects.</p><p>Object A is wide and rectangular.</p><p>Object B is narrow and vertical.</p><p>Their aspect ratios will be different.</p><p>Aspect ratio helps distinguish:</p><ul><li><p>Vehicles.</p></li><li><p>Characters.</p></li><li><p>Industrial components.</p></li><li><p>Different object categories.</p></li></ul><p>For example, a horizontally positioned car usually has a higher width-to-height ratio than a standing traffic cone.</p><h3 id="13-circularity"><strong>13. Circularity</strong></h3><p><strong>Definition:</strong> Circularity measures how closely an object resembles a perfect circle.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Circularity=\frac{4\pi A}{P^2}
+$$</div>
+
+<p>Where:</p><ul><li><p>A = Area.</p></li><li><p>P = Perimeter.</p></li><li><p>$\pi=3.14$.</p></li></ul><p>For a perfect circle:</p>
+
+<div class="math-display">$$
+Circularity=1
+$$</div>
+
+<p>For irregular objects, circularity is generally lower.</p><p><strong>Example:</strong></p><p>Area = 100</p><p>Perimeter = 40</p>
+
+<div class="math-display">$$
+C=\frac{4\times3.14\times100}{40^2}
+$$</div>
+
+<div class="math-display">$$
+C=\frac{1256}{1600}
+$$</div>
+
+<div class="math-display">$$
+\boxed{C=0.785}
+$$</div>
+
+<p>The value is below 1, meaning the object is not a perfect circle.</p><h3 id="14-understanding-circularity"><strong>14. Understanding Circularity</strong></h3><img alt="Image" class="exported-media" src="https://images.openai.com/static-rsc-4/9SgQ7hAGbtMXz4NwPIAdYshdD8lnQ6jZtAnGaqe-IFQNUO8ek_ag4Nf737Czl_iHafIUw-bFcu16FohRfyGEdPxdyIgrOjwY9JP0YBY6HvuWGqW3WMhbuLLSH7ToSvw52znPXQpFpFM3_lXwqRPz9PFjkCd29s2tuH_p69HfTGE?purpose=inline"/><a href="https://www.read-en.com/blog/35234?utm_source=chatgpt.com">read-en.com</a><ul><li><p>Perfect circle → High circularity.</p></li><li><p>Irregular shape → Low circularity.</p></li></ul><p>Remember: The closer circularity is to 1, the more circular the object is.</p><h3 id="15-compactness"><strong>15. Compactness</strong></h3><p><strong>Definition:</strong> Compactness describes how efficiently an object occupies its area relative to its boundary.</p><p>One common formula is:</p>
+
+<div class="math-display">$$
+Compactness=\frac{P^2}{A}
+$$</div>
+
+<p>Another related normalized measure is:</p>
+
+<div class="math-display">$$
+\frac{4\pi A}{P^2}
+$$</div>
+
+<p>This second formula is commonly called circularity or shape factor.</p><p><strong>Important exam point:</strong> Different textbooks may use different definitions of compactness. Always mention the formula you are using.</p><h3 id="16-eccentricity"><strong>16. Eccentricity</strong></h3><p><strong>Definition:</strong> Eccentricity describes how elongated an object is.</p><p>It is calculated using the major and minor axes of an ellipse fitted to the object.</p><p>Formula:</p>
+
+<div class="math-display">$$
+e=\sqrt{1-\frac{b^2}{a^2}}
+$$</div>
+
+<p>Where:</p><ul><li><p>$a$ = Semi-major axis (longer axis).</p></li><li><p>$b$ = Semi-minor axis (shorter axis).</p></li></ul><p><strong>Example 1: Circle</strong></p><p>If:</p>
+
+<div class="math-display">$$
+a=5,\quad b=5
+$$</div>
+
+<div class="math-display">$$
+e=\sqrt{1-\frac{25}{25}}=0
+$$</div>
+
+<p>Therefore, a circle has eccentricity 0.</p><p><strong>Example 2: Elongated object</strong></p><p>If:</p>
+
+<div class="math-display">$$
+a=5,\quad b=3
+$$</div>
+
+<div class="math-display">$$
+e=\sqrt{1-\frac{9}{25}}
+$$</div>
+
+<div class="math-display">$$
+e=\sqrt{0.64}=0.8
+$$</div>
+
+<p>Therefore, eccentricity is 0.8.</p><p><strong>Remember:</strong></p><ul><li><p>Circle → Eccentricity 0.</p></li><li><p>More elongated object → Eccentricity closer to 1.</p></li></ul><h3 id="17-orientation"><strong>17. Orientation</strong></h3><p><strong>Definition:</strong> Orientation describes the direction in which an object is positioned.</p><p>Examples:</p><ul><li><p>Horizontal object.</p></li><li><p>Vertical object.</p></li><li><p>Diagonal object.</p></li></ul><img alt="Full article: Arbitrary-angle bounding box based location for object detection in remote sensing image" class="exported-media" src="https://images.openai.com/static-rsc-4/UOvRzHiY49Dr_g-X3HGg1KgB4otDWDSnvmf8CUxqkG-nffi7u0lJZhiWZnr-3WbQf4QYVyrnLejo1V9JPvVQADtIxlZqIf-ibPhuShKE8nfwZQ5CQyco8GBi81fYovVwiyprbKHxDG-ApKJslyFkxv_C0_albalf4BQHJhOxEBI?purpose=inline"/><a href="https://www.tandfonline.com/doi/full/10.1080/22797254.2021.1880975?utm_source=chatgpt.com">tandfonline.com</a><p>Orientation can be measured relative to the horizontal axis.</p><p>Applications:</p><ul><li><p>Character recognition.</p></li><li><p>Vehicle analysis.</p></li><li><p>Object tracking.</p></li><li><p>Industrial inspection.</p></li></ul><h3 id="18-shape-descriptors"><strong>18. Shape Descriptors</strong></h3><p><strong>Definition:</strong> A shape descriptor is a numerical representation of an object's shape.</p><p>Important descriptors:</p><table><tr><th>Feature</th><th>Meaning</th></tr><tr><td>Area</td><td>Object size</td></tr><tr><td>Perimeter</td><td>Boundary length</td></tr><tr><td>Centroid</td><td>Centre position</td></tr><tr><td>Bounding box</td><td>Overall extent</td></tr><tr><td>Aspect ratio</td><td>Width/height relationship</td></tr><tr><td>Circularity</td><td>Similarity to a circle</td></tr><tr><td>Eccentricity</td><td>Elongation</td></tr><tr><td>Orientation</td><td>Direction</td></tr><tr><td>Moments</td><td>Pixel distribution</td></tr></table><p>These values can be combined to form a shape feature vector.</p><p>Example:</p>
+
+<div class="math-display">$$
+F=[A,P,AR,C,e,\theta]
+$$</div>
+
+<p>Where:</p><ul><li><p>A = Area.</p></li><li><p>P = Perimeter.</p></li><li><p>AR = Aspect ratio.</p></li><li><p>C = Circularity.</p></li><li><p>e = Eccentricity.</p></li><li><p>$\theta$ = Orientation.</p></li></ul><h3 id="19-shape-moments"><strong>19. Shape Moments</strong></h3><p><strong>Definition:</strong> Moments are mathematical values that describe the spatial distribution of pixels in an image.</p><p>In simple words, moments help the computer understand how pixels are distributed inside an object.</p><p>General image moment:</p>
+
+<div class="math-display">$$
+M_{pq}=\sum_x\sum_y x^p y^q I(x,y)
+$$</div>
+
+<p>Where:</p><ul><li><p>p and q = Moment orders.</p></li><li><p>x and y = Pixel coordinates.</p></li><li><p>I(x,y) = Image intensity.</p></li></ul><p>Moments help describe:</p><ul><li><p>Size.</p></li><li><p>Location.</p></li><li><p>Orientation.</p></li><li><p>Shape.</p></li><li><p>Pixel distribution.</p></li></ul><h3 id="20-zeroth-moment"><strong>20. Zeroth Moment</strong></h3><p>The zeroth-order moment is:</p>
+
+<div class="math-display">$$
+M_{00}=\sum_x\sum_y I(x,y)
+$$</div>
+
+<p>For a binary image:</p>
+
+<div class="math-display">$$
+M_{00}=\text{Total number of object pixels}
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+\boxed{M_{00}=Area}
+$$</div>
+
+<p>Example:</p><p>If an object contains 50 foreground pixels:</p>
+
+<div class="math-display">$$
+M_{00}=50
+$$</div>
+
+<h3 id="21-first-order-moments"><strong>21. First-Order Moments</strong></h3><p>First-order moments are:</p>
+
+<div class="math-display">$$
+M_{10}=\sum_x\sum_y xI(x,y)
+$$</div>
+
+<div class="math-display">$$
+M_{01}=\sum_x\sum_y yI(x,y)
+$$</div>
+
+<p>They are used to calculate the centroid.</p>
+
+<div class="math-display">$$
+\bar{x}=\frac{M_{10}}{M_{00}}
+$$</div>
+
+<div class="math-display">$$
+\bar{y}=\frac{M_{01}}{M_{00}}
+$$</div>
+
+<p>So:</p><ul><li><p>Zeroth moment gives area.</p></li><li><p>First moments help calculate centroid.</p></li></ul><h3 id="22-why-moments-are-useful"><strong>22. Why Moments Are Useful?</strong></h3><p>Moments describe different characteristics of an object.</p><p>They are useful for:</p><ol><li><p>Measuring size.</p></li><li><p>Finding object location.</p></li><li><p>Finding orientation.</p></li><li><p>Understanding shape.</p></li><li><p>Analysing pixel distribution.</p></li></ol><p>Higher-order moments capture more detailed structural information.</p><h3 id="23-hu-moments"><strong>23. Hu Moments</strong></h3><p><strong>Definition:</strong> Hu Moments are a set of seven moment-based shape descriptors.</p><p>They are designed to remain invariant to:</p><ol><li><p>Translation – moving an object.</p></li><li><p>Scaling – increasing or decreasing its size.</p></li><li><p>Rotation – turning an object.</p></li></ol><img alt="Geometric Transformation in Image Processing - GeeksforGeeks" class="exported-media" src="https://images.openai.com/static-rsc-4/PL-dJK0eU9Kg7cCESGNxtgZmVmbMeDyJpojWYBiqZfzW41rTSRWnVDqchEpmIA_-f5Nyt8WjwVXM0UmC8j2QheMun8otYNV5hNb0snSATRQoHjL89DUfrrxpfccvfbEeTVfLgXpuJA6p6OsbzNa07rG1XCN61v6-fQcuUhQu3Vs?purpose=inline"/><a href="https://www.geeksforgeeks.org/electronics-engineering/geometric-transformation-in-image-processing-1/?utm_source=chatgpt.com">geeksforgeeks.org</a><p>Example:</p><p>Imagine a triangle.</p><ul><li><p>First, it is in its original position.</p></li><li><p>Then, it is rotated.</p></li><li><p>Then, its size is increased.</p></li><li><p>Then, it is moved.</p></li></ul><p>Hu Moments provide a representation that remains relatively stable despite these transformations.</p><p><strong>Applications:</strong> Object recognition and shape matching.</p><h3 id="24-shape-analysis-pipeline"><strong>24. Shape Analysis Pipeline</strong></h3><p>This is an important exam question.</p><p>The complete process is:</p>Plain text<code>Input Image
+     ↓
+Preprocessing
+     ↓
+Segmentation
+     ↓
+Binary Object / Contour
+     ↓
+Shape Feature Extraction
+     ↓
+Area, Perimeter, Centroid
+Bounding Box, Circularity
+Eccentricity, Orientation
+     ↓
+Feature Vector
+     ↓
+Classification / Recognition</code><p>Explanation:</p><ul><li><p>Input image: Image is given to the system.</p></li><li><p>Preprocessing: Image quality is improved.</p></li><li><p>Segmentation: Object is separated from the background.</p></li><li><p>Binary object: Object pixels are represented using 1.</p></li><li><p>Feature extraction: Shape properties are calculated.</p></li><li><p>Feature vector: All features are combined.</p></li><li><p>Classification: Object is identified.</p></li></ul><h2 id="part-b-texture-analysis"><strong>PART B – TEXTURE ANALYSIS</strong></h2><h3 id="25-texture-analysis"><strong>25. Texture Analysis</strong></h3><p><strong>Definition:</strong> Texture analysis is the process of analysing the spatial arrangement and variation of intensity or colour in an image region.</p><p>Texture describes:</p><ul><li><p>Smoothness.</p></li><li><p>Roughness.</p></li><li><p>Regularity.</p></li><li><p>Granularity.</p></li><li><p>Repetition.</p></li><li><p>Directionality.</p></li></ul><p>Example:</p><p>A wall, wooden table and metal surface may have different textures.</p><h3 id="26-texture-examples"><strong>26. Texture Examples</strong></h3><img alt="Minimal Texture Pictures | Download Free Images on Unsplash" class="exported-media" src="https://images.openai.com/static-rsc-4/NsLqEcvROLIe9JWcghY3ObLbBLsovqVINjnjxO4vNi67O9vihIpCWATYv6uaIOxrsRneXOfyakb3ctdTybOEE6qbtA4PT4mOwbInVQxumaYQ23_c926dFW64hJUUux-rTaGuo4ULkrOEGVUOfBPqrMpsyg5yrZZWMEkxvuS_xgc?purpose=inline"/><p><strong>Smooth texture</strong></p><p>Intensity changes very little.</p><img alt="Stone wall" class="exported-media" src="https://images.openai.com/static-rsc-4/g5_zWoiJeOwwK-Y3_eWrdj9G4UY6XXtE88py_jqoLyHYiPTaDMv81EPogOo4c02i0EQozADBTCrhtxWhKmjOGboOq1yw4CuJuvS9ai31JyjKJVSFpYbbcgLyoJh4tQT842bgijafXAvNdDnOST3yhEcSd5oCX08fNpcQep3CfrCtAFftdwpUp0ogrw9pAYCL?purpose=inline"/><p><strong>Rough texture</strong></p><p>Intensity changes frequently.</p><img alt="Checkerboard seamless pattern. Black and white abstract, geometric infinite background. Square repeating texture. Modern sport Checker backdrop, wallpaper, paper. Vector illustration." class="exported-media" src="https://images.openai.com/static-rsc-4/h4cZ6qiAWCOH-nLReAir1yosjDctPwN7hvTxhL7DbTA2yfYakK5UCxYZeu12QNFZvyZbWFPt5dO4knnUdDtq6z-0x2IoDdrPMbZD0ub3ARXB5gtEX5pFNkCTfpk8dIdRgqSAh9tzEQmSaXEiEMNWZtIvIY7Du6Bn3ExFTFRkIMm2Ca65KY-uPA60_wzHUANF?purpose=inline"/><p><strong>Regular texture</strong></p><p>Repeating pattern.</p><img alt="Grainy noisy testure background" class="exported-media" src="https://images.openai.com/static-rsc-4/M3tLZff9BJ5hVFOEa4y09AomYjG-4AwHjn8E3pkewT-wZ6Ag1TZ9GOrVtt-o1PGOh2lDUt8wN_GR0HmCqXMYyF6KoE-IIx5L4GMxmEHCZOaD9RYjGpAhhQQJRoM0D9GS8sHe1Hhi7WnINGyXrJqD0ZDR58F_uTcc46V8kg1Yx0UVigXC8EKcAmq6rg2Me6n9?purpose=inline"/><p><strong>Random texture</strong></p><p>No fixed repeating pattern.</p><h3 id="27-why-texture-is-important"><strong>27. Why Texture Is Important?</strong></h3><p>Sometimes two objects have:</p><ul><li><p>Similar colour.</p></li><li><p>Similar shape.</p></li><li><p>Similar size.</p></li></ul><p>But their surface textures are different.</p><p>For example:</p><ul><li><p>Wood has grain patterns.</p></li><li><p>Metal may have a smooth reflective surface.</p></li></ul><p>Texture helps distinguish these objects.</p><p>Applications:</p><ol><li><p>Medical imaging.</p></li><li><p>Remote sensing.</p></li><li><p>Agriculture.</p></li><li><p>Material classification.</p></li><li><p>Industrial inspection.</p></li><li><p>Face analysis.</p></li><li><p>Surface defect detection.</p></li></ol><h3 id="28-categories-of-texture-analysis"><strong>28. Categories of Texture Analysis</strong></h3><p>There are three major categories.</p><p><strong>1. Statistical methods</strong></p><p>These analyse statistical properties of pixel values.</p><p>Examples:</p><ul><li><p>Mean.</p></li><li><p>Variance.</p></li><li><p>Standard deviation.</p></li><li><p>Entropy.</p></li><li><p>GLCM features.</p></li></ul><p><strong>2. Structural methods</strong></p><p>These consider texture as repeated geometric structures or basic patterns.</p><p>Example: A brick wall has repeated rectangular structures.</p><p><strong>3. Transform-based methods</strong></p><p>These analyse frequency information.</p><p>Examples:</p><ul><li><p>Fourier Transform.</p></li><li><p>Wavelet Transform.</p></li><li><p>Gabor Filters.</p></li></ul><h3 id="29-first-order-texture-features"><strong>29. First-Order Texture Features</strong></h3><p>First-order statistical features consider the distribution of individual pixel intensities.</p><p>They do not explicitly consider relationships between neighbouring pixels.</p><p>Examples:</p><ol><li><p>Mean.</p></li><li><p>Variance.</p></li><li><p>Standard deviation.</p></li><li><p>Skewness.</p></li><li><p>Kurtosis.</p></li><li><p>Entropy.</p></li></ol><p>Let's understand each.</p><h3 id="30-mean"><strong>30. Mean</strong></h3><p><strong>Definition:</strong> Mean intensity is the average brightness of pixels in an image.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Mean=\mu=\frac{1}{N}\sum_{i=1}^{N}I_i
+$$</div>
+
+<p>Where:</p><ul><li><p>N = Number of pixels.</p></li><li><p>$I_i$ = Pixel intensity.</p></li></ul><p>Example:</p><p>Pixel values:</p><p>10, 20, 30, 40</p>
+
+<div class="math-display">$$
+Mean=\frac{10+20+30+40}{4}
+$$</div>
+
+<div class="math-display">$$
+=\frac{100}{4}=25
+$$</div>
+
+<p>Answer = 25.</p><h3 id="31-variance"><strong>31. Variance</strong></h3><p><strong>Definition:</strong> Variance measures how much pixel intensities differ from their mean.</p><p>Formula:</p>
+
+<div class="math-display">$$
+\sigma^2=\frac{1}{N}\sum_{i=1}^{N}(I_i-\mu)^2
+$$</div>
+
+<p>Example:</p><p>Pixel values: 10, 20, 30</p><p>Mean:</p>
+
+<div class="math-display">$$
+\mu=20
+$$</div>
+
+<p>Variance:</p>
+
+<div class="math-display">$$
+=\frac{(10-20)^2+(20-20)^2+(30-20)^2}{3}
+$$</div>
+
+<div class="math-display">$$
+=\frac{100+0+100}{3}
+$$</div>
+
+<div class="math-display">$$
+\boxed{66.67}
+$$</div>
+
+<p>Interpretation:</p><ul><li><p>Low variance → Pixel values are similar.</p></li><li><p>High variance → Pixel values differ considerably.</p></li></ul><h3 id="32-standard-deviation"><strong>32. Standard Deviation</strong></h3><p><strong>Definition:</strong> Standard deviation measures the spread of pixel intensity values.</p><p>Formula:</p>
+
+<div class="math-display">$$
+\sigma=\sqrt{Variance}
+$$</div>
+
+<p>Using our previous example:</p>
+
+<div class="math-display">$$
+\sigma=\sqrt{66.67}
+$$</div>
+
+<div class="math-display">$$
+\boxed{\sigma\approx8.16}
+$$</div>
+
+<p>Remember:</p><p>Variance is the square of standard deviation.</p><p>Standard deviation is expressed in the same units as the pixel intensity.</p><h3 id="33-entropy"><strong>33. Entropy</strong></h3><p><strong>Definition:</strong> Entropy measures the randomness or uncertainty of the intensity distribution.</p><p>Formula:</p>
+
+<div class="math-display">$$
+H=-\sum_i p_i\log_2(p_i)
+$$</div>
+
+<p>Where:</p><p>- $p_i$ = Probability of an intensity level.</p><p>Easy understanding:</p><ul><li><p>Low entropy → Fewer intensity values dominate.</p></li><li><p>High entropy → More varied intensity values occur.</p></li></ul><p>For example:</p><ul><li><p>A completely uniform surface has low entropy.</p></li><li><p>A highly random, varied surface has higher entropy.</p></li></ul><h3 id="34-simple-entropy-example"><strong>34. Simple Entropy Example</strong></h3><p>Suppose an image region contains two intensity values:</p><ul><li><p>Intensity 0.</p></li><li><p>Intensity 1.</p></li></ul><p>Both have equal probability:</p>
+
+<div class="math-display">$$
+p_1=0.5,\quad p_2=0.5
+$$</div>
+
+<p>Formula:</p>
+
+<div class="math-display">$$
+H=-\sum p_i\log_2(p_i)
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+H=-[0.5\log_2(0.5)+0.5\log_2(0.5)]
+$$</div>
+
+<p>We know:</p>
+
+<div class="math-display">$$
+\log_2(0.5)=-1
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+H=-[-0.5-0.5]
+$$</div>
+
+<div class="math-display">$$
+\boxed{H=1\ bit}
+$$</div>
+
+<p>This is a very important numerical pattern.</p><h3 id="35-second-order-texture-features"><strong>35. Second-Order Texture Features</strong></h3><p>First-order statistics consider individual pixel values.</p><p>However, texture also depends on how neighbouring pixels are arranged.</p><p>For example:</p><p>Image A:</p>Plain text<code>1111
+1111
+1111</code><p>Image B:</p>Plain text<code>1010
+0101
+1010</code><p>Both contain similar numbers of 0s and 1s, but their arrangements are different.</p><p>Second-order features analyse these relationships.</p><p>The most common method is:</p><p><strong>GLCM – Gray-Level Co-occurrence Matrix.</strong></p><h3 id="36-what-is-glcm"><strong>36. What Is GLCM?</strong></h3><p><strong>Definition:</strong> GLCM describes how frequently pairs of gray levels occur at a specified distance and direction.</p><p>In simple words, it checks which pixel values occur next to which other pixel values.</p><p>It can examine:</p><ul><li><p>Horizontal direction.</p></li><li><p>Vertical direction.</p></li><li><p>Diagonal direction.</p></li><li><p>Other diagonal direction.</p></li></ul><p>It also considers the distance between pixels.</p><p>For example, we might check neighbouring pixels separated by one pixel horizontally.</p><h3 id="37-simple-glcm-concept"><strong>37. Simple GLCM Concept</strong></h3><p>Suppose an image has only two gray levels:</p><ul><li><p>0 = Black.</p></li><li><p>1 = White.</p></li></ul><p>Consider neighbouring pixel pairs.</p><p>If the image contains many pairs of 0 followed by 0, then the corresponding GLCM entry becomes large.</p><p>Similarly, pairs of 0 followed by 1 increase another entry.</p><p>This allows GLCM to understand spatial relationships.</p><h3 id="38-glcm-matrix"><strong>38. GLCM Matrix</strong></h3><p>For two gray levels, the GLCM can be represented as:</p>
+
+<div class="math-display">$$
+GLCM=
+\begin{bmatrix}
+P(0,0)&P(0,1)\\
+P(1,0)&P(1,1)
+\end{bmatrix}
+$$</div>
+
+<p>Each element represents the frequency of a particular gray-level pair under a specified spatial relationship.</p><p>For example:</p>
+
+<div class="math-display">$$
+GLCM=
+\begin{bmatrix}
+4&2\\
+1&3
+\end{bmatrix}
+$$</div>
+
+<p>Meaning:</p><ul><li><p>4 times: 0 occurs next to 0.</p></li><li><p>2 times: 0 occurs next to 1.</p></li><li><p>1 time: 1 occurs next to 0.</p></li><li><p>3 times: 1 occurs next to 1.</p></li></ul><h3 id="39-glcm-normalization"><strong>39. GLCM Normalization</strong></h3><p>Normalization converts the frequency values into probabilities.</p><p>Formula:</p>
+
+<div class="math-display">$$
+P(i,j)=\frac{GLCM(i,j)}{\text{Total number of pairs}}
+$$</div>
+
+<p>Using the previous matrix:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+4&2\\
+1&3
+\end{bmatrix}
+$$</div>
+
+<p>Total:</p>
+
+<div class="math-display">$$
+4+2+1+3=10
+$$</div>
+
+<p>Normalized GLCM:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+0.4&0.2\\
+0.1&0.3
+\end{bmatrix}
+$$</div>
+
+<p>Now the sum of all probabilities is:</p>
+
+<div class="math-display">$$
+0.4+0.2+0.1+0.3=1
+$$</div>
+
+<p>These probabilities are used to calculate GLCM features.</p><h3 id="40-glcm-contrast"><strong>40. GLCM Contrast</strong></h3><p><strong>Definition:</strong> Contrast measures local intensity variation between neighbouring pixels.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Contrast=\sum_{i,j}(i-j)^2P(i,j)
+$$</div>
+
+<p>Using our normalized matrix:</p>
+
+<div class="math-display">$$
+\begin{bmatrix}
+0.4&0.2\\
+0.1&0.3
+\end{bmatrix}
+$$</div>
+
+<div class="math-display">$$
+Contrast=0^2(0.4)+(-1)^2(0.2)
+$$</div>
+
+<div class="math-display">$$
++(1)^2(0.1)+0^2(0.3)
+$$</div>
+
+<div class="math-display">$$
+=0+0.2+0.1+0
+$$</div>
+
+<div class="math-display">$$
+\boxed{Contrast=0.3}
+$$</div>
+
+<p>Interpretation:</p><ul><li><p>High contrast → Large intensity changes.</p></li><li><p>Low contrast → Similar neighbouring intensities.</p></li></ul><h3 id="41-glcm-energy"><strong>41. GLCM Energy</strong></h3><p><strong>Definition:</strong> Energy measures the uniformity of the GLCM distribution.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Energy=\sum_{i,j}P(i,j)^2
+$$</div>
+
+<p>Using our matrix:</p>
+
+<div class="math-display">$$
+Energy=0.4^2+0.2^2+0.1^2+0.3^2
+$$</div>
+
+<div class="math-display">$$
+=0.16+0.04+0.01+0.09
+$$</div>
+
+<div class="math-display">$$
+\boxed{Energy=0.30}
+$$</div>
+
+<p>Interpretation:</p><ul><li><p>High energy → Distribution concentrated in fewer entries.</p></li><li><p>Low energy → Distribution more spread out.</p></li></ul><h3 id="42-glcm-homogeneity"><strong>42. GLCM Homogeneity</strong></h3><p><strong>Definition:</strong> Homogeneity measures how close the GLCM values are to the diagonal.</p><p>Formula:</p>
+
+<div class="math-display">$$
+Homogeneity=\sum_{i,j}\frac{P(i,j)}{1+(i-j)^2}
+$$</div>
+
+<p>Using the same matrix:</p>
+
+<div class="math-display">$$
+H=\frac{0.4}{1}+\frac{0.2}{2}+\frac{0.1}{2}+\frac{0.3}{1}
+$$</div>
+
+<div class="math-display">$$
+=0.4+0.1+0.05+0.3
+$$</div>
+
+<div class="math-display">$$
+\boxed{H=0.85}
+$$</div>
+
+<p>Interpretation:</p><ul><li><p>High homogeneity → Neighbouring pixels tend to have similar intensities.</p></li><li><p>Low homogeneity → More differences between neighbouring pixels.</p></li></ul><h3 id="43-glcm-correlation"><strong>43. GLCM Correlation</strong></h3><p><strong>Definition:</strong> Correlation measures the relationship between gray levels at neighbouring pixel positions.</p><p>It tells us whether neighbouring pixel values are related.</p><p>A common formula is:</p>
+
+<div class="math-display">$$
+Correlation=
+\sum_{i,j}
+\frac{(i-\mu_i)(j-\mu_j)P(i,j)}
+{\sigma_i\sigma_j}
+$$</div>
+
+<p>Where:</p><ul><li><p>$\mu_i,\mu_j$ = Mean gray levels.</p></li><li><p>$\sigma_i,\sigma_j$ = Standard deviations.</p></li></ul><p>Interpretation:</p><p>It measures the linear dependency between neighbouring pixel values.</p><h3 id="44-glcm-features-summary"><strong>44. GLCM Features Summary</strong></h3><table><tr><th>Feature</th><th>What it measures</th></tr><tr><td>Contrast</td><td>Intensity variation</td></tr><tr><td>Energy</td><td>Uniformity</td></tr><tr><td>Homogeneity</td><td>Similarity of neighbouring values</td></tr><tr><td>Correlation</td><td>Relationship between neighbouring gray levels</td></tr><tr><td>Entropy</td><td>Randomness</td></tr></table><p>Remember these five names and meanings for MCQs.</p><h3 id="45-texture-directionality"><strong>45. Texture Directionality</strong></h3><p><strong>Definition:</strong> Texture directionality describes whether a texture has a preferred direction.</p><p>Example:</p>Plain text<code>//////////
+//////////
+//////////</code><p>The texture has a clear diagonal orientation.</p><p>GLCM can be calculated at different angles:</p><ul><li><p>0°</p></li><li><p>45°</p></li><li><p>90°</p></li><li><p>135°</p></li></ul><p>By comparing the results, the computer can identify texture directionality.</p><h3 id="46-texture-using-fourier-transform"><strong>46. Texture Using Fourier Transform</strong></h3><p>Texture can also be analysed in the frequency domain.</p><p><strong>Definition:</strong> Fourier Transform converts an image from the spatial domain into the frequency domain.</p><p>In simple words:</p><ul><li><p>Spatial domain → How pixels are arranged in the image.</p></li><li><p>Frequency domain → How frequently intensity patterns change.</p></li></ul><p>Formula:</p>
+
+<div class="math-display">$$
+F(u,v)=\sum_x\sum_y f(x,y)e^{-j2\pi(ux/M+vy/N)}
+$$</div>
+
+<p>Where:</p><ul><li><p>$f(x,y)$ = Original image.</p></li><li><p>$F(u,v)$ = Frequency representation.</p></li></ul><p>Periodic textures produce characteristic frequency components.</p><p>For example, regularly repeating stripes create recognizable frequency patterns.</p><h3 id="47-gabor-filters"><strong>47. Gabor Filters</strong></h3><p><strong>Definition:</strong> Gabor filters are filters used to analyse texture by detecting patterns at particular orientations, frequencies and scales.</p><p>They are sensitive to:</p><ol><li><p>Orientation.</p></li><li><p>Frequency.</p></li><li><p>Scale.</p></li></ol><p>Example:</p><p>A system can apply filters at:</p><ul><li><p>0°.</p></li><li><p>45°.</p></li><li><p>90°.</p></li><li><p>135°.</p></li></ul><p>It then compares the responses to identify the texture.</p><img alt="On the Quantification of Visual Texture Complexity | MDPI" class="exported-media" src="https://images.openai.com/static-rsc-4/zpxzYsuOfq2wkW4mlYtyfemsY-QmNQ1o2yhuArVDdTp-xkAKeBvCzLSRn-AphFNS180rrdt-cWWvUbAxixBXiccwPvDwzoMelixjua7NauswNC-KmqEumuNq9vSHU3mJS4n2NkKECVXj2m_XJH9nyxbdLEcQOFsbRZQnxZ3evIQ?purpose=inline"/><a href="https://www.mdpi.com/2313-433X/8/9/248?utm_source=chatgpt.com">mdpi.com</a><p>Applications:</p><ul><li><p>Texture classification.</p></li><li><p>Face analysis.</p></li><li><p>Surface inspection.</p></li><li><p>Pattern recognition.</p></li></ul><h3 id="48-wavelet-based-texture-analysis"><strong>48. Wavelet-Based Texture Analysis</strong></h3><p><strong>Definition:</strong> Wavelet Transform analyses an image at multiple scales.</p><p>In simple words, it allows the computer to study both large and small texture patterns.</p><p>It decomposes the image into components representing different:</p><ul><li><p>Frequencies.</p></li><li><p>Scales.</p></li><li><p>Orientations.</p></li></ul><p>Applications:</p><ol><li><p>Texture classification.</p></li><li><p>Medical imaging.</p></li><li><p>Surface inspection.</p></li><li><p>Remote sensing.</p></li></ol><p><strong>Difference between Fourier and Wavelet:</strong></p><table><tr><th>Fourier Transform</th><th>Wavelet Transform</th></tr><tr><td>Analyses frequency information</td><td>Analyses frequency at multiple scales</td></tr><tr><td>Useful for periodic patterns</td><td>Useful for patterns at different sizes</td></tr><tr><td>Does not provide the same localized multi-scale representation</td><td>Provides localized multi-scale information</td></tr></table><h3 id="49-shape-vs-texture"><strong>49. Shape vs Texture</strong></h3><p>This is an important exam comparison.</p><table><tr><th>Shape</th><th>Texture</th></tr><tr><td>Geometric structure</td><td>Surface pattern</td></tr><tr><td>Boundary-oriented</td><td>Pixel relationship/distribution</td></tr><tr><td>Area</td><td>Intensity statistics</td></tr><tr><td>Perimeter</td><td>Contrast</td></tr><tr><td>Circularity</td><td>Energy</td></tr><tr><td>Eccentricity</td><td>Homogeneity</td></tr><tr><td>Orientation</td><td>Correlation</td></tr><tr><td>Contours</td><td>GLCM</td></tr><tr><td>Object geometry</td><td>Surface appearance</td></tr></table><p>Easy memory trick:</p><p><strong>Shape = Outside appearance.</strong></p><p><strong>Texture = Inside surface pattern.</strong></p><h3 id="50-shape-texture-together"><strong>50. Shape + Texture Together</strong></h3><p>Sometimes shape alone cannot identify an object.</p><p>Texture alone may also be insufficient.</p><p>Therefore, both can be combined.</p><p>Example:</p><p>Suppose we want to identify an apple.</p><p>Shape features:</p><ul><li><p>Area.</p></li><li><p>Circularity.</p></li><li><p>Aspect ratio.</p></li></ul><p>Texture features:</p><ul><li><p>Mean.</p></li><li><p>Variance.</p></li><li><p>Entropy.</p></li><li><p>GLCM contrast.</p></li></ul><p>Combined feature vector:</p>
+
+<div class="math-display">$$
+F=[Shape\ Features,Texture\ Features]
+$$</div>
+
+<p>This vector is given to a classifier to identify the object.</p><h3 id="51-complete-analysis-pipeline"><strong>51. Complete Analysis Pipeline</strong></h3>Plain text<code>Input Image
+     ↓
+Preprocessing
+     ↓
+Segmentation
+     ↓
+   ┌─────────────┐
+   ↓             ↓
+Shape Analysis  Texture Analysis
+   ↓             ↓
+Area            Mean
+Perimeter       Variance
+Centroid        Entropy
+Bounding Box    GLCM
+Circularity     Contrast
+Eccentricity    Energy
+Orientation     Homogeneity
+   ↓             ↓
+   └──────┬──────┘
+          ↓
+     Feature Vector
+          ↓
+Classification / Recognition</code><p>The system analyses both geometric and surface properties before classifying an object.</p><h3 id="52-example-fruit-classification"><strong>52. Example: Fruit Classification</strong></h3><p>Suppose we want to distinguish:</p><ul><li><p>Apple.</p></li><li><p>Banana.</p></li><li><p>Orange.</p></li></ul><img alt="Red apple isolated on white background" class="exported-media" src="https://images.openai.com/static-rsc-4/FzVY-DVzU-2KklMMg8WTKJq8lMCKPXmdUxHLLvrGUyC1PP12UBa8mlhfleAieB4lTyWImy0hI6JMxZjGmcjB15_dUFRJgvWrKbX6P8F_kDL5cumjGqkbXgnvSuM3l4u1wI8F07cNgwCvx2vmaf9DVYPeVCI4pxEXVSJFZiMYRKoI6wqhpAJM1HFsciM7vpdE?purpose=inline"/><img alt="banana isolated on white background with clipping path and full depth of field." class="exported-media" src="https://images.openai.com/static-rsc-4/r3txGbaOsfg0MFpIjSJJpyv6CQS1okkEZdBkz06CrgaaL67tN7IOqo7tcH-vRYmt6VraPD_0Ep7EJ_BAQZrEKGqTzq9lgCCpRFoyVjVtuCIi86vatW-bTfE459r_TEb9LTEzuRduH8sbb8J19CngswPS2AD3Th2t4VqJ26Of-WaPyObJferXU3sFuHu0_1y8?purpose=inline"/><img alt="single whole ripe orange isolated on white background" class="exported-media" src="https://images.openai.com/static-rsc-4/MYOculcyoguXtShBr51yxstUnjnhyHmvAIyApzDFRCzdrr8A400Lveh6WVLNqHSsv0qkjzFGs54Jeqfv3wGiSXbxv_GGw6Ue4Tq0Fba_glDrNg4v7CuSv-Qqe_7I3sGBekNkeCOsTxoPIRqksm0XYIPtGF7FmOTk4wXqxjLG6lVXQdbw-Q-uex9Xbd6Ov_aI?purpose=inline"/><p><strong>Shape features</strong></p><p>Apple:</p><ul><li><p>Approximately round.</p></li><li><p>High circularity.</p></li></ul><p>Banana:</p><ul><li><p>Long.</p></li><li><p>Curved.</p></li><li><p>High aspect ratio.</p></li></ul><p>Orange:</p><p>- Approximately circular.</p><p><strong>Texture features</strong></p><p>Apple:</p><p>- Relatively smooth.</p><p>Banana:</p><p>- Different surface texture.</p><p>Orange:</p><p>- Rough or pitted surface.</p><p>By combining shape and texture features, the system can classify the fruits more accurately.</p><h3 id="53-example-medical-image"><strong>53. Example: Medical Image</strong></h3><p>Suppose a medical image contains a segmented region that needs to be analysed.</p><p><strong>Shape features:</strong></p><ul><li><p>Area.</p></li><li><p>Perimeter.</p></li><li><p>Circularity.</p></li><li><p>Eccentricity.</p></li></ul><p><strong>Texture features:</strong></p><ul><li><p>Mean.</p></li><li><p>Variance.</p></li><li><p>Entropy.</p></li><li><p>GLCM contrast.</p></li><li><p>GLCM homogeneity.</p></li></ul><p>The combined feature vector can be used for further analysis or classification.</p><p>For example, researchers may study the shape and texture of a suspected abnormal region.</p><h3 id="54-example-industrial-inspection"><strong>54. Example: Industrial Inspection</strong></h3><p>Suppose a factory produces metal components.</p><p>A normal metal surface looks uniform, but a defective surface may contain cracks or irregularities.</p><img alt="Automated Surface Defect Detection Using Machine Vision" class="exported-media" src="https://images.openai.com/static-rsc-4/Z6KR7Oqf2JrXD79m4NKG-0txCuGdnetQE0L_7pBUKb4AzEHKZZ-y7MeE8CfxJx2ac0MUbjY34SIAQ_HkasSHxnI0gfT768sWdoYHbwbqikrN1BSqPnn78P5BRFJFXxAQX8RttdsK2y0QZycD29pDGY6WehWfeTJV6X3CKEiLp6E?purpose=inline"/><a href="https://intelgic.com/surface-defect-detection-machine-vision?utm_source=chatgpt.com">intelgic.com</a><p><strong>Texture analysis</strong> may reveal increased local intensity variation.</p><p><strong>Shape analysis</strong> can measure:</p><ul><li><p>Area.</p></li><li><p>Perimeter.</p></li><li><p>Aspect ratio.</p></li><li><p>Circularity.</p></li></ul><p>Therefore, combining shape and texture analysis helps identify and characterize surface defects.</p><h1 id="document-2-38-object-detection-fundamentals-and-basic-pattern-recognition-concepts"><strong>DOCUMENT 2: 3.8 – OBJECT DETECTION FUNDAMENTALS AND BASIC PATTERN RECOGNITION CONCEPTS</strong></h1><p>This document has two major parts:</p><ul><li><p>Part A: Object Detection Fundamentals.</p></li><li><p>Part B: Basic Pattern Recognition Concepts.</p></li></ul><p>Let's start from the basics.</p><h2 id="part-a-object-detection-fundamentals"><strong>PART A – OBJECT DETECTION FUNDAMENTALS</strong></h2><h3 id="1-introduction-to-object-detection"><strong>1. Introduction to Object Detection</strong></h3><p><strong>Definition:</strong> Object detection is a computer vision task in which a system identifies what objects are present in an image and where those objects are located.</p><p>There are two questions:</p><ol><li><p>What objects are present?</p></li><li><p>Where are those objects located?</p></li></ol><p>Therefore:</p>
+
+<div class="math-display">$$
+\boxed{Object\ Detection=Classification+Localization}
+$$</div>
+
+<p>Example:</p><p>Suppose an image contains:</p><ul><li><p>2 cars.</p></li><li><p>1 person.</p></li><li><p>1 bicycle.</p></li></ul><p>An object detection system identifies all four objects and draws bounding boxes around them.</p><img alt="计算机视觉和机器视觉有什么区别？" class="exported-media" src="https://images.openai.com/static-rsc-4/daqrDuMF5th-F0ZJZ9hjYEofIcVpt_LG7fs3wSn1jf_YkALMBFnv5h23oWBWYSWB--NupImv8i4J3yEQHDfSEczqz1texuHG0gB03Zzucg6lqvFCFsu7nvQemuUrq04xbXI1hNj9ELqYQZZVCy4EaglfSt7FZmdYRemo3NbWkX0?purpose=inline"/><a href="https://www.hc-vision.cn/index/newssh?cid=3&amp;id=27&amp;utm_source=chatgpt.com">hc-vision.cn</a><p>The output contains:</p><table><tr><th>Object</th><th>Location</th><th>Confidence</th></tr><tr><td>Car 1</td><td>Bounding box</td><td>0.96</td></tr><tr><td>Car 2</td><td>Bounding box</td><td>0.91</td></tr><tr><td>Person</td><td>Bounding box</td><td>0.94</td></tr><tr><td>Bicycle</td><td>Bounding box</td><td>0.87</td></tr></table><p><strong>Remember:</strong> Object detection gives both the class and the position of objects.</p><h3 id="2-classification-vs-localization-vs-detection"><strong>2. Classification vs Localization vs Detection</strong></h3><p>These three concepts are very important.</p><p><strong>2.1 Image Classification</strong></p><p>Classification answers:</p><p>"What is present in the image?"</p><p>Example:</p><p>An image contains a cat.</p><p>The classifier may give:</p><ul><li><p>Cat = 95%.</p></li><li><p>Dog = 3%.</p></li><li><p>Rabbit = 2%.</p></li></ul><p>It only identifies the class. It does not tell us the exact location of the cat.</p><p><strong>2.2 Object Localization</strong></p><p>Localization answers:</p><p>"Where is the object?"</p><p>Suppose an image contains one dog.</p><p>The system identifies the dog and gives its bounding box:</p>
+
+<div class="math-display">$$
+(100,80,350,300)
+$$</div>
+
+<p>It identifies the class and location of one object.</p><p><strong>2.3 Object Detection</strong></p><p>Detection identifies multiple objects and their locations.</p><p>For example:</p><ul><li><p>Person → Bounding Box 1.</p></li><li><p>Car → Bounding Box 2.</p></li><li><p>Bicycle → Bounding Box 3.</p></li></ul><img alt="Intro to Deep Learning for Computer Vision" class="exported-media" src="https://images.openai.com/static-rsc-4/c5V_zSbJ523UnaTLTmZrAC62NmG1kYTuUoySqnpcxX02yqB7YbBQFaD5TfyPdwOESbvsywYcj-164PWOeQTQAvSyUM1Ed-vhV8r7d97q8aLBkzCxCVAXL_o0Oe6uINzFh9-D2E8xO5DFM195G85kxnjfWcDKnZU61TfcMwWizOI?purpose=inline"/><a href="https://chaosmail.github.io/deeplearning/2016/10/22/intro-to-deep-learning-for-computer-vision/?utm_source=chatgpt.com">chaosmail.github.io</a><p><strong>Important comparison:</strong></p><table><tr><th>Task</th><th>What?</th><th>Where?</th><th>Objects</th></tr><tr><td>Classification</td><td>Yes</td><td>No</td><td>Usually image-level</td></tr><tr><td>Localization</td><td>Yes</td><td>Yes</td><td>One</td></tr><tr><td>Detection</td><td>Yes</td><td>Yes</td><td>Multiple</td></tr><tr><td>Segmentation</td><td>Identifies pixel regions</td><td>Pixel-level location</td><td>Multiple</td></tr></table><p><strong>Exam memory trick:</strong></p><ul><li><p>Classification = What?</p></li><li><p>Localization = Where is one?</p></li><li><p>Detection = What and where are multiple?</p></li><li><p>Segmentation = Which pixels belong to the object?</p></li></ul><h3 id="3-object-detection-output"><strong>3. Object Detection Output</strong></h3><p>A typical object detector produces three important things:</p><ol><li><p>Bounding box.</p></li><li><p>Class.</p></li><li><p>Confidence score.</p></li></ol><p>Example:</p>Plain text<code>Object: Person
+Bounding Box: (50, 40, 200, 400)
+Confidence: 0.94</code><p>Meaning:</p><ul><li><p>Class = Person.</p></li><li><p>Bounding box = Position of person.</p></li><li><p>Confidence = 94% confidence in the prediction.</p></li></ul><h3 id="4-bounding-box"><strong>4. Bounding Box</strong></h3><p><strong>Definition:</strong> A bounding box is a rectangle drawn around an object to show its location in an image.</p><p>There are two common representations.</p><p><strong>4.1 Corner Representation</strong></p><p>It uses four coordinates:</p>
+
+<div class="math-display">$$
+(x_{\min},y_{\min},x_{\max},y_{\max})
+$$</div>
+
+<p>Where:</p><ul><li><p>$x_{\min}$ = Left coordinate.</p></li><li><p>$y_{\min}$ = Top coordinate.</p></li><li><p>$x_{\max}$ = Right coordinate.</p></li><li><p>$y_{\max}$ = Bottom coordinate.</p></li></ul><p>Example:</p>
+
+<div class="math-display">$$
+x_{\min}=50
+$$</div>
+
+<div class="math-display">$$
+y_{\min}=100
+$$</div>
+
+<div class="math-display">$$
+x_{\max}=250
+$$</div>
+
+<div class="math-display">$$
+y_{\max}=400
+$$</div>
+
+<p>Width:</p>
+
+<div class="math-display">$$
+250-50=200
+$$</div>
+
+<p>Height:</p>
+
+<div class="math-display">$$
+400-100=300
+$$</div>
+
+<p><strong>4.2 Center-Width-Height Representation</strong></p><p>Instead of using the corners, we represent the box using:</p><ul><li><p>$x_c$ = Centre X-coordinate.</p></li><li><p>$y_c$ = Centre Y-coordinate.</p></li><li><p>$w$ = Width.</p></li><li><p>$h$ = Height.</p></li></ul><p>The representation is:</p>
+
+<div class="math-display">$$
+(x_c,y_c,w,h)
+$$</div>
+
+<p>Conversion from corner representation:</p>
+
+<div class="math-display">$$
+x_c=\frac{x_{\min}+x_{\max}}{2}
+$$</div>
+
+<div class="math-display">$$
+y_c=\frac{y_{\min}+y_{\max}}{2}
+$$</div>
+
+<div class="math-display">$$
+w=x_{\max}-x_{\min}
+$$</div>
+
+<div class="math-display">$$
+h=y_{\max}-y_{\min}
+$$</div>
+
+<p><strong>Numerical example:</strong></p><p>Given:</p>
+
+<div class="math-display">$$
+(50,100,250,400)
+$$</div>
+
+<p>Centre X:</p>
+
+<div class="math-display">$$
+x_c=\frac{50+250}{2}=150
+$$</div>
+
+<p>Centre Y:</p>
+
+<div class="math-display">$$
+y_c=\frac{100+400}{2}=250
+$$</div>
+
+<p>Width:</p>
+
+<div class="math-display">$$
+w=250-50=200
+$$</div>
+
+<p>Height:</p>
+
+<div class="math-display">$$
+h=400-100=300
+$$</div>
+
+<p>Final answer:</p>
+
+<div class="math-display">$$
+\boxed{(150,250,200,300)}
+$$</div>
+
+<h3 id="5-confidence-score"><strong>5. Confidence Score</strong></h3><p><strong>Definition:</strong> Confidence score indicates how confident the detection model is about its prediction.</p><p>Example:</p>Plain text<code>Car       = 0.96
+Person    = 0.91
+Dog       = 0.42</code><p>The values indicate the confidence of the predictions.</p><p>Suppose the detection threshold is 0.50.</p><ul><li><p>Car = 0.96 → Accepted.</p></li><li><p>Person = 0.91 → Accepted.</p></li><li><p>Dog = 0.42 → Rejected.</p></li></ul><p>Why?</p><p>Because the dog's confidence is below the threshold.</p><p><strong>Remember:</strong> A higher confidence score indicates greater confidence in a prediction. It does not guarantee that the prediction is correct.</p><h3 id="6-basic-object-detection-pipeline"><strong>6. Basic Object Detection Pipeline</strong></h3><p>This is an extremely important 10- or 15-mark question.</p><p>The traditional object detection pipeline is:</p><p><strong>Input Image</strong></p><p><strong>Preprocessing</strong></p><p><strong>Feature Extraction</strong></p><p><strong>Candidate Object Regions</strong></p><p><strong>Feature Representation</strong></p><p><strong>Classification</strong></p><p><strong>Bounding Box Prediction</strong></p><p><strong>Confidence Filtering</strong></p><p><strong>Non-Maximum Suppression (NMS)</strong></p><p><strong>Final Detections</strong></p><p>Let's understand every stage.</p><p><strong>6.1 Input Image</strong></p><p>The system receives an image.</p><p>For a colour image, the image generally contains three colour channels:</p><ul><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Blue.</p></li></ul><p>These are called RGB channels.</p><p><strong>6.2 Preprocessing</strong></p><p>Preprocessing improves the image before detection.</p><p>Common operations:</p><ol><li><p>Resizing – Changes image dimensions.</p></li><li><p>Noise removal – Removes unwanted disturbances.</p></li><li><p>Normalization – Adjusts pixel values to a common range.</p></li><li><p>Contrast enhancement – Improves visibility.</p></li><li><p>Colour conversion – Changes the colour representation.</p></li></ol><p>Example:</p>Plain text<code>Original Image
+      ↓
+Resize to 640 × 640
+      ↓
+Normalize Pixel Values
+      ↓
+Object Detection</code><h3 id="7-feature-extraction-for-object-detection"><strong>7. Feature Extraction for Object Detection</strong></h3><p><strong>Definition:</strong> Feature extraction identifies useful characteristics of an object that help the system recognize it.</p><p>Important traditional features:</p><p><strong>A. Shape Features</strong></p><ul><li><p>Area.</p></li><li><p>Perimeter.</p></li><li><p>Circularity.</p></li><li><p>Aspect ratio.</p></li><li><p>Eccentricity.</p></li><li><p>Moments.</p></li></ul><p><strong>B. Texture Features</strong></p><ul><li><p>Mean.</p></li><li><p>Variance.</p></li><li><p>Entropy.</p></li><li><p>GLCM contrast.</p></li><li><p>Energy.</p></li><li><p>Homogeneity.</p></li></ul><p><strong>C. Local Features</strong></p><ul><li><p>SIFT.</p></li><li><p>SURF.</p></li><li><p>HOG.</p></li></ul><p>Example:</p><p>A pedestrian can be detected using HOG features because the shape and edge structure of a human body provide useful information.</p><h3 id="8-candidate-object-regions"><strong>8. Candidate Object Regions</strong></h3><p>Before identifying an object, the system must find regions that might contain objects.</p><p>These are called candidate object regions.</p><p>Traditional approaches include:</p><ul><li><p>Sliding window.</p></li><li><p>Region-based approaches.</p></li></ul><p>A candidate region is simply a possible area containing an object.</p><h3 id="9-sliding-window-object-detection"><strong>9. Sliding Window Object Detection</strong></h3><p><strong>Definition:</strong> Sliding window is a traditional object detection technique in which a fixed-size window moves across an image to search for objects.</p><p>Imagine you want to find cars in an image.</p><p>The system follows these steps:</p><ol><li><p>Select a window.</p></li><li><p>Extract features from that window.</p></li><li><p>Classify the window.</p></li><li><p>Move the window.</p></li><li><p>Repeat the process.</p></li></ol><img alt="Sliding Window Object Detection at Herman Minto blog" class="exported-media" src="https://images.openai.com/static-rsc-4/_EUcoC21zXgFpysams4xHxLrmMtSdKnWbSa73vYtq7gIX1p5OlPYOumXSkitBXvkw0pwDrCLvXOWhLmyaoj288j1c3eBJ7Puz8EBaEb_j-19OffYbddMbLT00U3ENoF17hMas4ERPz6bJeJ9MBhzGF_kDmcXFd9Q5pUO--qceZ0?purpose=inline"/><a href="https://storage.googleapis.com/dwevvkyaiuzvje/sliding-window-object-detection.html?utm_source=chatgpt.com">storage.googleapis.com</a><p>The window moves:</p><ul><li><p>Horizontally.</p></li><li><p>Vertically.</p></li><li><p>At different positions.</p></li></ul><p>Different window sizes are also used because objects can appear at different scales.</p><p><strong>Advantages:</strong></p><ol><li><p>Simple concept.</p></li><li><p>Easy to understand.</p></li><li><p>Historically useful.</p></li></ol><p><strong>Disadvantages:</strong></p><ol><li><p>Computationally expensive.</p></li><li><p>Produces many redundant windows.</p></li><li><p>Difficulties with different object scales.</p></li><li><p>Inefficient when detecting multiple object classes.</p></li></ol><p>Deep learning detectors were developed to overcome many of these limitations.</p><h3 id="10-traditional-object-detection-methods"><strong>10. Traditional Object Detection Methods</strong></h3><p>Three important traditional approaches are:</p><p><strong>10.1 Haar Cascade</strong></p><p>Haar Cascade is a traditional object detection method used for:</p><ul><li><p>Face detection.</p></li><li><p>Eye detection.</p></li><li><p>Object detection.</p></li></ul><p>It uses:</p><ol><li><p>Haar-like features.</p></li><li><p>A cascade classifier.</p></li></ol><p>Haar-like features identify differences in brightness between neighbouring rectangular regions.</p><p>For example, the area around the eyes may have a different intensity pattern compared with the cheeks.</p><p>The cascade classifier uses multiple stages to reject regions that do not contain the target object.</p><img alt="Complete Roadmap in Vision AI 2025 - by Alex Razvant" class="exported-media" src="https://images.openai.com/static-rsc-4/SzWSeoAOs9MfX62mh3snWhcRTMSaM80r6l3tdJZTTsFA1sZ83_WPODsGfzXyZUlHdUHI5E_OzDOpIy0Vr37uZMGu5sYdlkCdYCo881v6pQxGgWW9OKAiZ8e0a-Yn6VL4IuhlytfpC4jtVEvhm30734b_QnuamMJHX51TdBdqQ1c?purpose=inline"/><a href="https://read.theaimerge.com/p/complete-overview-in-vision-ai-2025?utm_source=chatgpt.com">read.theaimerge.com</a><p><strong>10.2 HOG + SVM</strong></p><p>HOG stands for Histogram of Oriented Gradients.</p><p>SVM stands for Support Vector Machine.</p><p>This is a famous pedestrian detection approach.</p><p>Working:</p>Plain text<code>Input Image
+     ↓
+HOG Feature Extraction
+     ↓
+Feature Vector
+     ↓
+SVM Classifier
+     ↓
+Person / Not Person</code><p>What does HOG do?</p><p>It captures edge orientation information.</p><p>For example, the edges of a human body have useful patterns that can help identify a pedestrian.</p><p>What does SVM do?</p><p>It classifies the extracted features into categories.</p><p>For example:</p><ul><li><p>Person.</p></li><li><p>Not Person.</p></li></ul><p><strong>10.3 SIFT-Based Detection</strong></p><p>SIFT stands for Scale-Invariant Feature Transform.</p><p>SIFT provides:</p><ol><li><p>Keypoints.</p></li><li><p>Descriptors.</p></li></ol><p><strong>Keypoints:</strong> Important locations in an image, such as corners or distinctive regions.</p><p><strong>Descriptors:</strong> Numerical descriptions of the regions surrounding keypoints.</p><p>Working:</p>Plain text<code>Reference Object
+       ↓
+SIFT Features
+       ↓
+Feature Matching
+       ↓
+Object Found</code><p>Example:</p><p>Suppose you have a reference image of a logo.</p><p>The system extracts SIFT features from the reference image and the test image.</p><p>It compares the features.</p><p>If enough features match, the system can identify the object.</p><h3 id="11-iou-intersection-over-union"><strong>11. IoU – Intersection over Union</strong></h3>Very important numerical<p><strong>Definition:</strong> IoU measures how much two bounding boxes overlap.</p><p>The two boxes are:</p><ol><li><p>Predicted bounding box – The box generated by the model.</p></li><li><p>Ground-truth bounding box – The actual correct box.</p></li></ol><p>Formula:</p>
+
+<div class="math-display">$$
+\boxed{IoU=\frac{Intersection\ Area}{Union\ Area}}
+$$</div>
+
+<p>Where:</p><ul><li><p>Intersection = Common overlapping area.</p></li><li><p>Union = Total area covered by both boxes.</p></li></ul><p>Union can be calculated as:</p>
+
+<div class="math-display">$$
+Union=A_1+A_2-Intersection
+$$</div>
+
+<p><strong>Numerical example from your notes:</strong></p><p>Given:</p><ul><li><p>Predicted box area = 100.</p></li><li><p>Ground-truth box area = 120.</p></li><li><p>Intersection = 80.</p></li></ul><p>Step 1: Calculate union.</p>
+
+<div class="math-display">$$
+Union=100+120-80
+$$</div>
+
+<div class="math-display">$$
+Union=140
+$$</div>
+
+<p>Step 2: Calculate IoU.</p>
+
+<div class="math-display">$$
+IoU=\frac{80}{140}
+$$</div>
+
+<div class="math-display">$$
+\boxed{IoU=0.5714}
+$$</div>
+
+<p>Therefore, IoU is approximately 0.57 or 57.14%.</p><p><strong>Remember:</strong> Higher IoU means better overlap between predicted and actual bounding boxes.</p><h3 id="12-why-iou-is-important"><strong>12. Why IoU Is Important?</strong></h3><p>Suppose the actual object is surrounded by a ground-truth box.</p><p>The detector produces a predicted box.</p><p>If the predicted box overlaps significantly with the ground-truth box, IoU will be high.</p><p>If the boxes overlap very little, IoU will be low.</p><p>Therefore:</p><ul><li><p>High IoU → Good localization.</p></li><li><p>Low IoU → Poor localization.</p></li></ul><p>IoU is commonly used to decide whether a predicted bounding box sufficiently matches the ground truth.</p><h3 id="13-non-maximum-suppression-nms"><strong>13. Non-Maximum Suppression (NMS)</strong></h3>Very important exam topic<p><strong>Definition:</strong> Non-Maximum Suppression is a technique used to remove redundant or overlapping bounding boxes around the same object.</p><p>Why is NMS needed?</p><p>Suppose an object detector identifies one car but produces three boxes:</p>Plain text<code>Car Box 1 = 0.95
+Car Box 2 = 0.89
+Car Box 3 = 0.73</code><p>All three boxes may represent the same car.</p><p>We don't need three boxes around one car.</p><p>We need the best one.</p><p>NMS removes the unnecessary boxes.</p><img alt="Non-Maximum Suppression(NMS)란 낙낙이" class="exported-media" src="https://images.openai.com/static-rsc-4/O5AcuoLVDBnHdS-3qVeIh8nB4bC4u7QgPCtmyQUw2-BhcEPoKbreMz0qKt310YnVS3rs4KBW0_sA4trNr7THM0ZsZOpAzYJQQ8AN9SmG2sPQp3ey_SCi5teY4JFJ3thzZAppGhCHLXij2j0jHgdGI6i3wRfk-G7FOi8uhLIzX0c?purpose=inline"/><a href="https://naknaklee.github.io/etc/2021/03/08/NMS/?utm_source=chatgpt.com">naknaklee.github.io</a><p><strong>NMS procedure:</strong></p><ol><li><p>Select the box with the highest confidence.</p></li><li><p>Calculate IoU with the other boxes.</p></li><li><p>Remove boxes whose IoU exceeds the chosen threshold.</p></li><li><p>Select the next highest-confidence remaining box.</p></li><li><p>Repeat.</p></li></ol><p>Example:</p><p>Before NMS:</p>Plain text<code>Car → 0.95
+Car → 0.89
+Car → 0.73</code><p>After NMS:</p>Plain text<code>Car → 0.95</code><p><strong>Important:</strong> NMS removes duplicate detections. It should not remove genuinely separate objects simply because they are nearby.</p><h3 id="14-object-detection-approaches"><strong>14. Object Detection Approaches</strong></h3><p>Modern object detection is broadly divided into two approaches.</p><p><strong>A. Two-Stage Detectors</strong></p><p>Working:</p>Plain text<code>Input Image
+     ↓
+Region Proposal
+     ↓
+Classification + Localization
+     ↓
+Final Detection</code><p>Examples:</p><ol><li><p>R-CNN.</p></li><li><p>Fast R-CNN.</p></li><li><p>Faster R-CNN.</p></li></ol><p>How does it work?</p><p>Stage 1: The model identifies possible object regions.</p><p>Stage 2: It classifies those regions and predicts their bounding boxes.</p><p><strong>B. One-Stage Detectors</strong></p><p>Working:</p>Plain text<code>Input Image
+     ↓
+Detection Network
+     ↓
+Class + Bounding Boxes</code><p>Examples:</p><ol><li><p>YOLO.</p></li><li><p>SSD.</p></li></ol><p>How does it work?</p><p>The model predicts object classes and bounding boxes directly through the detection network.</p><img alt="Robustness Assessment of AI-Based 2D Object Detection Systems: A Method and Lessons Learned from Two Industrial Cases | MDPI" class="exported-media" src="https://images.openai.com/static-rsc-4/0th_N0PenQAS9O9lI4fZXtnYnxETsoKWA_6onjZtZ2w8EZG9VGsirOF13fitG5Ahpw83-cWxYxTANsBFYK074jshMu65iwBeC1qIqcjR4FMgSTfk0TafAijH8JM5yMZPLbwsVIVpJbXHZ3gkDy3VLDQh3j4I9s18b77gjHn5ITo?purpose=inline"/><a href="https://www.mdpi.com/2079-9292/13/7/1368?utm_source=chatgpt.com">mdpi.com</a><p><strong>Comparison:</strong></p><table><tr><th>Two-stage</th><th>One-stage</th></tr><tr><td>First generates region proposals</td><td>Directly predicts detections</td></tr><tr><td>Then classifies and localizes</td><td>Predicts class and boxes together</td></tr><tr><td>R-CNN family</td><td>YOLO, SSD</td></tr><tr><td>Generally more complex</td><td>Generally faster</td></tr></table><p>Your notes mention that the detailed CNN architectures are covered in Unit 5. For Unit 3, focus on understanding the basic difference and pipeline.</p><h2 id="part-b-basic-pattern-recognition-concepts"><strong>PART B – BASIC PATTERN RECOGNITION CONCEPTS</strong></h2><h3 id="15-what-is-pattern-recognition"><strong>15. What Is Pattern Recognition?</strong></h3><p><strong>Definition:</strong> Pattern recognition is the process of identifying regularities or patterns in data and assigning them to meaningful categories.</p><p>In computer vision, it uses extracted features to identify the class or identity of an object.</p><p>Examples:</p><ol><li><p>Recognizing handwritten digits.</p></li><li><p>Identifying a face.</p></li><li><p>Classifying animals.</p></li><li><p>Detecting a tumor.</p></li><li><p>Identifying vehicles.</p></li><li><p>Classifying fruits.</p></li></ol><img alt="PPT - Computer Vision PowerPoint Presentation, free download - ID:3232252" class="exported-media" src="https://images.openai.com/static-rsc-4/kgC_Wg9-f2CSDeq-s8S7OyhGqFxcXTP0CzM4OOW9WzREUmA6w9KUvAXci_atvvBDHtNIcrt9Ft-0ZAxuOCnCI9Q1GaeTn64exptCXBBlPg0l2N8WftS7oBKqryHSC_dDy6uT4hDnjZzvnX2Cfj9nI8uovsoXON0YhqYsVROlOpY?purpose=inline"/><a href="https://www.slideserve.com/rhian/computer-vision-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a><p>Example:</p><p>Suppose a computer receives an image of a handwritten number.</p><p>It analyses the features and predicts that the number is 5.</p><p>That is pattern recognition.</p><h3 id="16-pattern-recognition-pipeline"><strong>16. Pattern Recognition Pipeline</strong></h3>Important 10-mark question<p>A typical pattern recognition system follows:</p>Plain text<code>Image
+  ↓
+Preprocessing
+  ↓
+Segmentation
+  ↓
+Feature Extraction
+  ↓
+Feature Representation
+  ↓
+Classification
+  ↓
+Decision</code><p>Explanation:</p><ol><li><p>Image: Input image is given.</p></li><li><p>Preprocessing: Image quality is improved.</p></li><li><p>Segmentation: The important object or region is separated.</p></li><li><p>Feature extraction: Useful characteristics are calculated.</p></li><li><p>Feature representation: Features are represented numerically.</p></li><li><p>Classification: The classifier assigns a class.</p></li><li><p>Decision: Final output is produced.</p></li></ol><h3 id="17-step-1-data-acquisition"><strong>17. Step 1 – Data Acquisition</strong></h3><p><strong>Definition:</strong> Data acquisition is the process of collecting or capturing image data.</p><p>Sources include:</p><ul><li><p>Camera.</p></li><li><p>Scanner.</p></li><li><p>Satellite.</p></li><li><p>Microscope.</p></li><li><p>Medical imaging device.</p></li></ul><p>Example:</p><p>A camera captures a fruit image.</p><p>That captured image becomes the input to the pattern recognition system.</p><h3 id="18-step-2-preprocessing"><strong>18. Step 2 – Preprocessing</strong></h3><p><strong>Definition:</strong> Preprocessing is the process of improving image quality before further processing.</p><p>Why is it needed?</p><p>Images may contain:</p><ul><li><p>Noise.</p></li><li><p>Poor lighting.</p></li><li><p>Low contrast.</p></li><li><p>Unwanted variations.</p></li></ul><p>Common operations:</p><ol><li><p>Smoothing – Reduces unwanted variations.</p></li><li><p>Filtering – Removes noise.</p></li><li><p>Resizing – Changes dimensions.</p></li><li><p>Normalization – Adjusts pixel values.</p></li><li><p>Contrast enhancement – Improves visibility.</p></li></ol><p>Example:</p>Plain text<code>Noisy Image
+     ↓
+Gaussian Filtering
+     ↓
+Clean Image</code><h3 id="19-step-3-segmentation"><strong>19. Step 3 – Segmentation</strong></h3><p><strong>Definition:</strong> Segmentation divides an image into meaningful regions.</p><p>Example:</p><p>Suppose we have an image containing an apple and a background.</p><p>Segmentation separates:</p><ul><li><p>Apple.</p></li><li><p>Background.</p></li></ul><img alt="Infield Apple Detection and Grading Based on Multi-Feature Fusion" class="exported-media" src="https://images.openai.com/static-rsc-4/QdDF-zwN8sNv6UCg7OgHWwYhFI2dOfWf1gH3Sl2CxY8H9TnZbDdAMFQOM6FdeL7AG5tjZNMTNR4hLMoh840t6TL2S5vqG1XxWTiloBG1RnyQCpyHyh4Lls5QvlcMaXUg-IdzYL86EVLes5ESu6SGxMREnI5TbL4gEcp4qF6cHDg?purpose=inline"/><a href="https://www.mdpi.com/2311-7524/7/9/276?utm_source=chatgpt.com">mdpi.com</a><p>Methods include:</p><ol><li><p>Thresholding – Separates pixels based on intensity.</p></li><li><p>Region Growing – Groups neighbouring similar pixels.</p></li><li><p>K-Means – Groups pixels into clusters.</p></li><li><p>Watershed – Separates regions using a topographic interpretation of image intensity.</p></li></ol><p>Why is segmentation useful?</p><p>It isolates the object before feature extraction.</p><h3 id="20-step-4-feature-extraction"><strong>20. Step 4 – Feature Extraction</strong></h3><p><strong>Definition:</strong> Feature extraction identifies measurable properties that help distinguish objects.</p><p>Suppose we want to classify fruits.</p><p>We can extract three types of features.</p><p><strong>Colour features</strong></p><ul><li><p>Red.</p></li><li><p>Green.</p></li><li><p>Yellow.</p></li><li><p>Orange.</p></li></ul><p><strong>Shape features</strong></p><ul><li><p>Area.</p></li><li><p>Circularity.</p></li><li><p>Aspect ratio.</p></li></ul><p><strong>Texture features</strong></p><ul><li><p>Contrast.</p></li><li><p>Energy.</p></li><li><p>Homogeneity.</p></li></ul><p>Example:</p><p>An apple can be represented using:</p>
+
+<div class="math-display">$$
+F=[Colour,Area,Circularity,Energy,Homogeneity]
+$$</div>
+
+<p>The computer uses these features to distinguish apples from other fruits.</p><h3 id="21-feature-vector"><strong>21. Feature Vector</strong></h3><p><strong>Definition:</strong> A feature vector is a numerical representation of an object's extracted features.</p><p>Suppose we use three features:</p><ol><li><p>Area.</p></li><li><p>Circularity.</p></li><li><p>Texture.</p></li></ol><p>An object may have:</p>
+
+<div class="math-display">$$
+F=[100,0.85,0.60]
+$$</div>
+
+<p>Another object may have:</p>
+
+<div class="math-display">$$
+F=[150,0.45,0.30]
+$$</div>
+
+<p>These numerical values help the classifier distinguish the objects.</p><p><strong>Remember:</strong> Feature extraction finds useful characteristics, while a feature vector stores them numerically.</p><h3 id="22-feature-space"><strong>22. Feature Space</strong></h3><p><strong>Definition:</strong> Feature space is a mathematical space in which objects are represented using their feature values.</p><p>Suppose we have two features:</p><ul><li><p>Area.</p></li><li><p>Circularity.</p></li></ul><p>We can plot them on a two-dimensional graph.</p><img alt="Cos'è il Machine Learning? Come lo spiegherei a un bambino di 5 anni" class="exported-media" src="https://images.openai.com/static-rsc-4/sKyM7f0ZvoxwKRLk2knCc0CKfVgZd7-WIqL0TJ9y_m8Flz0h3qwk6MykNf6yg9oUix_UEK98B4H85md7qOaJY_3Z_Hp64I6RJDuCzIMYDvt0JDMmFIgFPu4UjqcRKMiDuVtddudyNVsrJUKa7itr6i6ddyxZ4DGXeySirNDrQ88?purpose=inline"/><a href="https://www.alessiopomaro.it/machine-learning-semplice/?utm_source=chatgpt.com">alessiopomaro.it</a><p>Here:</p><ul><li><p>Circles may represent apples.</p></li><li><p>Triangles may represent bananas.</p></li></ul><p>Each object is represented by a point.</p><p>The classifier tries to find a decision boundary separating the classes.</p><h3 id="23-good-features"><strong>23. Good Features</strong></h3><p>A good feature should have four important properties.</p><p><strong>1. Discriminative</strong></p><p>Different classes should have different feature values.</p><p>Example:</p><p>Apples and bananas should have distinguishable shape features.</p><p><strong>2. Robust</strong></p><p>Features should tolerate:</p><ul><li><p>Noise.</p></li><li><p>Illumination changes.</p></li><li><p>Small rotations.</p></li><li><p>Scale changes.</p></li></ul><p><strong>3. Compact</strong></p><p>Avoid unnecessary features.</p><p>Only useful features should be included.</p><p><strong>4. Computationally Efficient</strong></p><p>Feature extraction should not require excessive time or resources.</p><h3 id="24-feature-selection-vs-feature-extraction"><strong>24. Feature Selection vs Feature Extraction</strong></h3><p>This is a frequently asked difference.</p><p><strong>Feature Extraction</strong></p><p>Creates new features from raw data.</p><p>Example:</p>Plain text<code>Image
+  ↓
+SIFT
+  ↓
+128-dimensional descriptor</code><p>SIFT converts image information into a numerical feature descriptor.</p><p><strong>Feature Selection</strong></p><p>Selects the most useful features from an existing set.</p><p>Example:</p>Plain text<code>10 Available Features
+        ↓
+Select Best 4
+        ↓
+Area
+Circularity
+Texture
+Colour</code><p><strong>Comparison:</strong></p><table><tr><th>Feature Extraction</th><th>Feature Selection</th></tr><tr><td>Creates new features</td><td>Selects existing features</td></tr><tr><td>Transforms raw data</td><td>Chooses useful features</td></tr><tr><td>Example: SIFT</td><td>Example: Selecting area and colour from a feature list</td></tr></table><h3 id="25-classification"><strong>25. Classification</strong></h3><p><strong>Definition:</strong> Classification is the process of assigning an object to a particular class based on its features.</p><p>Example:</p>Plain text<code>Feature Vector
+      ↓
+Classification
+      ↓
+Apple</code><p>Suppose the feature vector contains:</p><ul><li><p>Red colour.</p></li><li><p>Round shape.</p></li><li><p>Particular texture.</p></li></ul><p>The classifier may predict the object as an apple.</p><h3 id="26-supervised-pattern-recognition"><strong>26. Supervised Pattern Recognition</strong></h3><p><strong>Definition:</strong> Supervised pattern recognition uses labelled training data to learn the relationship between features and classes.</p><p>Example:</p><table><tr><th>Image</th><th>Features</th><th>Class</th></tr><tr><td>Image 1</td><td>[2,3]</td><td>Cat</td></tr><tr><td>Image 2</td><td>[2.5,3.2]</td><td>Cat</td></tr><tr><td>Image 3</td><td>[8,7]</td><td>Dog</td></tr><tr><td>Image 4</td><td>[8.5,7.5]</td><td>Dog</td></tr></table><p>Notice that the class labels are already provided.</p><p>The algorithm learns:</p><ul><li><p>Which features belong to cats.</p></li><li><p>Which features belong to dogs.</p></li></ul><p>Then it receives an unknown object.</p><p>Suppose its features are:</p>
+
+<div class="math-display">$$
+[2.2,3.1]
+$$</div>
+
+<p>The classifier predicts:</p><p><strong>Cat.</strong></p><p>Other examples of supervised algorithms include:</p><ul><li><p>KNN.</p></li><li><p>SVM.</p></li><li><p>Decision Trees.</p></li></ul><h3 id="27-unsupervised-pattern-recognition"><strong>27. Unsupervised Pattern Recognition</strong></h3><p><strong>Definition:</strong> Unsupervised pattern recognition works with data that does not have predefined class labels.</p><p>The algorithm tries to discover natural groups or clusters.</p><p>Example:</p><p>Suppose we give the computer several objects without labels.</p><p>The algorithm groups similar objects together.</p><p>It may identify three clusters.</p><img alt="K-Means Clustering : What I Learned In Unsupervised Learning | by Aniket | Feb, 2026 | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/3v1W6Q5JchPbzaluk6RuEm1ht_MJhFf2QohPRQCwbhuGGhMY28dTZkN9fwkAgjhqBs2DiVLz0yF9OAjbhRePcy982cQdxZwKNHEOTzRmdQvwh_1yjxiMz4oOtDpIxW1loQ8tKjVHp7Hn57rSy1yauK7QBLDOtOMhnBkHbob-Dpg?purpose=inline"/><a href="https://medium.com/%40aniani2521/k-means-clustering-what-i-learned-in-unsupervised-learning-e83bfc3ce4bf?utm_source=chatgpt.com">medium.com</a><p>A common example is K-Means clustering.</p><p><strong>Comparison:</strong></p><table><tr><th>Supervised</th><th>Unsupervised</th></tr><tr><td>Uses labelled data</td><td>Uses unlabelled data</td></tr><tr><td>Learns from known classes</td><td>Discovers natural groups</td></tr><tr><td>Predicts classes</td><td>Finds clusters</td></tr><tr><td>Example: KNN</td><td>Example: K-Means</td></tr></table><h3 id="28-nearest-neighbor-classification"><strong>28. Nearest Neighbor Classification</strong></h3><p><strong>Definition:</strong> Nearest Neighbor (NN) is a simple classification algorithm that assigns an unknown object to the class of its closest training sample.</p><p>Suppose we have:</p><p>Class A:</p>
+
+<div class="math-display">$$
+(1,1),(2,2),(2,1)
+$$</div>
+
+<p>Class B:</p>
+
+<div class="math-display">$$
+(8,8),(9,8),(8,9)
+$$</div>
+
+<p>Unknown point:</p>
+
+<div class="math-display">$$
+(2,3)
+$$</div>
+
+<p>The algorithm calculates the distance between the unknown point and all training points.</p><p>The closest point belongs to Class A.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+\boxed{Prediction=Class\ A}
+$$</div>
+
+<h3 id="29-euclidean-distance"><strong>29. Euclidean Distance</strong></h3><p><strong>Definition:</strong> Euclidean distance measures the straight-line distance between two points.</p><p>For two feature vectors:</p>
+
+<div class="math-display">$$
+A=(x_1,y_1)
+$$</div>
+
+<div class="math-display">$$
+B=(x_2,y_2)
+$$</div>
+
+<p>Formula:</p>
+
+<div class="math-display">$$
+\boxed{d=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}}
+$$</div>
+
+<p>For n-dimensional data:</p>
+
+<div class="math-display">$$
+d(A,B)=\sqrt{\sum_{i=1}^{n}(A_i-B_i)^2}
+$$</div>
+
+<p><strong>Numerical example:</strong></p><p>Find the distance between:</p>
+
+<div class="math-display">$$
+A=(2,3),\quad B=(5,7)
+$$</div>
+
+<p>Step 1:</p>
+
+<div class="math-display">$$
+d=\sqrt{(5-2)^2+(7-3)^2}
+$$</div>
+
+<p>Step 2:</p>
+
+<div class="math-display">$$
+=\sqrt{3^2+4^2}
+$$</div>
+
+<p>Step 3:</p>
+
+<div class="math-display">$$
+=\sqrt{9+16}
+$$</div>
+
+<div class="math-display">$$
+=\sqrt{25}
+$$</div>
+
+<div class="math-display">$$
+\boxed{d=5}
+$$</div>
+
+<h3 id="30-k-nearest-neighbors-knn"><strong>30. K-Nearest Neighbors (KNN)</strong></h3><p><strong>Definition:</strong> KNN is a classification algorithm that predicts the class of an unknown object based on the majority class among its K nearest training samples.</p><p>Difference between NN and KNN:</p><ul><li><p>NN considers only one nearest point.</p></li><li><p>KNN considers K nearest points.</p></li></ul><p>Example:</p><p>Suppose K = 5.</p><p>Among the five nearest training samples:</p><ul><li><p>Class A = 4.</p></li><li><p>Class B = 1.</p></li></ul><p>The majority class is A.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+\boxed{Prediction=Class\ A}
+$$</div>
+
+<p><strong>Steps of KNN:</strong></p><ol><li><p>Choose K.</p></li><li><p>Calculate distances.</p></li><li><p>Find K nearest neighbours.</p></li><li><p>Count the classes.</p></li><li><p>Select the majority class.</p></li></ol><h3 id="31-example-of-knn"><strong>31. Example of KNN</strong></h3><p>Suppose a new fruit has:</p><ul><li><p>Weight = 150 g.</p></li><li><p>Diameter = 7 cm.</p></li></ul><p>Training data:</p><table><tr><th>Fruit</th><th>Weight</th><th>Diameter</th></tr><tr><td>Apple</td><td>145</td><td>7.0</td></tr><tr><td>Apple</td><td>155</td><td>7.2</td></tr><tr><td>Apple</td><td>160</td><td>7.1</td></tr><tr><td>Orange</td><td>120</td><td>6.5</td></tr><tr><td>Orange</td><td>125</td><td>6.3</td></tr></table><p>We want to classify the new fruit.</p><p>New fruit:</p>
+
+<div class="math-display">$$
+(150,7)
+$$</div>
+
+<p>Assume K = 3.</p><p>Calculate distances.</p><p><strong>Apple 1:</strong></p>
+
+<div class="math-display">$$
+d=\sqrt{(150-145)^2+(7-7)^2}
+$$</div>
+
+<div class="math-display">$$
+d=5
+$$</div>
+
+<p><strong>Apple 2:</strong></p>
+
+<div class="math-display">$$
+d=\sqrt{(150-155)^2+(7-7.2)^2}
+$$</div>
+
+<div class="math-display">$$
+d=\sqrt{25+0.04}
+$$</div>
+
+<div class="math-display">$$
+d\approx5.004
+$$</div>
+
+<p><strong>Apple 3:</strong></p>
+
+<div class="math-display">$$
+d=\sqrt{(150-160)^2+(7-7.1)^2}
+$$</div>
+
+<div class="math-display">$$
+d=\sqrt{100+0.01}
+$$</div>
+
+<div class="math-display">$$
+d\approx10.0005
+$$</div>
+
+<p>The three apples are the closest neighbours.</p><p>Therefore, the predicted class is:</p>
+
+<div class="math-display">$$
+\boxed{Apple}
+$$</div>
+
+<h3 id="32-importance-of-feature-scaling"><strong>32. Importance of Feature Scaling</strong></h3><p>This is a very important concept in KNN.</p><p>Suppose our features are:</p><ul><li><p>Age = 20–60.</p></li><li><p>Income = 20,000–200,000.</p></li></ul><p>Income has much larger numerical values than age.</p><p>When calculating Euclidean distance, income may dominate the calculation.</p><p>This can lead to incorrect classifications.</p><p><strong>Solution: Normalization</strong></p><p>Min-Max normalization converts values into a common range, generally 0 to 1.</p><p>Formula:</p>
+
+<div class="math-display">$$
+\boxed{x'=\frac{x-x_{\min}}{x_{\max}-x_{\min}}}
+$$</div>
+
+<p>Example:</p><p>Minimum income = 20,000.</p><p>Maximum income = 200,000.</p><p>Given income = 110,000.</p>
+
+<div class="math-display">$$
+x'=\frac{110000-20000}{200000-20000}
+$$</div>
+
+<div class="math-display">$$
+=\frac{90000}{180000}
+$$</div>
+
+<div class="math-display">$$
+\boxed{x'=0.5}
+$$</div>
+
+<p>Now the value is between 0 and 1.</p><h3 id="33-template-matching"><strong>33. Template Matching</strong></h3><p><strong>Definition:</strong> Template matching is a technique that compares a known template image with different regions of a larger image to find the best matching location.</p><p>Example:</p><p>Suppose we have an image of a traffic sign.</p><p>The system takes the traffic sign as a template and compares it with different parts of a road image.</p><img alt="Traffic Sign Detection in CSharp - EMGU" class="exported-media" src="https://images.openai.com/static-rsc-4/s9lQnJZwwcofqRJUNemATyA4tOqJ118EfzymBeC9qgBGYfK6C4LsNBw2aETlVMjsg4DJazrFsLUi689otobJgYJOMW7eC2fd-P5NHl7eCw_CMFy1S7zRPukJwsohudbJCkw4wn8JkelOaS8aUm-U7_CpGOWe_pzf-md7iQY8ezw?purpose=inline"/><a href="https://emgu.com/wiki/index.php/Traffic_Sign_Detection_in_CSharp?utm_source=chatgpt.com">emgu.com</a><p>Working:</p>Plain text<code>Template
+   ↓
+Traffic Sign
+   ↓
+Compare With Image Regions
+   ↓
+Best Matching Location</code><p>Applications:</p><ol><li><p>Symbol recognition.</p></li><li><p>Logo detection.</p></li><li><p>Industrial inspection.</p></li><li><p>Simple object localization.</p></li></ol><p><strong>Limitations:</strong></p><p>Basic template matching is sensitive to:</p><ul><li><p>Rotation.</p></li><li><p>Scale.</p></li><li><p>Illumination.</p></li><li><p>Deformation.</p></li></ul><p>For example, if the traffic sign is rotated or enlarged, the original template may not match properly.</p><h3 id="34-decision-boundary"><strong>34. Decision Boundary</strong></h3><p><strong>Definition:</strong> A decision boundary is a line or surface that separates different classes in feature space.</p><p>Suppose we have two classes:</p><ul><li><p>Class A.</p></li><li><p>Class B.</p></li></ul><p>The classifier creates a boundary between them.</p><img alt="STA 101 Fall 2024 - Model selection for logistic regression" class="exported-media" src="https://images.openai.com/static-rsc-4/HOl7iyCUePhl1B5OPNBuCaR3oh_ljr7ERdc05GLZCT2LSglE5JiWEKU2kiOyCHf4BI7x1PM1L1ypSKsUhS7du-ra5IAWK5IUvu_du1B93uJJV23n9zHhHK4ZEokL9k7mqj5Ni5R3WV0_Q6PkShMI_J6lD_EwAg8jjktoR52umXs?purpose=inline"/><a href="https://sta101-f24.github.io/lectures/2024-12-05/more-logistic-regression.html?utm_source=chatgpt.com">sta101-f24.github.io</a><p>Points on one side may be classified as Class A.</p><p>Points on the other side may be classified as Class B.</p><p>Decision boundaries help the classifier decide which class an unknown object belongs to.</p><h3 id="35-pattern-recognition-example-fruit-classification"><strong>35. Pattern Recognition Example – Fruit Classification</strong></h3><p>Let's understand the complete process using fruits.</p><p>Suppose we want to classify:</p><ul><li><p>Apple.</p></li><li><p>Orange.</p></li><li><p>Banana.</p></li></ul><p>Pipeline:</p>Plain text<code>Input Image
+     ↓
+Preprocessing
+     ↓
+Segmentation
+     ↓
+Fruit Region
+     ↓
+Feature Extraction
+     ↓
+Colour + Shape + Texture
+     ↓
+Feature Vector
+     ↓
+Classifier
+     ↓
+Apple / Orange / Banana</code><p>Suppose the extracted features are:</p>
+
+<div class="math-display">$$
+F=[Colour,Area,Circularity,Texture]
+$$</div>
+
+<p>The classifier uses these values to predict the fruit category.</p><p>For example:</p><ul><li><p>Round shape + red colour + suitable texture → Apple.</p></li><li><p>Round shape + orange colour + pitted texture → Orange.</p></li><li><p>Curved shape + elongated structure → Banana.</p></li></ul><p>These are illustrative patterns; actual predictions depend on the training data.</p><h3 id="36-relationship-between-shape-texture-and-pattern-recognition"><strong>36. Relationship Between Shape, Texture and Pattern Recognition</strong></h3><p>This topic connects several important Unit 3 concepts.</p><p>Working:</p>Plain text<code>IMAGE
+  ↓
+SEGMENTATION
+  ↓
+  ┌─────────────────┐
+  ↓                 ↓
+SHAPE FEATURES   TEXTURE FEATURES
+  ↓                 ↓
+Area             GLCM Features
+Perimeter        Entropy
+Circularity      Energy
+Moments          Homogeneity
+  ↓                 ↓
+  └────────┬────────┘
+           ↓
+      FEATURE VECTOR
+           ↓
+      CLASSIFICATION
+           ↓
+        OBJECT CLASS</code><p>Why do we use both?</p><p>Two objects may have similar shapes but different textures.</p><p>Therefore, combining shape and texture can improve classification.</p><h3 id="37-pattern-recognition-vs-object-detection"><strong>37. Pattern Recognition vs Object Detection</strong></h3><table><tr><th>Pattern Recognition</th><th>Object Detection</th></tr><tr><td>Identifies patterns and classes</td><td>Finds objects and their locations</td></tr><tr><td>Mainly concerned with classification</td><td>Classification + localization</td></tr><tr><td>Uses feature vectors</td><td>Uses image features or learned features</td></tr><tr><td>Can classify a segmented object</td><td>Can detect multiple objects</td></tr><tr><td>Example: Apple vs Orange</td><td>Find all apples and oranges in an image</td></tr></table><p><strong>Easy difference:</strong></p><p>Pattern recognition identifies what something is.</p><p>Object detection identifies what something is and where it is.</p><h3 id="38-pattern-recognition-vs-image-segmentation"><strong>38. Pattern Recognition vs Image Segmentation</strong></h3><p>These two concepts are different.</p><p><strong>Image Segmentation</strong></p><p>Answers:</p><p>"Which pixels belong together?"</p><p>Example:</p><p>Separating the car from the background.</p><p><strong>Pattern Recognition</strong></p><p>Answers:</p><p>"What does that region or object represent?"</p><p>Example:</p><p>Identifying the segmented region as a car.</p><p>Pipeline:</p>Plain text<code>Image
+  ↓
+Segmentation
+  ↓
+Object Region
+  ↓
+Feature Extraction
+  ↓
+Pattern Recognition
+  ↓
+"Car"</code><h3 id="39-complete-classical-computer-vision-pipeline"><strong>39. Complete Classical Computer Vision Pipeline</strong></h3><p>This combines the concepts covered in your Unit 3.</p>Plain text<code>INPUT IMAGE
+     ↓
+PREPROCESSING
+     ↓
+SEGMENTATION
+     ↓
+OBJECT / REGION
+     ↓
+FEATURE EXTRACTION
+     ↓
+ ┌────────┬────────┐
+ ↓        ↓        ↓
+Shape   Texture   Colour
+ ↓        ↓        ↓
+ └────────┬────────┘
+          ↓
+     FEATURE VECTOR
+          ↓
+  PATTERN RECOGNITION
+          ↓
+      CLASSIFIER
+          ↓
+    OBJECT CATEGORY
+          ↓
+    OBJECT DETECTION
+   (Class + Location)</code><p>Explanation:</p><ol><li><p>Input image is collected.</p></li><li><p>Preprocessing improves image quality.</p></li><li><p>Segmentation separates meaningful regions.</p></li><li><p>Feature extraction calculates shape, texture and colour.</p></li><li><p>Feature vector combines the extracted values.</p></li><li><p>Pattern recognition identifies the category.</p></li><li><p>Object detection provides the class and location.</p></li></ol><h3 id="40-performance-measures-for-object-detection"><strong>40. Performance Measures for Object Detection</strong></h3><p>Two fundamental measures are:</p><ol><li><p>Precision.</p></li><li><p>Recall.</p></li></ol><p>Before understanding them, know these three terms.</p><p><strong>True Positive (TP):</strong> An object is correctly detected.</p><p><strong>False Positive (FP):</strong> The detector predicts an object, but that prediction is incorrect.</p><p><strong>False Negative (FN):</strong> An actual object is missed by the detector.</p><p><strong>Precision formula:</strong></p>
+
+<div class="math-display">$$
+\boxed{Precision=\frac{TP}{TP+FP}}
+$$</div>
+
+<p>Precision answers:</p><p>"Out of all the objects predicted as positive, how many were actually correct?"</p><p><strong>Recall formula:</strong></p>
+
+<div class="math-display">$$
+\boxed{Recall=\frac{TP}{TP+FN}}
+$$</div>
+
+<p>Recall answers:</p><p>"Out of all actual objects, how many did the detector find?"</p><h3 id="41-example-of-precision-and-recall"><strong>41. Example of Precision and Recall</strong></h3><p>Suppose a detector identifies 10 objects.</p><p>Among them:</p><ul><li><p>8 are correct.</p></li><li><p>2 are incorrect.</p></li></ul><p>Therefore:</p>
+
+<div class="math-display">$$
+TP=8,\quad FP=2
+$$</div>
+
+<p><strong>Step 1: Precision</strong></p>
+
+<div class="math-display">$$
+Precision=\frac{8}{8+2}
+$$</div>
+
+<div class="math-display">$$
+=\frac{8}{10}=0.8
+$$</div>
+
+<div class="math-display">$$
+\boxed{Precision=80\%}
+$$</div>
+
+<p><strong>Step 2: Recall</strong></p><p>Suppose there were actually 10 objects in the image and the detector found 8.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+TP=8,\quad FN=2
+$$</div>
+
+<div class="math-display">$$
+Recall=\frac{8}{8+2}
+$$</div>
+
+<div class="math-display">$$
+=\frac{8}{10}=0.8
+$$</div>
+
+<div class="math-display">$$
+\boxed{Recall=80\%}
+$$</div>
+
+<p><strong>Remember the difference:</strong></p><ul><li><p>Precision = How many predictions were correct?</p></li><li><p>Recall = How many actual objects were found?</p></li></ul><h3 id="42-important-terminology"><strong>42. Important Terminology</strong></h3><p>Learn these definitions for MCQs and short answers.</p><table><tr><th>Term</th><th>Meaning</th></tr><tr><td>Object</td><td>Entity of interest</td></tr><tr><td>Class</td><td>Category of object</td></tr><tr><td>Bounding Box</td><td>Rectangle around an object</td></tr><tr><td>Confidence</td><td>Model's confidence in prediction</td></tr><tr><td>Feature</td><td>Measurable property</td></tr><tr><td>Feature Vector</td><td>Numerical representation of features</td></tr><tr><td>Classifier</td><td>Assigns an object to a class</td></tr><tr><td>IoU</td><td>Measures bounding-box overlap</td></tr><tr><td>NMS</td><td>Removes duplicate detections</td></tr><tr><td>TP</td><td>Correct positive detection</td></tr><tr><td>FP</td><td>Incorrect positive detection</td></tr><tr><td>FN</td><td>Missed object</td></tr><tr><td>Precision</td><td>Correctness of positive predictions</td></tr><tr><td>Recall</td><td>Ability to find actual positives</td></tr></table><h3 id="43-important-conceptual-example"><strong>43. Important Conceptual Example</strong></h3><p>Consider an image containing:</p><ul><li><p>Two cars.</p></li><li><p>One person.</p></li></ul><p>Let's understand how the different techniques work.</p><p><strong>Classification</strong></p><p>The image is identified as containing vehicles and a person.</p><p><strong>Segmentation</strong></p><p>The system separates the pixels belonging to:</p><ul><li><p>Car 1.</p></li><li><p>Person.</p></li><li><p>Car 2.</p></li><li><p>Background.</p></li></ul><p><strong>Feature Extraction</strong></p><p>For each object, it extracts:</p><ul><li><p>Shape.</p></li><li><p>Texture.</p></li><li><p>Colour.</p></li></ul><p><strong>Pattern Recognition</strong></p><p>It identifies:</p><ul><li><p>Object 1 → Car.</p></li><li><p>Object 2 → Person.</p></li><li><p>Object 3 → Car.</p></li></ul><p><strong>Object Detection</strong></p><p>Final output:</p><table><tr><th>Object</th><th>Bounding box</th><th>Confidence</th></tr><tr><td>Car 1</td><td>Box 1</td><td>96%</td></tr><tr><td>Person</td><td>Box 2</td><td>94%</td></tr><tr><td>Car 2</td><td>Box 3</td><td>91%</td></tr></table><p>This example connects almost the entire Unit 3 pipeline.</p><h3 id="44-traditional-vs-deep-learning-object-detection"><strong>44. Traditional vs Deep Learning Object Detection</strong></h3><p>This is an important comparison.</p><table><tr><th>Traditional Approach</th><th>Deep Learning Approach</th></tr><tr><td>Manually designed features</td><td>Features learned automatically</td></tr><tr><td>HOG, SIFT, Haar</td><td>CNN-based features</td></tr><tr><td>Separate feature extraction</td><td>Feature learning + detection</td></tr><tr><td>Sliding windows can be computationally expensive</td><td>Modern architectures can be more efficient</td></tr><tr><td>Requires feature engineering</td><td>Learns useful representations from data</td></tr><tr><td>SVM/classifiers commonly used</td><td>Neural network prediction</td></tr><tr><td>Useful for understanding fundamentals</td><td>Used in modern practical systems</td></tr></table><p><strong>Example:</strong></p><p>Traditional approach:</p><p>HOG extracts features, and SVM classifies them.</p><p>Deep learning approach:</p><p>A CNN learns useful image representations and predicts objects.</p><h3 id="45-important-applications"><strong>45. Important Applications</strong></h3><p>Object detection and pattern recognition have many real-world applications.</p><p><strong>1. Autonomous Vehicles</strong></p><img alt="How Telematics And Computer Vision Enable Automated Vehicle Inspection | Inspektlabs" class="exported-media" src="https://images.openai.com/static-rsc-4/fWNvTexug74lZo8UWXdIArI4vijlilj18qeCb3Q_BPilqcxdeMKuLDtdLZd1CPiayzHFCAWybYaGss6uovjaICm0PC_oIAIR4pNSe79F1DWXOKEOot4UQOwPkQf9mypzdiF409MYmfrteshEqwyruzpeW-DuEC9kADM3NPiibpA?purpose=inline"/><a href="https://inspektlabs.com/blog/how-telematics-and-computer-vision-enable-automated-vehicle-inspection/?utm_source=chatgpt.com">inspektlabs.com</a><p>Detects:</p><ul><li><p>Cars.</p></li><li><p>Pedestrians.</p></li><li><p>Traffic signs.</p></li><li><p>Cyclists.</p></li></ul><p><strong>2. Surveillance</strong></p><p>Detects:</p><ul><li><p>People.</p></li><li><p>Vehicles.</p></li><li><p>Suspicious objects.</p></li></ul><p><strong>3. Medical Imaging</strong></p><p>Detects:</p><ul><li><p>Tumors.</p></li><li><p>Lesions.</p></li><li><p>Abnormalities.</p></li></ul><p><strong>4. Agriculture</strong></p><p>Detects:</p><ul><li><p>Fruits.</p></li><li><p>Weeds.</p></li><li><p>Plant diseases.</p></li><li><p>Pests.</p></li></ul><p><strong>5. Manufacturing</strong></p><p>Detects:</p><ul><li><p>Defective components.</p></li><li><p>Cracks.</p></li><li><p>Missing parts.</p></li></ul><p><strong>6. Retail</strong></p><p>Detects:</p><ul><li><p>Products.</p></li><li><p>Shelves.</p></li><li><p>Customers.</p></li></ul><p>These systems help automate identification and monitoring tasks.</p><h1 id="final-exam-revision-both-documents"><strong>FINAL EXAM REVISION – BOTH DOCUMENTS</strong></h1><p>Now that we've covered all the numbered topics, here is the formula sheet you should revise before your IVA exam.</p><h2 id="1-important-formulas-from-37-shape-and-texture-analysis"><strong>1. Important formulas from 3.7 – Shape and Texture Analysis</strong></h2><table><tr><th>Topic</th><th>Formula</th></tr><tr><td>Area</td><td>$A=\sum I(x,y)$</td></tr><tr><td>Perimeter of square</td><td>$P=4s$</td></tr><tr><td>Aspect Ratio</td><td>$W/H$</td></tr><tr><td>Circularity</td><td>$4\pi A/P^2$</td></tr><tr><td>Compactness</td><td>$P^2/A$</td></tr><tr><td>Eccentricity</td><td>$\sqrt{1-b^2/a^2}$</td></tr><tr><td>Mean</td><td>$\sum I_i/N$</td></tr><tr><td>Variance</td><td>$\sum(I_i-\mu)^2/N$</td></tr><tr><td>Standard Deviation</td><td>$\sqrt{Variance}$</td></tr><tr><td>Entropy</td><td>$-\sum p_i\log_2p_i$</td></tr><tr><td>GLCM Contrast</td><td>$\sum(i-j)^2P(i,j)$</td></tr><tr><td>GLCM Energy</td><td>$\sum P(i,j)^2$</td></tr><tr><td>GLCM Homogeneity</td><td>$\sum P(i,j)/(1+(i-j)^2)$</td></tr></table><p><strong>Other important formulas:</strong></p><p>Centroid:</p>
+
+<div class="math-display">$$
+\bar{x}=\frac{M_{10}}{M_{00}},\quad
+\bar{y}=\frac{M_{01}}{M_{00}}
+$$</div>
+
+<p>Zeroth moment:</p>
+
+<div class="math-display">$$
+M_{00}=\sum_x\sum_y I(x,y)
+$$</div>
+
+<p>Min-Max normalization:</p>
+
+<div class="math-display">$$
+x'=\frac{x-x_{\min}}{x_{\max}-x_{\min}}
+$$</div>
+
+<h2 id="2-important-formulas-from-38-object-detection-and-pattern-recognition"><strong>2. Important formulas from 3.8 – Object Detection and Pattern Recognition</strong></h2><table><tr><th>Topic</th><th>Formula</th></tr><tr><td>Bounding box width</td><td>$x_{\max}-x_{\min}$</td></tr><tr><td>Bounding box height</td><td>$y_{\max}-y_{\min}$</td></tr><tr><td>Centre X</td><td>$(x_{\min}+x_{\max})/2$</td></tr><tr><td>Centre Y</td><td>$(y_{\min}+y_{\max})/2$</td></tr><tr><td>IoU</td><td>Intersection / Union</td></tr><tr><td>Union</td><td>$A_1+A_2-Intersection$</td></tr><tr><td>Euclidean Distance</td><td>$\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}$</td></tr><tr><td>Precision</td><td>$TP/(TP+FP)$</td></tr><tr><td>Recall</td><td>$TP/(TP+FN)$</td></tr></table><h2 id="3-most-important-topics-to-practise-numerically"><strong>3. Most important topics to practise numerically</strong></h2><p><strong>Numerical practice tracker</strong></p>0/15 completedCentroid calculationAspect ratio calculationCircularity calculationEccentricity calculationZeroth and first-order momentsMean, variance and standard deviationEntropy calculationGLCM matrix normalizationGLCM contrast, energy and homogeneityBounding box conversionIoU calculationEuclidean distanceKNN classificationMin-Max normalizationPrecision and recall<h2 id="4-important-theory-questions-for-your-exam"><strong>4. Important theory questions for your exam</strong></h2><p>Make sure you can answer these without looking at your notes:</p><ol><li><p>Explain shape analysis and its different features.</p></li><li><p>Explain area, perimeter, centroid and bounding box.</p></li><li><p>Explain circularity, compactness and eccentricity.</p></li><li><p>Explain shape moments and Hu Moments.</p></li><li><p>Explain texture analysis and its categories.</p></li><li><p>Explain first-order and second-order texture features.</p></li><li><p>Explain GLCM and its features.</p></li><li><p>Explain Fourier Transform, Gabor Filters and Wavelet Transform.</p></li><li><p>Differentiate shape analysis and texture analysis.</p></li><li><p>Explain the complete shape and texture analysis pipeline.</p></li><li><p>Define object detection and explain its pipeline.</p></li><li><p>Differentiate classification, localization and detection.</p></li><li><p>Explain bounding box representations.</p></li><li><p>Explain sliding window object detection.</p></li><li><p>Explain Haar Cascade, HOG + SVM and SIFT.</p></li><li><p>Explain IoU with a numerical example.</p></li><li><p>Explain Non-Maximum Suppression.</p></li><li><p>Differentiate one-stage and two-stage detectors.</p></li><li><p>Explain pattern recognition and its pipeline.</p></li><li><p>Differentiate supervised and unsupervised pattern recognition.</p></li><li><p>Explain Nearest Neighbor and KNN.</p></li><li><p>Explain Euclidean distance and feature scaling.</p></li><li><p>Explain template matching and decision boundaries.</p></li><li><p>Differentiate pattern recognition, segmentation and object detection.</p></li><li><p>Explain precision and recall with an example.</p></li><li><p>Differentiate traditional and deep learning object detection.</p></li></ol><h2 id="5-last-minute-concepts-you-must-not-confuse"><strong>5. Last-minute concepts you must not confuse</strong></h2><table><tr><th>Concepts</th><th>Remember</th></tr><tr><td>Shape vs Texture</td><td>Geometry vs Surface</td></tr><tr><td>Area vs Perimeter</td><td>Inside vs Boundary</td></tr><tr><td>Circularity vs Eccentricity</td><td>Roundness vs Elongation</td></tr><tr><td>First-order vs Second-order</td><td>Individual pixels vs Neighbour relationships</td></tr><tr><td>Contrast vs Energy</td><td>Intensity variation vs Uniformity</td></tr><tr><td>Feature extraction vs Selection</td><td>Creating vs Choosing</td></tr><tr><td>NN vs KNN</td><td>One neighbour vs K neighbours</td></tr><tr><td>Supervised vs Unsupervised</td><td>Labelled vs Unlabelled</td></tr><tr><td>IoU vs NMS</td><td>Measures overlap vs Removes redundant boxes</td></tr><tr><td>Precision vs Recall</td><td>Correct predictions vs Objects found</td></tr><tr><td>One-stage vs Two-stage</td><td>Direct prediction vs Region proposals first</td></tr></table><p><strong>One important note:</strong> A few mathematical expressions in your original DOCX files are embedded as equation objects and aren't visible in the extracted text. I've supplied the standard formulas where their meanings are clear. For any additional formula not shown in your document, don't assume it was explicitly included in the lecture notes.</p><p>You've now got the complete topic-by-topic explanation of both uploaded documents: <strong>3.7 (54 topics) and 3.8 (45 topics).</strong></p><p>My suggestion: Don't just read these notes repeatedly. Practise the numerical questions, then try explaining each pipeline without looking. That will give you much better exam preparation. ❤️</p><p>If you want, I can:</p><ul><li>Explain next topic: GLCM contrast in texture analysis</li><li>Elaborate on applications of shape and texture analysis</li><li>Continue with detailed explanation of texture features after GLCM contrast</li></ul>
+<div class="references"><strong>References:</strong><ol><li><a href="https://livephysics.com/infographics/geometry-perimeter-and-circumference-review/?utm_source=chatgpt.com">livephysics.com</a></li><li><a href="https://www.nature.com/articles/s41598-026-35508-3?utm_source=chatgpt.com">nature.com</a></li><li><a href="https://www.read-en.com/blog/35234?utm_source=chatgpt.com">read-en.com</a></li><li><a href="https://www.tandfonline.com/doi/full/10.1080/22797254.2021.1880975?utm_source=chatgpt.com">tandfonline.com</a></li><li><a href="https://www.geeksforgeeks.org/electronics-engineering/geometric-transformation-in-image-processing-1/?utm_source=chatgpt.com">geeksforgeeks.org</a></li><li><a href="https://www.mdpi.com/2313-433X/8/9/248?utm_source=chatgpt.com">mdpi.com</a></li><li><a href="https://intelgic.com/surface-defect-detection-machine-vision?utm_source=chatgpt.com">intelgic.com</a></li><li><a href="https://www.hc-vision.cn/index/newssh?cid=3&amp;id=27&amp;utm_source=chatgpt.com">hc-vision.cn</a></li><li><a href="https://chaosmail.github.io/deeplearning/2016/10/22/intro-to-deep-learning-for-computer-vision/?utm_source=chatgpt.com">chaosmail.github.io</a></li><li><a href="https://storage.googleapis.com/dwevvkyaiuzvje/sliding-window-object-detection.html?utm_source=chatgpt.com">storage.googleapis.com</a></li><li><a href="https://read.theaimerge.com/p/complete-overview-in-vision-ai-2025?utm_source=chatgpt.com">read.theaimerge.com</a></li><li><a href="https://naknaklee.github.io/etc/2021/03/08/NMS/?utm_source=chatgpt.com">naknaklee.github.io</a></li><li><a href="https://www.mdpi.com/2079-9292/13/7/1368?utm_source=chatgpt.com">mdpi.com</a></li><li><a href="https://www.slideserve.com/rhian/computer-vision-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://www.mdpi.com/2311-7524/7/9/276?utm_source=chatgpt.com">mdpi.com</a></li><li><a href="https://www.alessiopomaro.it/machine-learning-semplice/?utm_source=chatgpt.com">alessiopomaro.it</a></li><li><a href="https://medium.com/%40aniani2521/k-means-clustering-what-i-learned-in-unsupervised-learning-e83bfc3ce4bf?utm_source=chatgpt.com">medium.com</a></li><li><a href="https://emgu.com/wiki/index.php/Traffic_Sign_Detection_in_CSharp?utm_source=chatgpt.com">emgu.com</a></li><li><a href="https://sta101-f24.github.io/lectures/2024-12-05/more-logistic-regression.html?utm_source=chatgpt.com">sta101-f24.github.io</a></li><li><a href="https://inspektlabs.com/blog/how-telematics-and-computer-vision-enable-automated-vehicle-inspection/?utm_source=chatgpt.com">inspektlabs.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
