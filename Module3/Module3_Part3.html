@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explain All Topics</title>
+    
+    <!-- MathJax 3 for Crisp Vector Equations & Matrices -->
+    <script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true,
+            processEnvironments: true
+        },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'] }
+    };
+    </script>
+    <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc; --bg-surface: #ffffff; --text-main: #1e293b;
+            --text-muted: #64748b; --accent: #2563eb; --border: #e2e8f0; --code-bg: #f1f5f9;
+            --sidebar-w: 320px;
+        }
+        [data-theme="dark"] {
+            --bg-main: #0b0f19; --bg-surface: #151c2c; --text-main: #f8fafc;
+            --text-muted: #94a3b8; --accent: #38bdf8; --border: #232f48; --code-bg: #0d1322;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background: var(--bg-main); color: var(--text-main); line-height: 1.7; display: flex;
+            transition: background 0.2s, color 0.2s;
+        }
+        #toc-sidebar {
+            width: var(--sidebar-w); height: 100vh; position: fixed; top: 0; left: 0;
+            background: var(--bg-surface); border-right: 1px solid var(--border);
+            overflow-y: auto; padding: 1.5rem 1.25rem; z-index: 100;
+        }
+        .toc-header { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+        .toc-nav ul { list-style: none; padding: 0; }
+        .toc-nav a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.88rem; display: block;
+            padding: 0.3rem 0.5rem; border-radius: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .toc-nav a:hover { background: var(--code-bg); color: var(--accent); }
+        .toc-level-1 { font-weight: 700; margin-top: 0.8rem; font-size: 0.92rem; }
+        .toc-level-2 { padding-left: 0.8rem; }
+        .toc-level-3 { padding-left: 1.5rem; font-size: 0.82rem; }
+        #content-wrapper { margin-left: var(--sidebar-w); flex: 1; padding: 2.5rem 4rem; max-width: calc(960px + var(--sidebar-w)); }
+        .card-container { background: var(--bg-surface); padding: 3.5rem; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
+        .doc-header { margin-bottom: 2.5rem; border-bottom: 2px solid var(--border); padding-bottom: 1.5rem; }
+        .doc-title { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+        .doc-meta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.85rem; }
+        .meta-badge { background: var(--code-bg); border: 1px solid var(--border); padding: 0.3rem 0.75rem; border-radius: 20px; color: var(--text-muted); }
+        .toolbar { display: flex; gap: 0.75rem; margin-bottom: 2rem; }
+        .tool-btn {
+            background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.88rem;
+        }
+        .tool-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--code-bg); }
+        h1, h2, h3, h4 { color: var(--text-main); margin-top: 2.2rem; margin-bottom: 0.8rem; scroll-margin-top: 2rem; }
+        h1 { font-size: 1.7rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        h2 { font-size: 1.35rem; }
+        h3 { font-size: 1.15rem; }
+        p { margin-bottom: 1.25rem; font-size: 1rem; }
+        ul, ol { margin-bottom: 1.25rem; padding-left: 1.8rem; }
+        li { margin-bottom: 0.45rem; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.94rem; border-radius: 8px; border: 1px solid var(--border); }
+        th, td { padding: 0.75rem 1rem; border: 1px solid var(--border); text-align: left; }
+        th { background: var(--code-bg); font-weight: 700; }
+        tr:nth-child(even) td { background-color: rgba(0, 0, 0, 0.02); }
+        [data-theme="dark"] tr:nth-child(even) td { background-color: rgba(255, 255, 255, 0.02); }
+        .math-display { margin: 1.25rem 0; overflow-x: auto; text-align: center; padding: 0.5rem 0; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin: 1.25rem 0; border: 1px solid var(--border); }
+        pre { background: var(--code-bg); padding: 1.2rem; border-radius: 8px; overflow-x: auto; margin: 1.25rem 0; border-left: 4px solid var(--accent); }
+        code { background: var(--code-bg); padding: 0.15rem 0.35rem; border-radius: 4px; }
+        @media print {
+            #toc-sidebar, .toolbar { display: none !important; }
+            #content-wrapper { margin-left: 0 !important; padding: 0 !important; max-width: 100% !important; }
+            .card-container { border: none !important; box-shadow: none !important; padding: 0 !important; }
+            body { background: #ffffff !important; color: #000000 !important; }
+            h1, h2, h3 { page-break-after: avoid; }
+            table, img, .math-display { page-break-inside: avoid; }
+        }
+        @media (max-width: 960px) {
+            #toc-sidebar { display: none; }
+            #content-wrapper { margin-left: 0; padding: 1.5rem; }
+            .card-container { padding: 1.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <aside id="toc-sidebar">
+        <div class="toc-header">Table of Contents</div>
+        <nav class="toc-nav"><ul><li class="toc-level-1"><a href="#part-1-35-region-based-image-segmentation">PART 1: 3.5 – REGION-BASED IMAGE SEGMENTATION</a></li>
+<li class="toc-level-2"><a href="#1-introduction-to-image-segmentation">1. Introduction to Image Segmentation</a></li>
+<li class="toc-level-2"><a href="#2-why-region-based-segmentation">2. Why Region-Based Segmentation?</a></li>
+<li class="toc-level-2"><a href="#3-region-based-segmentation-concept">3. Region-Based Segmentation Concept</a></li>
+<li class="toc-level-2"><a href="#4-properties-of-good-segmentation">4. Properties of Good Segmentation</a></li>
+<li class="toc-level-3"><a href="#41-homogeneity">4.1 Homogeneity</a></li>
+<li class="toc-level-3"><a href="#42-discontinuity-between-regions">4.2 Discontinuity Between Regions</a></li>
+<li class="toc-level-3"><a href="#43-connectivity">4.3 Connectivity</a></li>
+<li class="toc-level-2"><a href="#5-general-region-based-segmentation-framework">5. General Region-Based Segmentation Framework</a></li>
+<li class="toc-level-2"><a href="#6-major-region-based-segmentation-techniques">6. Major Region-Based Segmentation Techniques</a></li>
+<li class="toc-level-1"><a href="#7-region-growing">7. REGION GROWING</a></li>
+<li class="toc-level-3"><a href="#definition">Definition</a></li>
+<li class="toc-level-3"><a href="#8-basic-idea-of-region-growing">8. Basic Idea of Region Growing</a></li>
+<li class="toc-level-3"><a href="#9-seed-point">9. Seed Point</a></li>
+<li class="toc-level-3"><a href="#10-region-growing-algorithm">10. Region Growing Algorithm</a></li>
+<li class="toc-level-3"><a href="#11-similarity-criterion">11. Similarity Criterion</a></li>
+<li class="toc-level-3"><a href="#12-numerical-example-of-region-growing">12. Numerical Example of Region Growing</a></li>
+<li class="toc-level-3"><a href="#13-4-connectivity-and-8-connectivity">13. 4-Connectivity and 8-Connectivity</a></li>
+<li class="toc-level-4"><a href="#131-4-connectivity">13.1 4-Connectivity</a></li>
+<li class="toc-level-4"><a href="#132-8-connectivity">13.2 8-Connectivity</a></li>
+<li class="toc-level-3"><a href="#14-region-growing-with-4-connectivity">14. Region Growing with 4-Connectivity</a></li>
+<li class="toc-level-3"><a href="#15-advantages-of-region-growing">15. Advantages of Region Growing</a></li>
+<li class="toc-level-3"><a href="#16-disadvantages-of-region-growing">16. Disadvantages of Region Growing</a></li>
+<li class="toc-level-1"><a href="#17-region-splitting">17. REGION SPLITTING</a></li>
+<li class="toc-level-3"><a href="#definition-1">Definition</a></li>
+<li class="toc-level-3"><a href="#18-basic-idea-of-region-splitting">18. Basic Idea of Region Splitting</a></li>
+<li class="toc-level-3"><a href="#19-homogeneity-predicate">19. Homogeneity Predicate</a></li>
+<li class="toc-level-3"><a href="#20-numerical-example-of-region-splitting">20. Numerical Example of Region Splitting</a></li>
+<li class="toc-level-3"><a href="#21-quadtree-representation">21. Quadtree Representation</a></li>
+<li class="toc-level-3"><a href="#22-region-splitting-algorithm">22. Region Splitting Algorithm</a></li>
+<li class="toc-level-3"><a href="#23-stopping-conditions">23. Stopping Conditions</a></li>
+<li class="toc-level-3"><a href="#24-advantages-of-region-splitting">24. Advantages of Region Splitting</a></li>
+<li class="toc-level-3"><a href="#25-disadvantages-of-region-splitting">25. Disadvantages of Region Splitting</a></li>
+<li class="toc-level-1"><a href="#26-region-merging">26. REGION MERGING</a></li>
+<li class="toc-level-3"><a href="#definition-2">Definition</a></li>
+<li class="toc-level-3"><a href="#27-basic-idea-of-region-merging">27. Basic Idea of Region Merging</a></li>
+<li class="toc-level-3"><a href="#28-similarity-between-regions">28. Similarity Between Regions</a></li>
+<li class="toc-level-3"><a href="#29-numerical-example-of-region-merging">29. Numerical Example of Region Merging</a></li>
+<li class="toc-level-3"><a href="#30-region-merging-algorithm">30. Region Merging Algorithm</a></li>
+<li class="toc-level-1"><a href="#31-region-splitting-and-merging">31. REGION SPLITTING AND MERGING</a></li>
+<li class="toc-level-3"><a href="#definition-3">Definition</a></li>
+<li class="toc-level-3"><a href="#process">Process</a></li>
+<li class="toc-level-3"><a href="#32-why-combine-splitting-and-merging">32. Why Combine Splitting and Merging?</a></li>
+<li class="toc-level-3"><a href="#33-comparison-of-region-based-techniques">33. Comparison of Region-Based Techniques</a></li>
+<li class="toc-level-3"><a href="#34-region-growing-vs-region-splitting">34. Region Growing vs Region Splitting</a></li>
+<li class="toc-level-1"><a href="#35-region-based-vs-edge-based-segmentation">35. REGION-BASED VS EDGE-BASED SEGMENTATION</a></li>
+<li class="toc-level-1"><a href="#36-region-based-segmentation-and-noise">36. REGION-BASED SEGMENTATION AND NOISE</a></li>
+<li class="toc-level-3"><a href="#solutions-to-noise">Solutions to Noise</a></li>
+<li class="toc-level-1"><a href="#37-region-based-segmentation-of-color-images">37. REGION-BASED SEGMENTATION OF COLOR IMAGES</a></li>
+<li class="toc-level-1"><a href="#38-region-growing-in-a-real-application">38. REGION GROWING IN A REAL APPLICATION</a></li>
+<li class="toc-level-3"><a href="#medical-image-segmentation">Medical Image Segmentation</a></li>
+<li class="toc-level-1"><a href="#39-applications-of-region-based-segmentation">39. Applications of Region-Based Segmentation</a></li>
+<li class="toc-level-3"><a href="#understand-with-examples">Understand with examples</a></li>
+<li class="toc-level-1"><a href="#40-important-parameters">40. Important Parameters</a></li>
+<li class="toc-level-1"><a href="#41-effect-of-threshold">41. EFFECT OF THRESHOLD</a></li>
+<li class="toc-level-3"><a href="#case-1-threshold-5">Case 1: Threshold = 5</a></li>
+<li class="toc-level-3"><a href="#case-2-threshold-30">Case 2: Threshold = 30</a></li>
+<li class="toc-level-3"><a href="#case-3-threshold-is-too-large">Case 3: Threshold is too large</a></li>
+<li class="toc-level-1"><a href="#42-region-growing-vs-thresholding">42. REGION GROWING VS THRESHOLDING</a></li>
+<li class="toc-level-3"><a href="#thresholding">Thresholding</a></li>
+<li class="toc-level-3"><a href="#region-growing">Region Growing</a></li>
+<li class="toc-level-1"><a href="#43-region-growing-pseudocode">43. REGION GROWING PSEUDOCODE</a></li>
+<li class="toc-level-3"><a href="#explanation">Explanation</a></li>
+<li class="toc-level-1"><a href="#44-complete-region-based-segmentation-pipeline">44. COMPLETE REGION-BASED SEGMENTATION PIPELINE</a></li>
+<li class="toc-level-1"><a href="#45-overall-advantages-of-region-based-segmentation">45. OVERALL ADVANTAGES OF REGION-BASED SEGMENTATION</a></li>
+<li class="toc-level-1"><a href="#46-overall-limitations">46. OVERALL LIMITATIONS</a></li>
+<li class="toc-level-1"><a href="#47-over-segmentation-and-under-segmentation">47. OVER-SEGMENTATION AND UNDER-SEGMENTATION</a></li>
+<li class="toc-level-3"><a href="#471-over-segmentation">47.1 Over-Segmentation</a></li>
+<li class="toc-level-3"><a href="#472-under-segmentation">47.2 Under-Segmentation</a></li>
+<li class="toc-level-3"><a href="#difference">Difference</a></li>
+<li class="toc-level-1"><a href="#48-exam-oriented-definitions">48. EXAM-ORIENTED DEFINITIONS</a></li>
+<li class="toc-level-1"><a href="#49-short-numerical-problem-region-growing">49. SHORT NUMERICAL PROBLEM – REGION GROWING</a></li>
+<li class="toc-level-1"><a href="#50-key-takeaway-three-main-techniques">50. KEY TAKEAWAY – THREE MAIN TECHNIQUES</a></li>
+<li class="toc-level-1"><a href="#part-2-36-k-means-clustering-with-image-segmentation">PART 2: 3.6 – K-MEANS CLUSTERING WITH IMAGE SEGMENTATION</a></li>
+<li class="toc-level-2"><a href="#1-what-is-k-means">1. What is K-Means?</a></li>
+<li class="toc-level-2"><a href="#2-k-means-in-image-segmentation">2. K-Means in Image Segmentation</a></li>
+<li class="toc-level-2"><a href="#3-very-simple-example-of-k-means">3. Very Simple Example of K-Means</a></li>
+<li class="toc-level-1"><a href="#4-step-1-choose-initial-centroids">4. STEP 1 – CHOOSE INITIAL CENTROIDS</a></li>
+<li class="toc-level-1"><a href="#5-step-2-assign-every-pixel-to-the-nearest-centroid">5. STEP 2 – ASSIGN EVERY PIXEL TO THE NEAREST CENTROID</a></li>
+<li class="toc-level-3"><a href="#numerical-example-1">Numerical Example 1</a></li>
+<li class="toc-level-3"><a href="#numerical-example-2">Numerical Example 2</a></li>
+<li class="toc-level-3"><a href="#numerical-example-3">Numerical Example 3</a></li>
+<li class="toc-level-1"><a href="#6-after-assignment">6. AFTER ASSIGNMENT</a></li>
+<li class="toc-level-1"><a href="#7-step-3-calculate-new-centroids">7. STEP 3 – CALCULATE NEW CENTROIDS</a></li>
+<li class="toc-level-3"><a href="#new-centroid-of-cluster-1">New Centroid of Cluster 1</a></li>
+<li class="toc-level-3"><a href="#new-centroid-of-cluster-2">New Centroid of Cluster 2</a></li>
+<li class="toc-level-3"><a href="#new-centroid-of-cluster-3">New Centroid of Cluster 3</a></li>
+<li class="toc-level-1"><a href="#10-100-200">10, 100, 200</a></li>
+<li class="toc-level-1"><a href="#15-105-205">15, 105, 205</a></li>
+<li class="toc-level-1"><a href="#8-step-4-repeat-the-process">8. STEP 4 – REPEAT THE PROCESS</a></li>
+<li class="toc-level-3"><a href="#example">Example</a></li>
+<li class="toc-level-1"><a href="#9-when-does-k-means-stop">9. WHEN DOES K-MEANS STOP?</a></li>
+<li class="toc-level-1"><a href="#10-entire-k-means-numerical-in-one-table">10. ENTIRE K-MEANS NUMERICAL IN ONE TABLE</a></li>
+<li class="toc-level-1"><a href="#11-connecting-k-means-to-image-segmentation">11. CONNECTING K-MEANS TO IMAGE SEGMENTATION</a></li>
+<li class="toc-level-3"><a href="#grayscale-image">Grayscale image</a></li>
+<li class="toc-level-3"><a href="#rgb-image">RGB image</a></li>
+<li class="toc-level-1"><a href="#12-rgb-image-example">12. RGB IMAGE EXAMPLE</a></li>
+<li class="toc-level-1"><a href="#13-how-distance-works-for-rgb">13. HOW DISTANCE WORKS FOR RGB</a></li>
+<li class="toc-level-3"><a href="#numerical-example">Numerical Example</a></li>
+<li class="toc-level-1"><a href="#14-what-does-segmentation-look-like">14. WHAT DOES SEGMENTATION LOOK LIKE?</a></li>
+<li class="toc-level-1"><a href="#15-the-most-important-idea-of-k-means">15. THE MOST IMPORTANT IDEA OF K-MEANS</a></li>
+<li class="toc-level-1"><a href="#16-the-two-most-important-steps">16. THE TWO MOST IMPORTANT STEPS</a></li>
+<li class="toc-level-3"><a href="#1-assignment-step">1. Assignment Step</a></li>
+<li class="toc-level-3"><a href="#2-update-step">2. Update Step</a></li>
+<li class="toc-level-1"><a href="#17-mathematical-form-of-k-means">17. MATHEMATICAL FORM OF K-MEANS</a></li>
+<li class="toc-level-3"><a href="#a-assignment-formula">A. Assignment Formula</a></li>
+<li class="toc-level-3"><a href="#b-update-formula">B. Update Formula</a></li>
+<li class="toc-level-1"><a href="#18-why-do-we-square-the-distance">18. WHY DO WE SQUARE THE DISTANCE?</a></li>
+<li class="toc-level-1"><a href="#19-k-means-objective-function">19. K-MEANS OBJECTIVE FUNCTION</a></li>
+<li class="toc-level-3"><a href="#small-numerical-example">Small numerical example</a></li>
+<li class="toc-level-1"><a href="#20-real-image-example">20. REAL IMAGE EXAMPLE</a></li>
+<li class="toc-level-1"><a href="#21-what-happens-if-k-2">21. WHAT HAPPENS IF K = 2?</a></li>
+<li class="toc-level-1"><a href="#22-what-happens-if-k-10">22. WHAT HAPPENS IF K = 10?</a></li>
+<li class="toc-level-3"><a href="#comparison">Comparison</a></li>
+<li class="toc-level-1"><a href="#23-classroom-analogy-for-k-means">23. CLASSROOM ANALOGY FOR K-MEANS</a></li>
+<li class="toc-level-1"><a href="#24-k-means-in-one-complete-diagram">24. K-MEANS IN ONE COMPLETE DIAGRAM</a></li>
+<li class="toc-level-1"><a href="#25-what-students-should-remember-for-the-exam">25. WHAT STUDENTS SHOULD REMEMBER FOR THE EXAM</a></li>
+<li class="toc-level-3"><a href="#definition-4">Definition</a></li>
+<li class="toc-level-3"><a href="#four-main-steps">Four Main Steps</a></li>
+<li class="toc-level-1"><a href="#part-3-important-exam-revision">PART 3: IMPORTANT EXAM REVISION</a></li>
+<li class="toc-level-2"><a href="#1-region-based-segmentation-vs-k-means">1. Region-Based Segmentation vs K-Means</a></li>
+<li class="toc-level-2"><a href="#2-all-important-formulas">2. All Important Formulas</a></li>
+<li class="toc-level-2"><a href="#3-important-topics-to-prepare-for-1015-marks">3. Important Topics to Prepare for 10–15 Marks</a></li>
+<li class="toc-level-2"><a href="#4-test-yourself-important-exam-questions">4. Test Yourself – Important Exam Questions</a></li></ul></nav>
+    </aside>
+    <main id="content-wrapper">
+        <div class="toolbar">
+            <button class="tool-btn" onclick="window.print()">Print to PDF</button>
+            <button class="tool-btn" onclick="toggleDarkMode()">Toggle Theme</button>
+        </div>
+        <article class="card-container">
+            <header class="doc-header">
+                <h1 class="doc-title">Explain All Topics</h1>
+                <div class="doc-meta"><span class="meta-badge"><strong>Date:</strong> 2026-11-19</span><span class="meta-badge"><strong>Source:</strong> chatgpt.com</span><span class="meta-badge"><strong>Messages:</strong> 2</span></div>
+            </header>
+            <div class="article-content"><div class="content"><p>Kinnu, don't worry! ❤️ I'll explain <strong>both documents (3.5 and 3.6), covering every topic, definition, algorithm, numerical example, advantage, disadvantage, comparison and application</strong>.</p><p>I'll teach everything from the basics, assuming you are learning these topics for the first time. I'll also explain the diagrams and numerical problems in simple language.</p><p>These two documents cover:</p><ol><li><p><strong>3.5 – Region-Based Image Segmentation Techniques</strong></p></li><li><p><strong>3.6 – K-Means Clustering with Image Segmentation</strong></p></li></ol><p>Let's go topic by topic.</p><h1 id="part-1-35-region-based-image-segmentation"><strong>PART 1: 3.5 – REGION-BASED IMAGE SEGMENTATION</strong></h1><h2 id="1-introduction-to-image-segmentation"><strong>1. Introduction to Image Segmentation</strong></h2><p>First, understand what image segmentation means.</p><p>Image segmentation is the process of dividing an image into different meaningful parts or regions.</p><p>For example, imagine a photograph containing:</p><ul><li><p>Sky</p></li><li><p>Trees</p></li><li><p>Road</p></li><li><p>Buildings</p></li></ul><p>A computer initially sees the image as thousands or millions of pixels. Image segmentation helps the computer group those pixels into meaningful regions.</p><img alt="Identification of Inequities in Green Visibility and Ways to Increase Greenery in Neighborhoods: A Case Study of Wuhan, China" class="exported-media" src="https://images.openai.com/static-rsc-4/gtgKmxlgBeymuHDpTlUQVRqEC3CvZOl5mfZbsYtB_IwZrlGHUYQpjN6TBw2mZLIcw9n3buFg6Z2NxDEViH_afo7hSjTpgLlYGPWVmngzix9g3kTd6O6hM6ybB9Ifxadxe9k2j2ZDfF86jkUwbEEgF8Zwgc-6msFiVUrnqAiCjt8?purpose=inline"/><img alt="PPT - Image Segmentation Techniques. PowerPoint Presentation, free download - ID:9074036" class="exported-media" src="https://images.openai.com/static-rsc-4/gEMqUGd-caKXcvFgmg9TiXHqmhf6_cdw3nd94Jj9UU2_4kYzha_3AUCff-dfbxWHdiUa1ZXO-ObrQoqaJMtsxKdfBPdgrrrFGeuTzBdGerNPLbjTb5HPpKwHnZyzZipZDGsP4wd9o48fCqSnGDAqzp_35NMZvEQ67GRiQ54IOuo?purpose=inline"/><img alt="Image Segmentation with Clustering | by Yağmur Çiğdem Aktaş | TDS Archive | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/SgljwPLgNIMFD4iDuzcKLC2JVlKtXknj27iB4lRKT16XD4fgSqvFdPam8nT8wygvQIqQPSVWRRAkZ-01EhPDoUksZ5iCgIYzt2j0vw-8Lj1Khe8Ey344CK0EmXto54p2jZ0tXIWezwYefhR7Ldjo-lz3SzM0y_njpIAVX8ei3wI?purpose=inline"/><p><strong>What is Region-Based Segmentation?</strong></p><p>Region-based segmentation divides an image into regions based on the similarity of pixels.</p><p>The basic idea is:</p><ul><li><p>Similar pixels → Same region.</p></li><li><p>Different pixels → Different regions.</p></li></ul><p>For example, if 20 neighboring pixels have similar intensity values, they may be grouped into one region.</p><p><strong>Important:</strong> Region-based segmentation focuses on grouping pixels that belong together, rather than simply detecting boundaries.</p><h2 id="2-why-region-based-segmentation"><strong>2. Why Region-Based Segmentation?</strong></h2><p>Suppose you have an image of a person standing in front of a wall.</p><p>An edge detection technique might identify:</p><ul><li><p>Boundary of the person's body.</p></li><li><p>Boundaries of clothes.</p></li><li><p>Shadows.</p></li><li><p>Small changes in texture.</p></li><li><p>Other unnecessary edges.</p></li></ul><p>But our actual requirement might be to identify the entire person as one region.</p><p>This is where region-based segmentation is useful.</p><p>It answers:</p><p><strong>"Which pixels belong together?"</strong></p><p>Instead of only asking:</p><p>"Where is the boundary?"</p><h2 id="3-region-based-segmentation-concept"><strong>3. Region-Based Segmentation Concept</strong></h2><p>An image can be represented as:</p>
+
+<div class="math-display">$$
+I(x,y)
+$$</div>
+
+<p>Where:</p><ul><li><p>$x$ = Row or horizontal location.</p></li><li><p>$y$ = Column or vertical location.</p></li><li><p>$I(x,y)$ = Intensity or color value of the pixel.</p></li></ul><p>A region is a collection of connected pixels having similar properties.</p><p>Similarity can be based on:</p><ol><li><p>Intensity – Brightness of pixels.</p></li><li><p>Color – Similar RGB values.</p></li><li><p>Texture – Similar patterns.</p></li><li><p>Statistical properties – Mean, variance, etc.</p></li></ol><p><strong>Example:</strong></p><p>Consider these pixel values:</p>Plain text<code>50  51  49
+52  50  51
+49  52  50</code><p>All values are approximately 50.</p><p>Therefore, these pixels can be grouped into one region.</p><h2 id="4-properties-of-good-segmentation"><strong>4. Properties of Good Segmentation</strong></h2><p>A good segmentation should have three important properties.</p><h3 id="41-homogeneity"><strong>4.1 Homogeneity</strong></h3><p>Homogeneity means pixels inside the same region should be similar.</p><p>Example:</p>Plain text<code>50  51  49
+52  50  51
+49  52  50</code><p>All pixels have similar intensity.</p><p>Therefore, they form a homogeneous region.</p><p><strong>Remember:</strong> Inside one region = Similar pixels.</p><h3 id="42-discontinuity-between-regions"><strong>4.2 Discontinuity Between Regions</strong></h3><p>Different regions should have significantly different characteristics.</p><p>Example:</p>Plain text<code>50  51  52 | 180 181 179
+51  50  51 | 182 180 181</code><p>Left side contains values around 50.</p><p>Right side contains values around 180.</p><p>Therefore, they can be separated into two regions.</p><p><strong>Remember:</strong> Different regions = Different pixel properties.</p><h3 id="43-connectivity"><strong>4.3 Connectivity</strong></h3><p>Pixels belonging to the same region should generally be connected to each other.</p><p>Example:</p>Plain text<code>1 1 0
+1 1 0
+0 0 0</code><p>The four 1s are connected.</p><p>They form one region.</p><p>A collection of isolated pixels should not automatically be treated as one connected region.</p><h2 id="5-general-region-based-segmentation-framework"><strong>5. General Region-Based Segmentation Framework</strong></h2><p>The general process is:</p>Input ImagePre-processingSelect Similarity CriterionRegion FormationRegion Splitting / MergingRemove Small or Noisy RegionsFinal Segmented Image<p>Explanation:</p><ol><li><p>Input image: Give the original image.</p></li><li><p>Pre-processing: Reduce noise and improve image quality.</p></li><li><p>Similarity criterion: Decide how to identify similar pixels.</p></li><li><p>Region formation: Group similar pixels.</p></li><li><p>Splitting/merging: Improve the regions.</p></li><li><p>Noise removal: Remove unwanted small regions.</p></li><li><p>Final output: Obtain the segmented image.</p></li></ol><h2 id="6-major-region-based-segmentation-techniques"><strong>6. Major Region-Based Segmentation Techniques</strong></h2><p>The document introduces six techniques:</p><ol><li><p>Region Growing.</p></li><li><p>Region Splitting.</p></li><li><p>Region Merging.</p></li><li><p>Region Splitting and Merging.</p></li><li><p>Watershed Segmentation.</p></li><li><p>Region-Based Clustering.</p></li></ol><p>The detailed explanations in your document focus mainly on the first four. Watershed and region-based clustering are listed, but no detailed algorithms or explanations are provided in the document.</p><h1 id="7-region-growing"><strong>7. REGION GROWING</strong></h1><img alt="Lec8: Medical Image Segmentation (II) (Region Growing/Merging) | PDF" class="exported-media" src="https://images.openai.com/static-rsc-4/lmrfh7rfycxrvstFm-oLqm2F0DIAVBvWqlbG4u4OBIKiFESQWYOzPTo-c0QksBSyvTRoU-wePyD99M6DHA2DyajRYXH0GGWeQo4L8_C-LlYoAynijcp9Xp7fRLGIaAEVUgbllyHL36hODYt4_QuF53bPKAoWP2HI9l2PyHjFF8w?purpose=inline"/><a href="https://www.slideshare.net/slideshow/lec8-medical-image-segmentation-ii-region-growingmerging/73936003?utm_source=chatgpt.com">slideshare.net</a><h3 id="definition"><strong>Definition</strong></h3><p>Region growing is a segmentation technique that starts with one or more initial pixels called seed points and gradually adds neighboring pixels that satisfy a similarity criterion.</p><p>In simple words:</p><p><strong>Start with one pixel → Find similar neighboring pixels → Add them → Continue until no more suitable pixels are available.</strong></p><h3 id="8-basic-idea-of-region-growing"><strong>8. Basic Idea of Region Growing</strong></h3><p>Consider this matrix:</p>Plain text<code>10  11  12  80  82
+11  10  13  81  83
+12  12  11  82  84
+90  91  92  93  94
+89  90  91  92  93</code><p>We can observe three intensity groups:</p><ul><li><p>Values around 10.</p></li><li><p>Values around 80.</p></li><li><p>Values around 90.</p></li></ul><p>Suppose we select a seed in the upper-left region.</p><p>The algorithm checks neighboring pixels and adds those with similar intensity.</p><p>The upper-left values will form one region.</p><h3 id="9-seed-point"><strong>9. Seed Point</strong></h3><p>A seed point is the initial pixel from which region growing begins.</p><p>Example:</p>Plain text<code>10  11  12
+11   S  13
+12  12  11</code><p>Here, S represents the seed pixel.</p><p>Seed selection methods:</p><ol><li><p>Manual selection – A person selects the pixel.</p></li><li><p>Automatic selection – Computer selects it.</p></li><li><p>Known object locations – Select from a known object position.</p></li><li><p>Local maxima/minima – Select based on intensity peaks or valleys.</p></li><li><p>Another segmentation method – Use its output to select seeds.</p></li></ol><p><strong>Why is the seed important?</strong></p><p>Because region growing starts from that pixel. If the seed belongs to the wrong object, the final segmentation may also be wrong.</p><h3 id="10-region-growing-algorithm"><strong>10. Region Growing Algorithm</strong></h3><p>There are six steps.</p><ol><li><p>Select seed point.</p></li><li><p>Examine neighboring pixels.</p></li><li><p>Apply similarity criterion.</p></li><li><p>Add pixels satisfying the criterion.</p></li><li><p>Continue growing using newly added pixels.</p></li><li><p>Stop when no neighboring pixels satisfy the condition.</p></li></ol><p>Let's understand with an example.</p><h3 id="11-similarity-criterion"><strong>11. Similarity Criterion</strong></h3><p>This is one of the most important concepts in region growing.</p><p>A common similarity condition is:</p>
+
+<div class="math-display">$$
+|I(p)-I_s|\leq T
+$$</div>
+
+<p>Where:</p><ul><li><p>$I(p)$ = Intensity of the candidate pixel.</p></li><li><p>$I_s$ = Intensity of the seed pixel.</p></li><li><p>$T$ = Threshold.</p></li></ul><p>The threshold determines how much difference is allowed.</p><p><strong>Example:</strong></p><p>Suppose:</p><ul><li><p>Seed intensity = 50.</p></li><li><p>Threshold = 10.</p></li></ul><p>Check a neighboring pixel with intensity 56.</p>
+
+<div class="math-display">$$
+|56-50|=6
+$$</div>
+
+<p>Since:</p>
+
+<div class="math-display">$$
+6\leq10
+$$</div>
+
+<p>The pixel is accepted.</p><p>Now check a pixel with intensity 70.</p>
+
+<div class="math-display">$$
+|70-50|=20
+$$</div>
+
+<p>Since:</p>
+
+<div class="math-display">$$
+20>10
+$$</div>
+
+<p>The pixel is rejected.</p><p><strong>Exam tip:</strong> If the difference is less than or equal to the threshold, include the pixel. Otherwise, reject it.</p><h3 id="12-numerical-example-of-region-growing"><strong>12. Numerical Example of Region Growing</strong></h3><p>Consider:</p>Plain text<code>10  11  12  50  52
+11  10  13  51  53
+12  11  14  52  54
+80  81  82  83  84
+81  82  83  84  85</code><p>Given:</p><ul><li><p>Seed intensity = 10.</p></li><li><p>Threshold = 5.</p></li></ul><p>Similarity condition:</p>
+
+<div class="math-display">$$
+|I(p)-10|\leq5
+$$</div>
+
+<p>Check each value.</p><table><tr><th>Pixel</th><th>Calculation</th><th>Result</th></tr><tr><td>11</td><td>$|11-10|=1$</td><td>Include</td></tr><tr><td>12</td><td>$|12-10|=2$</td><td>Include</td></tr><tr><td>13</td><td>$|13-10|=3$</td><td>Include</td></tr><tr><td>14</td><td>$|14-10|=4$</td><td>Include</td></tr><tr><td>50</td><td>$|50-10|=40$</td><td>Reject</td></tr><tr><td>52</td><td>$|52-10|=42$</td><td>Reject</td></tr></table><p>Final region:</p>Plain text<code>10  11  12
+11  10  13
+12  11  14</code><p>The pixels with intensity around 50 and 80 remain outside the selected region.</p><p><strong>Important:</strong> A pixel must also be connected to the growing region. Similar intensity alone is not enough.</p><h3 id="13-4-connectivity-and-8-connectivity"><strong>13. 4-Connectivity and 8-Connectivity</strong></h3><p>These define which pixels are considered neighbors.</p><h4 id="131-4-connectivity"><strong>13.1 4-Connectivity</strong></h4><p>Only four neighboring pixels are considered:</p><ul><li><p>Up.</p></li><li><p>Down.</p></li><li><p>Left.</p></li><li><p>Right.</p></li></ul><img alt="Image" class="exported-media" src="data:image/png;base64,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"/>Four horizontal and vertical neighbors.<p>There are exactly four neighbors.</p><h4 id="132-8-connectivity"><strong>13.2 8-Connectivity</strong></h4><p>Here, diagonal pixels are also considered.</p><p>The eight neighbors are:</p><ul><li><p>Up.</p></li><li><p>Down.</p></li><li><p>Left.</p></li><li><p>Right.</p></li><li><p>Top-left.</p></li><li><p>Top-right.</p></li><li><p>Bottom-left.</p></li><li><p>Bottom-right.</p></li></ul><img alt="BLOB Analysis in Image Processing – Grétar Már Kjartansson – Electrical- and Control Engineer M.Sc." class="exported-media" src="https://images.openai.com/static-rsc-4/ogvBcBc0n7jzSgyMy-horS6gGunj01Rypc_ZVE9a2JpNhxDTrzvHVtsfoaCP_IubZH02_xaY4MJSeieN2ZkVIG3sOYfdfbrapWweVp85TYPBV_yuv4LhYdRWU-twkoEEpsglU8ZDxPX7WPrpD5yfXRyHP3Yq_2zLKbSMUu8fTCU?purpose=inline"/><a href="https://gretarmark.github.io/ImageAnalysis_BLOB/?utm_source=chatgpt.com">gretarmark.github.io</a><p>There are eight neighbors.</p><p><strong>Difference:</strong></p><table><tr><th>4-Connectivity</th><th>8-Connectivity</th></tr><tr><td>4 neighbors</td><td>8 neighbors</td></tr><tr><td>No diagonal pixels</td><td>Includes diagonal pixels</td></tr><tr><td>More restrictive</td><td>Less restrictive</td></tr></table><h3 id="14-region-growing-with-4-connectivity"><strong>14. Region Growing with 4-Connectivity</strong></h3><p>Consider:</p>Plain text<code>1 1 0
+1 0 1
+0 1 1</code><p>Start from the top-left 1.</p><p>With 4-connectivity, only horizontally and vertically connected 1s are selected.</p><p>With 8-connectivity, diagonal 1s can also become connected.</p><p>Therefore, changing the connectivity definition can change the final segmentation result.</p><h3 id="15-advantages-of-region-growing"><strong>15. Advantages of Region Growing</strong></h3><ol><li><p>Simple to understand and implement.</p></li><li><p>Produces connected regions.</p></li><li><p>Can use intensity, color and texture.</p></li><li><p>Works well for homogeneous objects.</p></li><li><p>Can incorporate domain knowledge through seed selection.</p></li></ol><h3 id="16-disadvantages-of-region-growing"><strong>16. Disadvantages of Region Growing</strong></h3><ol><li><p>Seed selection: Wrong seeds can produce incorrect segmentation.</p></li><li><p>Threshold selection: A very small threshold produces many small regions; a very large threshold combines different objects.</p></li><li><p>Noise sensitivity: Noise can cause unwanted region growth.</p></li><li><p>Computational cost: Large images and multiple seeds increase computation.</p></li><li><p>Intensity variation: It may fail when the same object has significantly different intensity values.</p></li></ol><h1 id="17-region-splitting"><strong>17. REGION SPLITTING</strong></h1><img alt="PPT - Segmentation PowerPoint Presentation, free download - ID:3805927" class="exported-media" src="https://images.openai.com/static-rsc-4/sU8bs8927QFFV95qo3vRUC9ZTwZYL7QKzNZXmMaU48-wCuXT7XAL9IvHTlclYSpdqD-xBHnZK_MGFsk4jFYyMcjWE3qR6BG1nj5YhBbTTSt3a5uFA0bW9WNGHhgcITJYAsEga4gaOoYEZxKMrRsPW-DosniyzOknPAyxZGqgDdY?purpose=inline"/><a href="https://www.slideserve.com/chesna/segmentation?utm_source=chatgpt.com">slideserve.com</a><h3 id="definition-1"><strong>Definition</strong></h3><p>Region splitting is a segmentation technique that starts with the entire image and divides it into smaller regions whenever a region is not homogeneous.</p><p>In simple words:</p><p><strong>Large image → Divide into smaller parts → Check similarity → Divide again if needed.</strong></p><p>This is the opposite approach to region growing.</p><h3 id="18-basic-idea-of-region-splitting"><strong>18. Basic Idea of Region Splitting</strong></h3><p>Imagine an image containing:</p><ul><li><p>Dark region on the left.</p></li><li><p>Bright region on the right.</p></li></ul><p>Initially, the entire image is considered one region.</p><p>The algorithm checks whether the whole image is homogeneous.</p><p>If it is not homogeneous, it divides the image into smaller regions.</p><h3 id="19-homogeneity-predicate"><strong>19. Homogeneity Predicate</strong></h3><p>A homogeneity predicate is a condition used to decide whether a region is sufficiently uniform.</p><p>Let $P(R)$ represent the homogeneity condition for region R.</p><ul><li><p>If $P(R)=\text{TRUE}$, the region is homogeneous and is kept.</p></li><li><p>If $P(R)=\text{FALSE}$, the region is not homogeneous and must be split.</p></li></ul><p>Example:</p><p>Suppose the maximum allowed intensity difference is 10.</p><p>If the region's intensity variation is 5, it can be accepted.</p><p>If the variation is 50, it should be split.</p><h3 id="20-numerical-example-of-region-splitting"><strong>20. Numerical Example of Region Splitting</strong></h3><p>Consider a 4×4 image:</p>Plain text<code>10  11 | 80  81
+11  10 | 82  80
+------+------
+12  11 | 90  91
+10  12 | 89  92</code><p>Initially, the entire image is one region.</p><p>The intensity variation is high because the image contains values around 10, 80 and 90.</p><p>Therefore, the algorithm splits it.</p><p><strong>Initial image</strong></p>R1R2R3R4Each quadrant becomes a separate region.<p>If R1 is homogeneous, it is kept.</p><p>If R2 is still heterogeneous, R2 is split again.</p><p>This process continues until the regions satisfy the homogeneity condition or reach a minimum size.</p><h3 id="21-quadtree-representation"><strong>21. Quadtree Representation</strong></h3><p>This is an important concept.</p><p>A quadtree is a tree structure in which every region is divided into four smaller regions.</p><img alt="Region Splitting and Merging Technique For Image segmentation. | PDF" class="exported-media" src="https://images.openai.com/static-rsc-4/dl4qdWeaBO3q6RW3OJ229Q6CdQWTe2cpbXzR_HA02Z4qEW2sOn0KmZ2pFjdXrKTCk49UuCCu7h8J6XIfQN33HC-vQ9NIDrIhiyikml6Y_9YCoLPCoeNNT0ZDKt77TobHF-6svRaJ78UKHrAUwi5xLGuAGJSB8vQF96C8iq_7_CE?purpose=inline"/><a href="https://www.slideshare.net/slideshow/region-splitting-and-merging-technique-for-image-segmentation/145148571?utm_source=chatgpt.com">slideshare.net</a><p>For example:</p><ul><li><p>First, the entire image is one region.</p></li><li><p>Divide it into R1, R2, R3 and R4.</p></li><li><p>If R2 is not homogeneous, divide R2 into another four regions.</p></li><li><p>Continue recursively.</p></li></ul><p><strong>Why is it called a quadtree?</strong></p><p>Because each division produces four child regions.</p><h3 id="22-region-splitting-algorithm"><strong>22. Region Splitting Algorithm</strong></h3><ol><li><p>Start with the entire image.</p></li><li><p>Evaluate the homogeneity predicate.</p></li><li><p>If homogeneous, keep the region.</p></li><li><p>If not homogeneous, divide it into four subregions.</p></li><li><p>Evaluate each subregion.</p></li><li><p>Repeat recursively until the stopping condition is satisfied.</p></li></ol><h3 id="23-stopping-conditions"><strong>23. Stopping Conditions</strong></h3><p>Splitting stops when any of these conditions is satisfied:</p><ol><li><p>The region is homogeneous.</p></li><li><p>The region becomes sufficiently small.</p></li><li><p>Maximum recursion depth is reached.</p></li></ol><h3 id="24-advantages-of-region-splitting"><strong>24. Advantages of Region Splitting</strong></h3><ul><li><p>Does not require manually selecting seed points.</p></li><li><p>Systematically examines the entire image.</p></li><li><p>Produces meaningful regions when homogeneity is properly defined.</p></li><li><p>Quadtree structure makes recursive implementation convenient.</p></li></ul><h3 id="25-disadvantages-of-region-splitting"><strong>25. Disadvantages of Region Splitting</strong></h3><ul><li><p>May produce too many small regions.</p></li><li><p>Can create artificial boundaries.</p></li><li><p>Homogeneity criterion must be selected carefully.</p></li><li><p>Repeated splitting can increase computational cost.</p></li><li><p>Final regions may need merging.</p></li></ul><h1 id="26-region-merging"><strong>26. REGION MERGING</strong></h1><img alt="Region Splitting and Merging Technique For Image segmentation. | PDF" class="exported-media" src="https://images.openai.com/static-rsc-4/YXcRf0nDhAN00ftTyL-dHkgDrtlNp_j8tCVdnGYeg6DKhPU88aAK9Yw0JLwRSCyxIjtCo02FJeMhYCH0k7g6D6yPioqkI6K0MfGUD_NHctk6pKh68t_W3qaVw6S30oSQX5tX7gtOu32mHDcKAHkMhDy0ZT8tn-O618A9GkgDo7M?purpose=inline"/><a href="https://www.slideshare.net/slideshow/region-splitting-and-merging-technique-for-image-segmentation/145148571?utm_source=chatgpt.com">slideshare.net</a><h3 id="definition-2"><strong>Definition</strong></h3><p>Region merging is a segmentation technique that combines adjacent regions having similar properties.</p><p>In simple words:</p><p><strong>Small regions → Compare neighboring regions → Combine similar regions → Larger regions.</strong></p><p>It works in the opposite direction to region splitting.</p><h3 id="27-basic-idea-of-region-merging"><strong>27. Basic Idea of Region Merging</strong></h3><p>Suppose an image is divided into four regions:</p>Plain text<code>R1 | R2
+---+---
+R3 | R4</code><p>If R1 and R2 have similar intensity values and are adjacent, they can be merged.</p><p>Similarly, other neighboring regions can be compared.</p><p>The process continues until no neighboring regions satisfy the merging condition.</p><h3 id="28-similarity-between-regions"><strong>28. Similarity Between Regions</strong></h3><p>Two regions can be considered similar based on:</p><ol><li><p>Mean intensity.</p></li><li><p>Color.</p></li><li><p>Variance.</p></li><li><p>Texture.</p></li><li><p>Statistical properties.</p></li></ol><p>A common condition is:</p>
+
+<div class="math-display">$$
+|\mu_1-\mu_2|\leq T
+$$</div>
+
+<p>Where:</p><ul><li><p>$\mu_1$ = Mean intensity of region 1.</p></li><li><p>$\mu_2$ = Mean intensity of region 2.</p></li><li><p>$T$ = Similarity threshold.</p></li></ul><p>If the difference between the mean intensities is less than or equal to the threshold, the regions can be merged, provided they are adjacent.</p><h3 id="29-numerical-example-of-region-merging"><strong>29. Numerical Example of Region Merging</strong></h3><p>Suppose four regions have these mean intensity values:</p><table><tr><th>Region</th><th>Mean intensity</th></tr><tr><td>R1</td><td>50</td></tr><tr><td>R2</td><td>53</td></tr><tr><td>R3</td><td>120</td></tr><tr><td>R4</td><td>123</td></tr></table><p>Given threshold:</p>
+
+<div class="math-display">$$
+T=5
+$$</div>
+
+<p><strong>Step 1: Compare R1 and R2.</strong></p>
+
+<div class="math-display">$$
+|50-53|=3
+$$</div>
+
+<p>Since $3\leq5$, merge R1 and R2.</p><p><strong>Step 2: Compare R3 and R4.</strong></p>
+
+<div class="math-display">$$
+|120-123|=3
+$$</div>
+
+<p>Since $3\leq5$, merge R3 and R4.</p><p><strong>Step 3: Compare the merged regions.</strong></p><p>The mean of R1 and R2 is:</p>
+
+<div class="math-display">$$
+\frac{50+53}{2}=51.5
+$$</div>
+
+<p>The mean of R3 and R4 is:</p>
+
+<div class="math-display">$$
+\frac{120+123}{2}=121.5
+$$</div>
+
+<p>Now:</p>
+
+<div class="math-display">$$
+|51.5-121.5|=70
+$$</div>
+
+<p>Since $70&gt;5$, they should not be merged.</p><p><strong>Final result</strong></p>R12R34Two separate merged regions remain.<p><strong>Numerical exam point:</strong> When regions contain different numbers of pixels, calculate the combined mean using a weighted average, not a simple average of the two region means.</p><h3 id="30-region-merging-algorithm"><strong>30. Region Merging Algorithm</strong></h3><ol><li><p>Initialize several small regions.</p></li><li><p>Identify neighboring regions.</p></li><li><p>Calculate their similarity.</p></li><li><p>If the similarity condition is satisfied, merge the regions.</p></li><li><p>Update the properties of the new region.</p></li><li><p>Repeat until no neighboring regions satisfy the merging condition.</p></li></ol><h1 id="31-region-splitting-and-merging"><strong>31. REGION SPLITTING AND MERGING</strong></h1><p>This technique combines both region splitting and region merging.</p><h3 id="definition-3"><strong>Definition</strong></h3><p>It divides regions that are not homogeneous and combines neighboring regions that are sufficiently similar.</p><p>In simple words:</p><ul><li><p>Different regions → Split.</p></li><li><p>Similar neighboring regions → Merge.</p></li></ul><h3 id="process"><strong>Process</strong></h3>Input ImageCheck Homogeneity<p><strong>Homogeneous</strong></p><p>Keep region</p><p><strong>Not homogeneous</strong></p><p>Split region</p>Merge Similar Neighboring RegionsFinal Segmentation<h3 id="32-why-combine-splitting-and-merging"><strong>32. Why Combine Splitting and Merging?</strong></h3><p>If we only use splitting:</p><ul><li><p>The image may be divided into too many small regions.</p></li><li><p>This creates over-segmentation.</p></li></ul><p>If we only use merging:</p><ul><li><p>Different regions might incorrectly get combined.</p></li><li><p>This creates under-segmentation.</p></li></ul><p>Combining both methods provides a better balance.</p><p><strong>Example:</strong></p>Plain text<code>Initial Image
+     ↓
+Split heterogeneous regions
+     ↓
+Many small regions
+     ↓
+Merge similar neighboring regions
+     ↓
+Meaningful regions</code><h3 id="33-comparison-of-region-based-techniques"><strong>33. Comparison of Region-Based Techniques</strong></h3><table><tr><th>Technique</th><th>Starting point</th><th>Main operation</th></tr><tr><td>Region Growing</td><td>Seed pixels</td><td>Grow regions</td></tr><tr><td>Region Splitting</td><td>Entire image</td><td>Divide regions</td></tr><tr><td>Region Merging</td><td>Small regions</td><td>Combine regions</td></tr><tr><td>Splitting and Merging</td><td>Entire image</td><td>Split + merge</td></tr></table><p>Remember:</p><ul><li><p>Growing = Add pixels.</p></li><li><p>Splitting = Divide regions.</p></li><li><p>Merging = Combine regions.</p></li></ul><h3 id="34-region-growing-vs-region-splitting"><strong>34. Region Growing vs Region Splitting</strong></h3><p>This is an important exam comparison.</p><table><tr><th>Feature</th><th>Region Growing</th><th>Region Splitting</th></tr><tr><td>Starting point</td><td>Seed pixel</td><td>Entire image</td></tr><tr><td>Operation</td><td>Adds pixels</td><td>Divides regions</td></tr><tr><td>Main criterion</td><td>Pixel/region similarity</td><td>Region homogeneity</td></tr><tr><td>Seed required</td><td>Yes</td><td>No</td></tr><tr><td>Typical structure</td><td>Connected growth</td><td>Quadtree</td></tr><tr><td>Main problem</td><td>Seed selection</td><td>Over-segmentation</td></tr></table><h1 id="35-region-based-vs-edge-based-segmentation"><strong>35. REGION-BASED VS EDGE-BASED SEGMENTATION</strong></h1><p>First, understand edge-based segmentation.</p><p>Edge-based segmentation detects boundaries between different objects by identifying sudden changes in image intensity.</p><p>For example, the boundary between a black object and a white background.</p><img alt="PPT - Filtering and Edge Detection PowerPoint Presentation, free download - ID:6792377" class="exported-media" src="https://images.openai.com/static-rsc-4/tzTcKgN4g3LABgKvU8Owj6Tzod227Y-EfMS_HvfKmyy8uf0Ldz2YfAuSj9500sCBholL8PMv9FMF8zJyAlBY6qtgaarvl1xLT9LXtcdplZV844BjtQ2yDntV0D_f8zOCxIdbTzWhq1axBrNNT8JLo9wRSFPI3346mIBvxZw2RSo?purpose=inline"/><img alt="Herkese merhabalar .. Yapay Zeka ‘ da Görüntü İşleme… | by Mevlüt KAMALI | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/RNBMypm9ts5DoFUP5YrXeUMMWXCIMBlRQnNQFeBBYE9zlUTQdbP7FMoDJpNUIuvcW1dODUUSMvVHy2ng-kprDjvbLiMmdR6CqCseSJgCjsXebVjZHj_Z-KtKzBgebJOGZST5bb_3YEkGbzwjf3X2seV7Z_jzrUmoaI96lngRcLs?purpose=inline"/><img alt="Introduction aux différents types de segmentation" class="exported-media" src="https://images.openai.com/static-rsc-4/JJz6QTClx1nRDtAE3Jv6tsqBNw0_YVvCMx4FhkKUywTuAkLDT-WKEcIz8tIWP5-sE4QRP8fvQlwLApwqBmKjB9wpy1bIZfjS6To4Q-fUchqfRtaDnTFqqs3THekDhl9d3wK3PTHR76JuzJ4YWZqBjyiYN-sZVhTOKG6rb1K5eBc?purpose=inline"/><table><tr><th>Feature</th><th>Region-Based</th><th>Edge-Based</th></tr><tr><td>Main idea</td><td>Groups similar pixels</td><td>Detects boundaries</td></tr><tr><td>Focus</td><td>Regions</td><td>Edges</td></tr><tr><td>Uses</td><td>Similarity/homogeneity</td><td>Intensity discontinuity</td></tr><tr><td>Example</td><td>Region growing</td><td>Canny edge detector</td></tr><tr><td>Output</td><td>Connected regions</td><td>Edge/boundary map</td></tr><tr><td>Sensitive to</td><td>Similarity criterion</td><td>Weak/noisy edges</td></tr></table><p><strong>Easy way to remember:</strong></p><p>Region-based: "Which pixels belong together?"</p><p>Edge-based: "Where does the object boundary occur?"</p><h1 id="36-region-based-segmentation-and-noise"><strong>36. REGION-BASED SEGMENTATION AND NOISE</strong></h1><p>Noise means unwanted changes or disturbances in image pixel values.</p><p>Example:</p>Plain text<code>50  50  50  50
+50  50  90  50
+50  50  50  50</code><p>Most pixels have intensity 50, but one pixel has intensity 90.</p><p>That 90 might be noise.</p><p>A region-growing algorithm might incorrectly treat it as a separate region.</p><h3 id="solutions-to-noise"><strong>Solutions to Noise</strong></h3><ol><li><p>Smoothing – Reduces small intensity variations.</p></li><li><p>Median filtering – Removes unwanted noise while preserving many edges.</p></li><li><p>Appropriate similarity thresholds – Prevents unnecessary region formation.</p></li><li><p>Morphological operations – Improve the shapes of segmented regions.</p></li><li><p>Remove small regions – Eliminate tiny unwanted areas.</p></li></ol><h1 id="37-region-based-segmentation-of-color-images"><strong>37. REGION-BASED SEGMENTATION OF COLOR IMAGES</strong></h1><p>Region-based segmentation is not restricted to grayscale images.</p><p>It can also work with RGB images.</p><p>Remember:</p><p>RGB means:</p><ul><li><p>R = Red.</p></li><li><p>G = Green.</p></li><li><p>B = Blue.</p></li></ul><p>Every pixel has three color values.</p><p>For example:</p>
+
+<div class="math-display">$$
+P_1=(100,120,150)
+$$</div>
+
+<div class="math-display">$$
+P_2=(105,125,145)
+$$</div>
+
+<p>We can calculate their color distance using:</p>
+
+<div class="math-display">$$
+D=\sqrt{(R_1-R_2)^2+(G_1-G_2)^2+(B_1-B_2)^2}
+$$</div>
+
+<p>Substituting:</p>
+
+<div class="math-display">$$
+D=\sqrt{(100-105)^2+(120-125)^2+(150-145)^2}
+$$</div>
+
+<div class="math-display">$$
+D=\sqrt{25+25+25}
+$$</div>
+
+<div class="math-display">$$
+D=\sqrt{75}=8.66
+$$</div>
+
+<p>The two pixels have relatively similar colors.</p><p>If the distance is below a selected threshold, they may be grouped into the same region.</p><p><strong>Other color spaces:</strong></p><p>In practical systems, HSV and Lab color spaces may also be used.</p><ul><li><p>HSV = Hue, Saturation, Value.</p></li><li><p>Lab = Lightness and two color-opponent components.</p></li></ul><h1 id="38-region-growing-in-a-real-application"><strong>38. REGION GROWING IN A REAL APPLICATION</strong></h1><h3 id="medical-image-segmentation"><strong>Medical Image Segmentation</strong></h3><p>Imagine an MRI image containing a tumor.</p><p>The tumor may have intensity values different from the surrounding tissues.</p><p>Region growing can help identify the tumor.</p><img alt="Advancing Precision: A Comprehensive Review of MRI Segmentation Datasets from BraTS Challenges (2012–2025)" class="exported-media" src="https://images.openai.com/static-rsc-4/J8nd8fi_B4rSWsK--FF5F6axY6naS5K465ImUP-N9LgtpUlGCAm3dGNzRcU7DMWQxpAN3ytBIQtHtm5_-CRkDF441kYoKe2nr1ULsTbnkzj-I6EUFwef91QzI5VMZfoaceIOflFKe63kmY8tA0FrXmfO5UxIY30IWzW7NhQ-K_I?purpose=inline"/><a href="https://www.mdpi.com/1424-8220/25/6/1838?utm_source=chatgpt.com">mdpi.com</a><p>Process:</p><ol><li><p>Take the MRI image.</p></li><li><p>Select a seed point inside the tumor.</p></li><li><p>Examine neighboring pixels.</p></li><li><p>Compare their intensity values.</p></li><li><p>Add similar pixels.</p></li><li><p>Continue growing.</p></li><li><p>Obtain the tumor region.</p></li></ol><p>This is useful in medical image analysis.</p><h1 id="39-applications-of-region-based-segmentation"><strong>39. Applications of Region-Based Segmentation</strong></h1><p>There are several applications.</p><table><tr><th>Field</th><th>Applications</th></tr><tr><td>Medical imaging</td><td>Tumor, organ and blood vessel segmentation</td></tr><tr><td>Remote sensing</td><td>Land-cover classification, water-body extraction</td></tr><tr><td>Industrial inspection</td><td>Defect detection, component inspection</td></tr><tr><td>Autonomous vehicles</td><td>Road segmentation, object regions, terrain analysis</td></tr><tr><td>Document processing</td><td>Text regions, background regions, connected components</td></tr><tr><td>Satellite imagery</td><td>Forests, urban areas, agricultural land, water bodies</td></tr></table><h3 id="understand-with-examples"><strong>Understand with examples</strong></h3><ul><li><p>Medical imaging: Identify a tumor in an MRI scan.</p></li><li><p>Remote sensing: Separate agricultural land from water bodies.</p></li><li><p>Industrial inspection: Detect defective portions of manufactured products.</p></li><li><p>Autonomous vehicles: Identify roads and surrounding objects.</p></li><li><p>Document processing: Separate text from the background.</p></li><li><p>Satellite imagery: Identify forests and urban areas.</p></li></ul><h1 id="40-important-parameters"><strong>40. Important Parameters</strong></h1><p>The performance of region-based segmentation depends on five major parameters.</p><p><strong>1. Seed Selection</strong></p><p>Important for region growing. A poor seed can produce incorrect results.</p><p><strong>2. Similarity Threshold</strong></p><p>Determines how much difference is allowed between pixels or regions.</p><p><strong>3. Connectivity</strong></p><p>Determines whether 4-connectivity or 8-connectivity is used.</p><p><strong>4. Minimum Region Size</strong></p><p>Prevents the formation of many tiny regions.</p><p><strong>5. Homogeneity Criterion</strong></p><p>Used in region splitting and merging to determine whether a region is uniform enough.</p><h1 id="41-effect-of-threshold"><strong>41. EFFECT OF THRESHOLD</strong></h1><p>Threshold determines how strict or relaxed the similarity condition is.</p><p>Suppose:</p><p>Seed intensity = 50.</p><h3 id="case-1-threshold-5"><strong>Case 1: Threshold = 5</strong></h3><p>Accepted intensity range:</p>
+
+<div class="math-display">$$
+50-5\leq I(p)\leq50+5
+$$</div>
+
+<div class="math-display">$$
+45\leq I(p)\leq55
+$$</div>
+
+<p>Only pixels between 45 and 55 are accepted.</p>Strict condition<p>Result: Smaller region.</p><h3 id="case-2-threshold-30"><strong>Case 2: Threshold = 30</strong></h3>
+
+<div class="math-display">$$
+50-30\leq I(p)\leq50+30
+$$</div>
+
+<div class="math-display">$$
+20\leq I(p)\leq80
+$$</div>
+
+<p>More pixels are accepted.</p>Relaxed condition<p>Result: Larger region.</p><h3 id="case-3-threshold-is-too-large"><strong>Case 3: Threshold is too large</strong></h3><p>Different objects may also satisfy the similarity condition.</p><p>They may incorrectly become one region.</p><p><strong>Important conclusion:</strong></p><ul><li><p>Small threshold → Smaller regions.</p></li><li><p>Large threshold → Larger regions.</p></li><li><p>Extremely large threshold → Different objects may merge.</p></li></ul><h1 id="42-region-growing-vs-thresholding"><strong>42. REGION GROWING VS THRESHOLDING</strong></h1><p>These two concepts are often confused.</p><h3 id="thresholding"><strong>Thresholding</strong></h3><p>Thresholding separates pixels based mainly on their intensity values.</p><p>For example:</p>
+
+<div class="math-display">$$
+I(x,y)>T
+$$</div>
+
+<p>If the pixel intensity is greater than the threshold, it may be classified as foreground.</p><p>Otherwise, it may be classified as background.</p><p>Thresholding does not inherently require spatial connectivity.</p><h3 id="region-growing"><strong>Region Growing</strong></h3><p>Region growing uses:</p><ol><li><p>Seed.</p></li><li><p>Neighborhood.</p></li><li><p>Similarity.</p></li><li><p>Connectivity.</p></li></ol><p>It checks whether a pixel is similar and connected to the growing region.</p><table><tr><th>Thresholding</th><th>Region Growing</th></tr><tr><td>Based mainly on intensity</td><td>Based on similarity and connectivity</td></tr><tr><td>Does not require a seed</td><td>Requires a seed</td></tr><tr><td>Does not inherently require connectivity</td><td>Uses connectivity</td></tr><tr><td>Classifies pixels based on threshold</td><td>Grows connected regions</td></tr></table><p><strong>Example:</strong></p><p>Imagine two separate objects having the same intensity.</p><p>Thresholding may select both objects because their intensity values are similar.</p><p>Region growing starting from one object can select only the connected region around its seed.</p><h1 id="43-region-growing-pseudocode"><strong>43. REGION GROWING PSEUDOCODE</strong></h1><p>Pseudocode means writing the logical steps of an algorithm in a simple programming-like format.</p><p>Your document gives the following algorithm:</p>Plain text<code>Choose seed pixel
+
+Create empty region R
+
+Put seed into R
+
+while there are neighboring pixels:
+
+    select neighboring pixel p
+
+    if p satisfies similarity criterion:
+
+        add p to R
+
+        examine p's neighbors
+
+    else:
+
+        reject p
+
+return R</code><h3 id="explanation"><strong>Explanation</strong></h3><ul><li><p>Choose seed: Select starting pixel.</p></li><li><p>Create empty region: Prepare a region to store selected pixels.</p></li><li><p>Put seed into R: Add the starting pixel.</p></li><li><p>While: Continue checking neighboring pixels.</p></li><li><p>If: Check whether the pixel is similar.</p></li><li><p>Add: Include accepted pixels.</p></li><li><p>Reject: Ignore pixels that do not satisfy the condition.</p></li><li><p>Return: Output the final region.</p></li></ul><p><strong>For multiple objects:</strong></p><ol><li><p>Choose multiple seeds.</p></li><li><p>Grow each seed independently.</p></li><li><p>Resolve overlapping regions.</p></li><li><p>Return the final segmentation.</p></li></ol><h1 id="44-complete-region-based-segmentation-pipeline"><strong>44. COMPLETE REGION-BASED SEGMENTATION PIPELINE</strong></h1><p>This is the practical workflow:</p>Input ImageNoise ReductionFeature / Intensity AnalysisChoose Initial RegionsRegion GrowingRegion SplittingRegion MergingRemove Small RegionsMorphological ProcessingFinal Segmentation<p>Explanation:</p><ol><li><p>Input image – Original image.</p></li><li><p>Noise reduction – Remove unwanted disturbances.</p></li><li><p>Feature analysis – Study pixel intensity, color and texture.</p></li><li><p>Initial regions – Identify starting regions.</p></li><li><p>Region growing/splitting – Form regions.</p></li><li><p>Region merging – Combine similar regions.</p></li><li><p>Remove small regions – Remove noise.</p></li><li><p>Morphological processing – Improve region shapes.</p></li><li><p>Final segmentation – Produce the final result.</p></li></ol><h1 id="45-overall-advantages-of-region-based-segmentation"><strong>45. OVERALL ADVANTAGES OF REGION-BASED SEGMENTATION</strong></h1><ol><li><p>Produces connected regions.</p></li><li><p>Uses spatial information.</p></li><li><p>Can use intensity, color and texture.</p></li><li><p>Works well for relatively homogeneous objects.</p></li><li><p>Can incorporate domain-specific knowledge.</p></li><li><p>Region growing is intuitive and easy to implement.</p></li><li><p>Splitting provides systematic image decomposition.</p></li><li><p>Merging can reduce over-segmentation.</p></li></ol><h1 id="46-overall-limitations"><strong>46. OVERALL LIMITATIONS</strong></h1><ol><li><p>Sensitive to noise.</p></li><li><p>Parameter selection is important.</p></li><li><p>Region growing depends on seed selection.</p></li><li><p>Large images may require significant computation.</p></li><li><p>Objects with non-uniform intensity can be difficult to segment.</p></li><li><p>Poor similarity criteria can cause under-segmentation.</p></li><li><p>Poorly chosen criteria can cause over-segmentation.</p></li></ol><h1 id="47-over-segmentation-and-under-segmentation"><strong>47. OVER-SEGMENTATION AND UNDER-SEGMENTATION</strong></h1><img alt="PPT - Grouping and Segmentation PowerPoint Presentation, free download - ID:2783636" class="exported-media" src="https://images.openai.com/static-rsc-4/af0Iz0GwRQqmfGBzgKULpr621Hid84IkC4mIlg5B_Dk782OZka7FVeRdBkNuCce9pkgBgnRvrqaylNXIAalIfh4lKWo0HCH9BkmkItaDJJ0qhffc9KJX2az6q4I5h0Xu60ZC3gZja0NSWcdiRBDDyQ3y7qqtrBxWO6a2p3AwI6A?purpose=inline"/><a href="https://www.slideserve.com/dasan/grouping-and-segmentation-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a><p>These are extremely important concepts for exams.</p><h3 id="471-over-segmentation"><strong>47.1 Over-Segmentation</strong></h3><p>Over-segmentation occurs when one actual object is divided into too many smaller regions.</p><p>Example:</p><p>Actual object:</p>Plain text<code>████████████</code><p>Over-segmented object:</p>Plain text<code>██ ██ █
+██ ██ █</code><p>One object is unnecessarily divided into multiple regions.</p><p><strong>Causes:</strong></p><ol><li><p>Threshold too strict.</p></li><li><p>Noise.</p></li><li><p>Too many seed points.</p></li><li><p>Poor homogeneity criterion.</p></li></ol><h3 id="472-under-segmentation"><strong>47.2 Under-Segmentation</strong></h3><p>Under-segmentation occurs when two or more different objects are incorrectly combined into one region.</p><p>Example:</p><p>Actual image:</p>Plain text<code>████ | ████</code><p>Under-segmented result:</p>Plain text<code>████████</code><p>Two different objects have been combined.</p><p><strong>Causes:</strong></p><ol><li><p>Threshold too large.</p></li><li><p>Similarity criterion too loose.</p></li><li><p>Poor seed selection.</p></li></ol><h3 id="difference"><strong>Difference</strong></h3><table><tr><th>Over-Segmentation</th><th>Under-Segmentation</th></tr><tr><td>One object becomes many regions</td><td>Different objects become one region</td></tr><tr><td>Too much division</td><td>Too much merging</td></tr><tr><td>Often caused by strict thresholds</td><td>Often caused by loose thresholds</td></tr><tr><td>Excessive segmentation</td><td>Insufficient segmentation</td></tr></table><h1 id="48-exam-oriented-definitions"><strong>48. EXAM-ORIENTED DEFINITIONS</strong></h1><p>Learn these definitions because they are useful for short-answer questions.</p><p><strong>Region-Based Segmentation:</strong> It divides an image into connected regions whose pixels satisfy a specified homogeneity or similarity criterion.</p><p><strong>Region Growing:</strong> It starts from one or more seed pixels and iteratively adds neighboring pixels that satisfy a similarity criterion.</p><p><strong>Region Splitting:</strong> It starts with the entire image and recursively divides non-homogeneous regions into smaller regions.</p><p><strong>Region Merging:</strong> It combines adjacent regions whose properties satisfy a specified similarity criterion.</p><p><strong>Homogeneity Predicate:</strong> It is a rule used to determine whether a region is sufficiently uniform.</p><h1 id="49-short-numerical-problem-region-growing"><strong>49. SHORT NUMERICAL PROBLEM – REGION GROWING</strong></h1><p>Question:</p><p>Consider the following image:</p>Plain text<code>20  21  22  80
+21  20  23  82
+22  21  24  81
+90  91  92  93</code><p>Given:</p><ul><li><p>Seed intensity = 20.</p></li><li><p>Threshold = 5.</p></li></ul><p>Determine which intensity values satisfy the similarity criterion.</p><p>Formula:</p>
+
+<div class="math-display">$$
+|I(p)-I_s|\leq T
+$$</div>
+
+<p>Substitute:</p>
+
+<div class="math-display">$$
+|I(p)-20|\leq5
+$$</div>
+
+<p>Now calculate:</p><table><tr><th>Pixel</th><th>Calculation</th><th>Result</th></tr><tr><td>21</td><td>$|21-20|=1$</td><td>Include</td></tr><tr><td>22</td><td>$|22-20|=2$</td><td>Include</td></tr><tr><td>23</td><td>$|23-20|=3$</td><td>Include</td></tr><tr><td>24</td><td>$|24-20|=4$</td><td>Include</td></tr><tr><td>80</td><td>$|80-20|=60$</td><td>Reject</td></tr><tr><td>82</td><td>$|82-20|=62$</td><td>Reject</td></tr></table><p>Final region contains approximately:</p>Plain text<code>20  21  22
+21  20  23
+22  21  24</code><p>Remember that only connected qualifying pixels can actually be included.</p><h1 id="50-key-takeaway-three-main-techniques"><strong>50. KEY TAKEAWAY – THREE MAIN TECHNIQUES</strong></h1><table><tr><th>Technique</th><th>Easy way to remember</th></tr><tr><td>Region Growing</td><td>Small → Large</td></tr><tr><td>Region Splitting</td><td>Large → Small</td></tr><tr><td>Region Merging</td><td>Small → Large</td></tr></table><p><strong>Region Growing:</strong> Seed → Add similar neighbors → Region.</p><p><strong>Region Splitting:</strong> Entire image → Divide heterogeneous regions.</p><p><strong>Region Merging:</strong> Small neighboring regions → Combine similar regions.</p><p><strong>Combined approach:</strong> Split when different + Merge when similar = Better segmentation.</p><h1 id="part-2-36-k-means-clustering-with-image-segmentation"><strong>PART 2: 3.6 – K-MEANS CLUSTERING WITH IMAGE SEGMENTATION</strong></h1><p>Now let's move to your second document.</p><p>This topic is connected to region-based segmentation, but the approach is different.</p><p>The main concept is <strong>K-Means Clustering</strong>.</p><h2 id="1-what-is-k-means"><strong>1. What is K-Means?</strong></h2><p>K-Means is an <strong>unsupervised machine learning algorithm</strong> used to divide data points into K different groups called clusters.</p><p>Let's understand the words.</p><ul><li><p>K = Number of clusters we want.</p></li><li><p>Means = Average of the data points in each cluster.</p></li></ul><p>For example, suppose you have 10 students and want to divide them into three groups based on their marks.</p><p>K-Means groups students with similar marks together.</p><p>In image segmentation, instead of students, we use pixels.</p><p><strong>Important:</strong> K-Means is unsupervised because we do not provide predefined labels for every pixel. The algorithm discovers groups based on similarity.</p><h2 id="2-k-means-in-image-segmentation"><strong>2. K-Means in Image Segmentation</strong></h2><p>Every pixel in an image is treated as a data point.</p><p>Pixels with similar colors or intensity values are grouped into the same cluster.</p><p>For example, imagine an image containing:</p><ul><li><p>Dark pixels.</p></li><li><p>Medium-brightness pixels.</p></li><li><p>Bright pixels.</p></li></ul><p>K-Means can divide them into three clusters.</p><img alt="PPT - Clustering PowerPoint Presentation, free download - ID:151003" class="exported-media" src="https://images.openai.com/static-rsc-4/QR6cCbfoZBXpDHkvQ4kpuy9lpbpstzcVUe-tODkTMFM0gsNFFN-jtzDBM7KpDTan60K43rUlBXjHdOxWFyrKP48pJKsZ44BC8LZIzb3iMeMdIAFNrfi_XHi_KdzRjsXHQTgCUL69Qj0PI-nQQ_Hv3YpTMdTfjE-j9-lZfrKxCyk?purpose=inline"/><img alt="Image Segmentation (Part 1). Introduction | by Daniela Vornic | softplus-publication | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/pC3wduhtYxZE9vT51-jj0h01Et68a0q1WCeyoCxOPNsKKR2hhNKDpspwoNLMaOcNjDPTKB6MMqoajrVzrj9UTfeOU3U47_LCeTwJCA6Q6zqBgnuKUKE2izg0ZdNUMgOSRIXqBv2olruJV7Sgbafqx8nu8xX7R8H_FtL3P15B8QU?purpose=inline"/><img alt="Unveiling the World Pixel by Pixel: An Introduction to Image Segmentation | by Saad Tariq | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/UtwoWeriWNPNDedQQMPd1z5riP4eHgssgmbYwFhODNXPIj4GhAKcbLgQsZusN269QjuVO5B5gGGn_0J1p9nXCsfKRLCPrcxKOHpnkEI7O8VxrJsR6SGsd9lS-7u3jjL8w4XcHTwqtonyu4COBU3fu8ooIkbH4pv1uXr_eHdzbOA?purpose=inline"/><p>For a grayscale image, each pixel is represented by its intensity value.</p><p>For an RGB image, each pixel is represented by three values:</p>
+
+<div class="math-display">$$
+Pixel=(R,G,B)
+$$</div>
+
+<p>Where:</p><ul><li><p>R = Red.</p></li><li><p>G = Green.</p></li><li><p>B = Blue.</p></li></ul><h2 id="3-very-simple-example-of-k-means"><strong>3. Very Simple Example of K-Means</strong></h2><p>Suppose we have these grayscale pixel intensity values:</p>Plain text<code>10, 12, 15, 18, 20,
+100, 105, 110,
+200, 210</code><p>We can visually identify three groups.</p><p><strong>Cluster 1 – Dark pixels</strong></p><p><strong>10</strong></p><p><strong>12</strong></p><p><strong>15</strong></p><p><strong>18</strong></p><p><strong>20</strong></p><p><strong>Cluster 2 – Medium pixels</strong></p><p><strong>100</strong></p><p><strong>105</strong></p><p><strong>110</strong></p><p><strong>Cluster 3 – Bright pixels</strong></p><p><strong>200</strong></p><p><strong>210</strong></p><p>We tell K-Means:</p>
+
+<div class="math-display">$$
+K=3
+$$</div>
+
+<p>This means we want three clusters.</p><p>The algorithm will try to discover these groups automatically.</p><h1 id="4-step-1-choose-initial-centroids"><strong>4. STEP 1 – CHOOSE INITIAL CENTROIDS</strong></h1><p>A centroid is the center or representative value of a cluster.</p><p>Since we want three clusters, we need three initial centroids.</p><p>Suppose we choose:</p>
+
+<div class="math-display">$$
+C_1=10
+$$</div>
+
+<div class="math-display">$$
+C_2=100
+$$</div>
+
+<div class="math-display">$$
+C_3=200
+$$</div>
+
+<p>These are our starting cluster centers.</p><p><strong>Initial centroids</strong></p>C1 = 10C2 = 100C3 = 200<p>These are only initial values. They may change during the algorithm.</p><h1 id="5-step-2-assign-every-pixel-to-the-nearest-centroid"><strong>5. STEP 2 – ASSIGN EVERY PIXEL TO THE NEAREST CENTROID</strong></h1><p>Now we calculate the distance between every pixel and all three centroids.</p><p>The pixel is assigned to whichever centroid has the smallest distance.</p><p>For one-dimensional grayscale pixels:</p>
+
+<div class="math-display">$$
+D=|X-C|
+$$</div>
+
+<p>Where:</p><ul><li><p>X = Pixel intensity.</p></li><li><p>C = Centroid value.</p></li><li><p>D = Distance.</p></li></ul><h3 id="numerical-example-1"><strong>Numerical Example 1</strong></h3><p>Take pixel:</p>
+
+<div class="math-display">$$
+X=15
+$$</div>
+
+<p>Initial centroids:</p>
+
+<div class="math-display">$$
+C_1=10,\quad C_2=100,\quad C_3=200
+$$</div>
+
+<p>Calculate the distances.</p><p><strong>Distance from C1:</strong></p>
+
+<div class="math-display">$$
+D_1=|15-10|=5
+$$</div>
+
+<p><strong>Distance from C2:</strong></p>
+
+<div class="math-display">$$
+D_2=|15-100|=85
+$$</div>
+
+<p><strong>Distance from C3:</strong></p>
+
+<div class="math-display">$$
+D_3=|15-200|=185
+$$</div>
+
+<p>Compare:</p><table><tr><th>Centroid</th><th>Distance</th></tr><tr><td>C1</td><td>5</td></tr><tr><td>C2</td><td>85</td></tr><tr><td>C3</td><td>185</td></tr></table><p>The smallest distance is 5.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+15\rightarrow C_1
+$$</div>
+
+<p>Pixel 15 belongs to Cluster 1.</p><h3 id="numerical-example-2"><strong>Numerical Example 2</strong></h3><p>Take:</p>
+
+<div class="math-display">$$
+X=105
+$$</div>
+
+<p>Calculate:</p>
+
+<div class="math-display">$$
+D_1=|105-10|=95
+$$</div>
+
+<div class="math-display">$$
+D_2=|105-100|=5
+$$</div>
+
+<div class="math-display">$$
+D_3=|105-200|=95
+$$</div>
+
+<p>The smallest distance is 5.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+105\rightarrow C_2
+$$</div>
+
+<h3 id="numerical-example-3"><strong>Numerical Example 3</strong></h3><p>Take:</p>
+
+<div class="math-display">$$
+X=210
+$$</div>
+
+<p>Calculate:</p>
+
+<div class="math-display">$$
+D_1=|210-10|=200
+$$</div>
+
+<div class="math-display">$$
+D_2=|210-100|=110
+$$</div>
+
+<div class="math-display">$$
+D_3=|210-200|=10
+$$</div>
+
+<p>The smallest distance is 10.</p><p>Therefore:</p>
+
+<div class="math-display">$$
+210\rightarrow C_3
+$$</div>
+
+<p><strong>Remember:</strong> Always assign a pixel to the centroid with the smallest distance.</p><h1 id="6-after-assignment"><strong>6. AFTER ASSIGNMENT</strong></h1><p>After checking all pixels, we obtain:</p><table><tr><th>Cluster 1</th><th>Cluster 2</th><th>Cluster 3</th></tr><tr><td>10</td><td>100</td><td>200</td></tr><tr><td>12</td><td>105</td><td>210</td></tr><tr><td>15</td><td>110</td><td></td></tr><tr><td>18</td><td></td><td></td></tr><tr><td>20</td><td></td><td></td></tr></table><p>So:</p><ul><li><p>Dark pixels → Cluster 1.</p></li><li><p>Medium pixels → Cluster 2.</p></li><li><p>Bright pixels → Cluster 3.</p></li></ul><p>The first step is complete.</p><p>But K-Means is not finished yet!</p><h1 id="7-step-3-calculate-new-centroids"><strong>7. STEP 3 – CALCULATE NEW CENTROIDS</strong></h1><p>Now we calculate the mean (average) of the pixels in each cluster.</p><p>This is why it is called K-Means.</p><p>Formula:</p>
+
+<div class="math-display">$$
+New\ Centroid=\frac{\text{Sum of cluster values}}{\text{Number of values}}
+$$</div>
+
+<h3 id="new-centroid-of-cluster-1"><strong>New Centroid of Cluster 1</strong></h3><p>Values:</p>
+
+<div class="math-display">$$
+10,12,15,18,20
+$$</div>
+
+<p>Calculate:</p>
+
+<div class="math-display">$$
+C_1=\frac{10+12+15+18+20}{5}
+$$</div>
+
+<div class="math-display">$$
+C_1=\frac{75}{5}
+$$</div>
+
+<div class="math-display">$$
+\boxed{C_1=15}
+$$</div>
+
+<h3 id="new-centroid-of-cluster-2"><strong>New Centroid of Cluster 2</strong></h3><p>Values:</p>
+
+<div class="math-display">$$
+100,105,110
+$$</div>
+
+<div class="math-display">$$
+C_2=\frac{100+105+110}{3}
+$$</div>
+
+<div class="math-display">$$
+C_2=\frac{315}{3}
+$$</div>
+
+<div class="math-display">$$
+\boxed{C_2=105}
+$$</div>
+
+<h3 id="new-centroid-of-cluster-3"><strong>New Centroid of Cluster 3</strong></h3><p>Values:</p>
+
+<div class="math-display">$$
+200,210
+$$</div>
+
+<div class="math-display">$$
+C_3=\frac{200+210}{2}
+$$</div>
+
+<div class="math-display">$$
+C_3=\frac{410}{2}
+$$</div>
+
+<div class="math-display">$$
+\boxed{C_3=205}
+$$</div>
+
+<p><strong>Centroid movement</strong></p><p>BEFORE</p><h1 id="10-100-200"><strong>10, 100, 200</strong></h1><p>AFTER</p><h1 id="15-105-205"><strong>15, 105, 205</strong></h1><p>The centroids move towards the average positions of their assigned pixels.</p><h1 id="8-step-4-repeat-the-process"><strong>8. STEP 4 – REPEAT THE PROCESS</strong></h1><p>Now use the new centroids:</p>
+
+<div class="math-display">$$
+C_1=15,\quad C_2=105,\quad C_3=205
+$$</div>
+
+<p>Again:</p><ol><li><p>Calculate distances.</p></li><li><p>Assign each pixel to the nearest centroid.</p></li><li><p>Calculate new means.</p></li><li><p>Update the centroids.</p></li></ol><p>Continue repeating these operations.</p><h3 id="example"><strong>Example</strong></h3><p>Take pixel 18.</p>
+
+<div class="math-display">$$
+D_1=|18-15|=3
+$$</div>
+
+<div class="math-display">$$
+D_2=|18-105|=87
+$$</div>
+
+<div class="math-display">$$
+D_3=|18-205|=187
+$$</div>
+
+<p>Smallest distance = 3.</p><p>Therefore, 18 remains in Cluster 1.</p><p>The same process is performed for every pixel.</p><h1 id="9-when-does-k-means-stop"><strong>9. WHEN DOES K-MEANS STOP?</strong></h1><p>K-Means stops when the centroids stop changing or when another specified stopping condition is reached.</p><p>Example:</p><table><tr><th>Iteration</th><th>C1</th><th>C2</th><th>C3</th></tr><tr><td>Initial</td><td>10</td><td>100</td><td>200</td></tr><tr><td>Iteration 1</td><td>15</td><td>105</td><td>205</td></tr><tr><td>Iteration 2</td><td>15</td><td>105</td><td>205</td></tr><tr><td>Iteration 3</td><td>15</td><td>105</td><td>205</td></tr></table><p>Notice that the centroids are not changing anymore.</p><p>Therefore, the algorithm has converged.</p><p><strong>Convergence means the algorithm has reached a stable result.</strong></p><h1 id="10-entire-k-means-numerical-in-one-table"><strong>10. ENTIRE K-MEANS NUMERICAL IN ONE TABLE</strong></h1><p>This table from your document is important.</p><p>Initial centroids:</p>
+
+<div class="math-display">$$
+C_1=10,\quad C_2=100,\quad C_3=200
+$$</div>
+
+<table><tr><th>Pixel</th><th>Distance C1</th><th>Distance C2</th><th>Distance C3</th><th>Cluster</th></tr><tr><td>10</td><td>0</td><td>90</td><td>190</td><td>C1</td></tr><tr><td>12</td><td>2</td><td>88</td><td>188</td><td>C1</td></tr><tr><td>15</td><td>5</td><td>85</td><td>185</td><td>C1</td></tr><tr><td>18</td><td>8</td><td>82</td><td>182</td><td>C1</td></tr><tr><td>20</td><td>10</td><td>80</td><td>180</td><td>C1</td></tr><tr><td>100</td><td>90</td><td>0</td><td>100</td><td>C2</td></tr><tr><td>105</td><td>95</td><td>5</td><td>95</td><td>C2</td></tr><tr><td>110</td><td>100</td><td>10</td><td>90</td><td>C2</td></tr><tr><td>200</td><td>190</td><td>100</td><td>0</td><td>C3</td></tr><tr><td>210</td><td>200</td><td>110</td><td>10</td><td>C3</td></tr></table><p>Final clusters:</p>Plain text<code>C1 = {10, 12, 15, 18, 20}
+C2 = {100, 105, 110}
+C3 = {200, 210}</code><p>New centroids:</p>Plain text<code>C1 = 15
+C2 = 105
+C3 = 205</code><p>This is the complete numerical example.</p><h1 id="11-connecting-k-means-to-image-segmentation"><strong>11. CONNECTING K-MEANS TO IMAGE SEGMENTATION</strong></h1><p>So far, we have used only 10 numbers.</p><p>But actual images may contain thousands or millions of pixels.</p><p>K-Means can group those pixels based on their intensity or color.</p><h3 id="grayscale-image"><strong>Grayscale image</strong></h3><p>Every pixel is represented by one intensity value.</p><p>For example:</p>
+
+<div class="math-display">$$
+I=150
+$$</div>
+
+<h3 id="rgb-image"><strong>RGB image</strong></h3><p>Every pixel is represented by three values:</p>
+
+<div class="math-display">$$
+P=(R,G,B)
+$$</div>
+
+<p>For example:</p>
+
+<div class="math-display">$$
+P=(255,0,0)
+$$</div>
+
+<p>This represents red.</p><p>K-Means can group pixels with similar RGB values.</p><img alt="Image Segmentation by Clustering: A Detailed Overview" class="exported-media" src="https://images.openai.com/static-rsc-4/eEpcQvWFblPcqb1sJ8TQOz0jPsON9nmXu7UJX2nfYn0mRXaUwEvu3qumiEXn1Vuog6DG_kebCfWkfW3CElkDDv-H-W2QTM9_cx2IGNVN-QUH1Aiw7tLJPgqezlWujTbwcTZbdT-YrqyMGbo1RxSWtSAwp7O06hrhSlrXhsU5Fes?purpose=inline"/><img alt="A Visual Demo of K-Means. Here is a quick example of k-means… | by Michael Gray | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/PGOyslC-Gzoodg-tnmkUc624hZOfoyA04C9t6K5VMCk_FrE141BLnNL1PEnKFDyDDLKAsCfUUNbMkgz8lOkqvjqRiwGY6Uf1TcDS7qeZEPR7XaTov0GWF7GAv1gzFwq45_V_VyezvXBmqVXIZqE2JeAFAe3tgJf9vz-KJGFcW8c?purpose=inline"/><img alt="Image Segmentation (Part 1). Introduction | by Daniela Vornic | softplus-publication | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/pC3wduhtYxZE9vT51-jj0h01Et68a0q1WCeyoCxOPNsKKR2hhNKDpspwoNLMaOcNjDPTKB6MMqoajrVzrj9UTfeOU3U47_LCeTwJCA6Q6zqBgnuKUKE2izg0ZdNUMgOSRIXqBv2olruJV7Sgbafqx8nu8xX7R8H_FtL3P15B8QU?purpose=inline"/><h1 id="12-rgb-image-example"><strong>12. RGB IMAGE EXAMPLE</strong></h1><p>Suppose we have three types of pixels:</p><ul><li><p>Red-like pixels.</p></li><li><p>Green-like pixels.</p></li><li><p>Blue-like pixels.</p></li></ul><p>We choose:</p>
+
+<div class="math-display">$$
+K=3
+$$</div>
+
+<p>K-Means tries to identify three clusters.</p><p>The resulting clusters will approximately represent:</p><ul><li><p>Cluster 1 → Red-like pixels.</p></li><li><p>Cluster 2 → Green-like pixels.</p></li><li><p>Cluster 3 → Blue-like pixels.</p></li></ul><p>The algorithm does not know the names red, green or blue. It only works with numerical color values.</p><p>We interpret the clusters afterward.</p><h1 id="13-how-distance-works-for-rgb"><strong>13. HOW DISTANCE WORKS FOR RGB</strong></h1><p>This is very important for numerical questions.</p><p>In grayscale, we calculate the difference between two intensity values.</p><p>In RGB, we calculate the Euclidean distance between three color values.</p><p>Formula:</p>
+
+<div class="math-display">$$
+D=\sqrt{(R_1-R_2)^2+(G_1-G_2)^2+(B_1-B_2)^2}
+$$</div>
+
+<h3 id="numerical-example"><strong>Numerical Example</strong></h3><p>Suppose a pixel is:</p>
+
+<div class="math-display">$$
+P=(100,120,150)
+$$</div>
+
+<p>And the centroid is:</p>
+
+<div class="math-display">$$
+C=(110,125,145)
+$$</div>
+
+<p>Calculate:</p>
+
+<div class="math-display">$$
+D=\sqrt{(100-110)^2+(120-125)^2+(150-145)^2}
+$$</div>
+
+<div class="math-display">$$
+D=\sqrt{(-10)^2+(-5)^2+(5)^2}
+$$</div>
+
+<div class="math-display">$$
+D=\sqrt{100+25+25}
+$$</div>
+
+<div class="math-display">$$
+D=\sqrt{150}
+$$</div>
+
+<div class="math-display">$$
+\boxed{D\approx12.25}
+$$</div>
+
+<p>The algorithm performs this calculation against every centroid.</p><p>The pixel is assigned to the centroid having the smallest Euclidean distance.</p><h1 id="14-what-does-segmentation-look-like"><strong>14. WHAT DOES SEGMENTATION LOOK LIKE?</strong></h1><p>Suppose an image contains:</p>Plain text<code>BBBBBBBBBB
+BBBBBBBBBB
+GGGGGGGGGG
+GGGGGGGGGG
+RRRRRRRRRR
+RRRRRRRRRR</code><p>Where:</p><ul><li><p>B = Blue.</p></li><li><p>G = Green.</p></li><li><p>R = Red.</p></li></ul><p>We choose:</p>
+
+<div class="math-display">$$
+K=3
+$$</div>
+
+<p>After K-Means segmentation, we may get:</p>Plain text<code>1111111111
+1111111111
+2222222222
+2222222222
+3333333333
+3333333333</code><p>Where:</p><ul><li><p>1 = Cluster 1.</p></li><li><p>2 = Cluster 2.</p></li><li><p>3 = Cluster 3.</p></li></ul><p>This is called a <strong>segmentation map</strong>.</p><p>The numbers are cluster labels, not pixel intensity values.</p><h1 id="15-the-most-important-idea-of-k-means"><strong>15. THE MOST IMPORTANT IDEA OF K-MEANS</strong></h1><p>Students often get confused with the equations.</p><p>But the basic concept is simple.</p><p>Every pixel asks:</p><p>"Which centroid am I closest to?"</p><p>Then every centroid asks:</p><p>"What is the average value of the pixels assigned to me?"</p><p>These two operations continue repeatedly.</p>PixelAssignment – Find nearest centroidUpdate – Calculate new meanRepeatConverged → Segmented Image<h1 id="16-the-two-most-important-steps"><strong>16. THE TWO MOST IMPORTANT STEPS</strong></h1><p>There are only two fundamental operations in K-Means.</p><h3 id="1-assignment-step"><strong>1. Assignment Step</strong></h3><p>Assign each data point to its nearest centroid.</p><h3 id="2-update-step"><strong>2. Update Step</strong></h3><p>Calculate the mean of all data points belonging to each cluster and update its centroid.</p><p>Repeat these two steps until convergence.</p><h1 id="17-mathematical-form-of-k-means"><strong>17. MATHEMATICAL FORM OF K-MEANS</strong></h1><p>There are two important mathematical operations.</p><h3 id="a-assignment-formula"><strong>A. Assignment Formula</strong></h3>
+
+<div class="math-display">$$
+C(x_i)=\arg\min_j\|x_i-\mu_j\|^2
+$$</div>
+
+<p>Don't get scared by this formula!</p><p>Meaning:</p><ul><li><p>$x_i$ = Current data point or pixel.</p></li><li><p>$\mu_j$ = Centroid of cluster j.</p></li><li><p>$C(x_i)$ = Cluster assigned to the pixel.</p></li><li><p>$\arg\min$ = Choose the value that gives the minimum distance.</p></li></ul><p>In simple words:</p><p>Find the centroid having the smallest squared distance from the pixel.</p><h3 id="b-update-formula"><strong>B. Update Formula</strong></h3>
+
+<div class="math-display">$$
+\mu_j=\frac{1}{|C_j|}\sum_{x_i\in C_j}x_i
+$$</div>
+
+<p>Meaning:</p><ul><li><p>$\mu_j$ = New centroid.</p></li><li><p>$C_j$ = All pixels belonging to cluster j.</p></li><li><p>$|C_j|$ = Number of pixels in that cluster.</p></li><li><p>Sum = Total of all pixel values.</p></li></ul><p>In simple words:</p><p>Calculate the average of all pixels belonging to that cluster.</p><h1 id="18-why-do-we-square-the-distance"><strong>18. WHY DO WE SQUARE THE DISTANCE?</strong></h1><p>K-Means generally uses squared Euclidean distance instead of ordinary Euclidean distance.</p><p>For example:</p><p>Normal distance:</p>
+
+<div class="math-display">$$
+D=\sqrt{(x-c)^2}
+$$</div>
+
+<p>Squared distance:</p>
+
+<div class="math-display">$$
+D^2=(x-c)^2
+$$</div>
+
+<p>Why do we square it?</p><ol><li><p>Avoids calculating square roots.</p></li><li><p>Penalizes large errors more strongly.</p></li><li><p>Provides a convenient mathematical optimization problem.</p></li></ol><p><strong>Important point:</strong></p><p>For deciding which centroid is closest, the square root is unnecessary because square root is an increasing function for non-negative values.</p><p>For example:</p><ul><li><p>Distance 2 has square 4.</p></li><li><p>Distance 5 has square 25.</p></li></ul><p>The smallest distance is still the smallest squared distance.</p><p>Therefore, we can compare squared distances directly.</p><h1 id="19-k-means-objective-function"><strong>19. K-MEANS OBJECTIVE FUNCTION</strong></h1><p>The objective of K-Means is to minimize the total squared distance between every pixel and its assigned centroid.</p><p>The objective function is:</p>
+
+<div class="math-display">$$
+J=\sum_{j=1}^{K}\sum_{x_i\in C_j}
+\|x_i-\mu_j\|^2
+$$</div>
+
+<p>This is called:</p><p><strong>Within-Cluster Sum of Squares (WCSS).</strong></p><p>Let's understand it.</p><ul><li><p>WCSS = Within-Cluster Sum of Squares.</p></li><li><p>Within-cluster = Inside each cluster.</p></li><li><p>Sum of squares = Add all squared distances.</p></li></ul><p>In simple words:</p><p>K-Means tries to keep pixels as close as possible to their assigned centroids.</p><h3 id="small-numerical-example"><strong>Small numerical example</strong></h3><p>Suppose one cluster contains:</p>Plain text<code>10, 12, 14</code><p>Its mean is:</p>
+
+<div class="math-display">$$
+\mu=\frac{10+12+14}{3}=12
+$$</div>
+
+<p>Squared distances:</p>
+
+<div class="math-display">$$
+(10-12)^2=4
+$$</div>
+
+<div class="math-display">$$
+(12-12)^2=0
+$$</div>
+
+<div class="math-display">$$
+(14-12)^2=4
+$$</div>
+
+<p>Therefore:</p>
+
+<div class="math-display">$$
+WCSS=4+0+4
+$$</div>
+
+<div class="math-display">$$
+\boxed{WCSS=8}
+$$</div>
+
+<p>The objective of K-Means is to minimize this value across all clusters.</p><h1 id="20-real-image-example"><strong>20. REAL IMAGE EXAMPLE</strong></h1><p>Your document shows examples of real image segmentation.</p><p>Imagine an image containing:</p><ul><li><p>Blue sky.</p></li><li><p>Green vegetation.</p></li><li><p>Brown road.</p></li><li><p>Gray buildings.</p></li></ul><p>We choose:</p>
+
+<div class="math-display">$$
+K=4
+$$</div>
+
+<p>Every pixel is given to K-Means.</p><p>The algorithm groups pixels according to their color similarity.</p><p>After clustering:</p><table><tr><th>Cluster</th><th>Represents</th></tr><tr><td>Cluster 1</td><td>Sky-like pixels</td></tr><tr><td>Cluster 2</td><td>Vegetation-like pixels</td></tr><tr><td>Cluster 3</td><td>Road-like pixels</td></tr><tr><td>Cluster 4</td><td>Building-like pixels</td></tr></table><img alt="Image Segmentation using OpenCV. What is Image Segmentation ? | by Plaban Nayak | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/AfJ8xfcvtCqzefAW12_4wR3sBeEuUDa_U8wr8ZcQiHnhdFcGLwVCZyp8Ex3FgItKYlSKsONDOsWdmGUlsNtlXpdLfVnYMaYRP7KSE20iYQzDGYtgPqXgM78TSxxsRGTxtwD-Zs28DXJN6bOb4epjejXyim_k3W-LZ2Ktb290hDQ?purpose=inline"/><img alt="Computer Vision using OpenCV. In this article, I share some the code… | by Dr. Nimrita Koul | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/eDUcbaSw-Q4eFWsUwtthI2_-8cSm1qKgX-OEhphH88xCyZeYQb__KTxjuz1veBTI3V6HcmD5ixjXS5pJzKR-ngRB3gSNucOVNZViUjjrSvWoSAq80eUK5LwcBn7U8VjPx_Q8ZG6ocKZBW5LSFmtVuOknsFSc5DCgYE9epjLiXc8?purpose=inline"/><img alt="Expanding the Associations between Landscape Characteristics and Aesthetic Sensory Perception for Traditional Village Public Space" class="exported-media" src="https://images.openai.com/static-rsc-4/cGasJlh4BhWYS9plQvDfAF_-GXzVrBA2vcPJJe1DoYibZ0-A9nhVkN8mtQh6YPd1cOWk1-3mtjaeF3W59FNrg7YBXXOPYtj-0UIurydAb1WKXJE53420sdjWGlDj-VevyCnc-aiL9D1HqmqNysKNh-wAe_7owWKRGjjdqxYFHWI?purpose=inline"/><p><strong>Important:</strong> K-Means itself does not know that Cluster 1 is sky or Cluster 2 is vegetation.</p><p>It only identifies clusters based on similarity.</p><p>We interpret the clusters afterward.</p><h1 id="21-what-happens-if-k-2"><strong>21. WHAT HAPPENS IF K = 2?</strong></h1><p>Suppose the original image contains different colors and objects.</p><p>Now we choose:</p>
+
+<div class="math-display">$$
+K=2
+$$</div>
+
+<p>The image is divided into only two clusters.</p><p>For example:</p><ul><li><p>Cluster 1 → Dark/green regions.</p></li><li><p>Cluster 2 → Bright/blue regions.</p></li></ul><p>This may be too coarse.</p><p>Why?</p><p>Because multiple different objects may be combined into the same cluster.</p><p>For example, trees and dark buildings might become one cluster.</p><p>Therefore, important details can be lost.</p><h1 id="22-what-happens-if-k-10"><strong>22. WHAT HAPPENS IF K = 10?</strong></h1><p>Now suppose:</p>
+
+<div class="math-display">$$
+K=10
+$$</div>
+
+<p>The image can be divided into ten different color clusters.</p><p>For example:</p><ul><li><p>Sky → Several clusters.</p></li><li><p>Trees → Several clusters.</p></li><li><p>Road → Several clusters.</p></li><li><p>Buildings → Several clusters.</p></li></ul><p>This may cause over-segmentation.</p><img alt="Image Segmentation (Part 1). Introduction | by Daniela Vornic | softplus-publication | Medium" class="exported-media" src="https://images.openai.com/static-rsc-4/pC3wduhtYxZE9vT51-jj0h01Et68a0q1WCeyoCxOPNsKKR2hhNKDpspwoNLMaOcNjDPTKB6MMqoajrVzrj9UTfeOU3U47_LCeTwJCA6Q6zqBgnuKUKE2izg0ZdNUMgOSRIXqBv2olruJV7Sgbafqx8nu8xX7R8H_FtL3P15B8QU?purpose=inline"/><img alt="PPT - 6.S093 Visual Recognition through Machine Learning Competition PowerPoint Presentation - ID:3909546" class="exported-media" src="https://images.openai.com/static-rsc-4/9qwClyJ8IfJ2Wk4OqlcvfI99l5M23bLMN2J2NeN4CWBclJDY-6cb4txam7MBlwzuWwIoqyio9myKvnusWhTMjlUSTiE2GCo1yeaVkYEq6_pbd4jvJY5X_HglbGTMMuxCA_4I1ZjEcRTm0eXr26FC_BCP4ShZ5A_7ilJvgO83UFA?purpose=inline"/><img alt="Image Segmentation in Computer Vision [Updated 2024] | Encord" class="exported-media" src="https://images.openai.com/static-rsc-4/iYoe2BM5bVo9uHPf2VeBbXS7znX37OJRZGU9tSUZxdk0eMNv8DNQykKOpmMXS5VZJaRW5OaW5fLH75c91vmAHiDqvPUROv1lGgaFPYz6IKanD4fzFDV3d-lyk88MezgTob_KU0vMK8gLD7Nvn-K9wzf_4JGL1yCzwB2CpG6hEH0?purpose=inline"/><h3 id="comparison"><strong>Comparison</strong></h3><table><tr><th>K value</th><th>Result</th></tr><tr><td>K = 2</td><td>Very few clusters; details may be lost</td></tr><tr><td>K = 3</td><td>Three groups</td></tr><tr><td>K = 4</td><td>Four groups</td></tr><tr><td>K = 10</td><td>Many smaller color groups</td></tr></table><p><strong>Important conclusion:</strong></p><ul><li><p>Very small K → Under-segmentation may occur.</p></li><li><p>Very large K → Over-segmentation may occur.</p></li></ul><p>Therefore, selecting the correct K value is important.</p><h1 id="23-classroom-analogy-for-k-means"><strong>23. CLASSROOM ANALOGY FOR K-MEANS</strong></h1><p>Imagine students entering a classroom.</p><p>There are three teachers.</p><p>Each student goes to the teacher whose position is closest to them.</p><p>After all students are assigned:</p><p>Each teacher moves to the average position of their assigned students.</p><p>Then the students again choose their nearest teacher.</p><p>This continues until the teachers stop moving.</p><p>That is essentially K-Means!</p><table><tr><th>Classroom</th><th>K-Means</th></tr><tr><td>Students</td><td>Pixels</td></tr><tr><td>Teachers</td><td>Centroids</td></tr><tr><td>Groups</td><td>Clusters</td></tr><tr><td>Distance</td><td>Pixel similarity</td></tr><tr><td>Average position</td><td>New centroid</td></tr></table><p>This is a very easy way to remember K-Means.</p><h1 id="24-k-means-in-one-complete-diagram"><strong>24. K-MEANS IN ONE COMPLETE DIAGRAM</strong></h1><p>Understand this entire flowchart.</p>Input ImageIndividual PixelsFeature Vectors [R,G,B] or [I]Choose KInitialize K CentroidsCalculate DistancesAssign Pixels to Nearest CentroidCalculate New CentroidsConverged?<p><strong>NO</strong></p><p>Repeat assignment and update</p><p><strong>YES</strong></p><p>Segmented Image</p><p>This diagram represents the complete K-Means image segmentation process.</p><h1 id="25-what-students-should-remember-for-the-exam"><strong>25. WHAT STUDENTS SHOULD REMEMBER FOR THE EXAM</strong></h1><h3 id="definition-4"><strong>Definition</strong></h3><p>K-Means is an unsupervised clustering algorithm that partitions data into K clusters by iteratively assigning each data point to its nearest centroid and updating each centroid as the mean of its assigned points.</p><h3 id="four-main-steps"><strong>Four Main Steps</strong></h3><ol><li><p>Choose K – Decide the number of clusters.</p></li><li><p>Initialize centroids – Select starting cluster centers.</p></li><li><p>Assignment – Assign each pixel to the nearest centroid.</p></li><li><p>Update – Calculate new centroids using the mean.</p></li></ol><p>Repeat the assignment and update steps until convergence.</p><h1 id="part-3-important-exam-revision"><strong>PART 3: IMPORTANT EXAM REVISION</strong></h1><p>Now that we've completed both documents, let's consolidate the most important differences and formulas.</p><h2 id="1-region-based-segmentation-vs-k-means"><strong>1. Region-Based Segmentation vs K-Means</strong></h2><table><tr><th>Feature</th><th>Region-Based Segmentation</th><th>K-Means</th></tr><tr><td>Main purpose</td><td>Divide image into meaningful regions</td><td>Group similar pixels into K clusters</td></tr><tr><td>Main concept</td><td>Similarity and connectivity</td><td>Distance from centroid</td></tr><tr><td>Starting point</td><td>Depends on technique</td><td>Initial centroids</td></tr><tr><td>Important parameter</td><td>Seed, threshold, connectivity</td><td>Number of clusters K</td></tr><tr><td>Output</td><td>Connected regions</td><td>Cluster labels</td></tr><tr><td>Example</td><td>Region growing</td><td>Color clustering</td></tr></table><p><strong>Important distinction:</strong> K-Means groups pixels based on feature similarity. It does not inherently enforce spatial connectivity, so pixels belonging to the same cluster may be far apart in the image.</p><h2 id="2-all-important-formulas"><strong>2. All Important Formulas</strong></h2><table><tr><th>Topic</th><th>Formula</th></tr><tr><td>Region Growing</td><td>$|I(p)-I_s|\leq T$</td></tr><tr><td>Region Merging</td><td>$|\mu_1-\mu_2|\leq T$</td></tr><tr><td>RGB Distance</td><td>$\sqrt{(R_1-R_2)^2+(G_1-G_2)^2+(B_1-B_2)^2}$</td></tr><tr><td>K-Means Distance</td><td>$|X-C|$ for grayscale</td></tr><tr><td>New Centroid</td><td>$\frac{\text{Sum of values}}{\text{Number of values}}$</td></tr><tr><td>K-Means Objective</td><td>$\sum_j\sum_{x_i\in C_j}\|x_i-\mu_j\|^2$</td></tr></table><h2 id="3-important-topics-to-prepare-for-1015-marks"><strong>3. Important Topics to Prepare for 10–15 Marks</strong></h2><p><strong>Document 3.5</strong></p><p>0 of 10 revised</p><p><strong>0</strong><strong>%</strong></p>Region-based image segmentation and its propertiesRegion Growing – definition, algorithm and numerical4-connectivity vs 8-connectivityRegion Splitting and QuadtreeRegion Merging with numericalRegion Splitting and MergingRegion-based vs Edge-based segmentationRegion Growing vs ThresholdingOver-segmentation vs Under-segmentationApplications, advantages and disadvantages<p><strong>Document 3.6</strong></p><p>0 of 12 revised</p><p><strong>0</strong><strong>%</strong></p>K-Means definition and image segmentationInitial centroid selectionAssignment step with numericalCentroid update with numericalComplete K-Means numerical tableGrayscale vs RGB imagesRGB Euclidean distance numericalAssignment and update formulasWhy squared distance is usedWCSS objective functionEffect of K = 2 and K = 10K-Means flowchart and applications<h2 id="4-test-yourself-important-exam-questions"><strong>4. Test Yourself – Important Exam Questions</strong></h2><p>Try answering these without looking at the notes.</p><p><strong>10-question practice quiz</strong></p>0/10 answered<p><strong>Q</strong><strong>1</strong><strong>. </strong><strong>Which technique starts with seed pixels and adds similar neighboring pixels?</strong></p>A. Region SplittingB. Region GrowingC. Region MergingD. Thresholding<p><strong>Q</strong><strong>2</strong><strong>. </strong><strong>How many neighboring pixels are considered in 8-connectivity?</strong></p>A. 4B. 6C. 8D. 10<p><strong>Q</strong><strong>3</strong><strong>. </strong><strong>What is a quadtree used for?</strong></p>A. Region mergingB. Region splittingC. Edge detectionD. Noise generation<p><strong>Q</strong><strong>4</strong><strong>. </strong><strong>If the threshold is too large in region growing, what may happen?</strong></p>A. Objects may mergeB. All pixels disappearC. No pixel is selectedD. Image becomes grayscale<p><strong>Q</strong><strong>5</strong><strong>. </strong><strong>Which technique combines adjacent regions with similar properties?</strong></p>A. Region GrowingB. Region SplittingC. Region MergingD. Edge Detection<p><strong>Q</strong><strong>6</strong><strong>. </strong><strong>K-Means is which type of learning algorithm?</strong></p>A. SupervisedB. UnsupervisedC. ReinforcementD. Rule-based<p><strong>Q</strong><strong>7</strong><strong>. </strong><strong>What does K represent in K-Means?</strong></p>A. Number of pixelsB. Number of clustersC. Number of iterationsD. Number of images<p><strong>Q</strong><strong>8</strong><strong>. </strong><strong>What is a centroid?</strong></p>A. The boundary of an imageB. The average or center of a clusterC. A noise pixelD. A color channel<p><strong>Q</strong><strong>9</strong><strong>. </strong><strong>When does K-Means generally stop?</strong></p>A. When the image becomes blackB. When centroids stop changingC. When K becomes zeroD. When all pixels disappear<p><strong>Q</strong><strong>10</strong><strong>. </strong><strong>What is WCSS?</strong></p>A. Within-Cluster Sum of SquaresB. Weighted Color Segmentation SystemC. Width of Color SegmentsD. Without Cluster Sampling<p><strong>One final note:</strong> Your 3.5 document lists Watershed Segmentation and Region-Based Clustering among the major techniques, but does not explain them in detail. I've kept that distinction rather than adding outside material and pretending it came from your notes.</p><p>You've now covered the complete detailed content of both uploaded documents. Focus especially on the numerical problems for Region Growing, Region Merging and K-Means. Those are the parts where understanding the steps matters more than memorising definitions. ❤️</p>
+<div class="references"><strong>References:</strong><ol><li><a href="https://www.slideshare.net/slideshow/lec8-medical-image-segmentation-ii-region-growingmerging/73936003?utm_source=chatgpt.com">slideshare.net</a></li><li><a href="https://gretarmark.github.io/ImageAnalysis_BLOB/?utm_source=chatgpt.com">gretarmark.github.io</a></li><li><a href="https://www.slideserve.com/chesna/segmentation?utm_source=chatgpt.com">slideserve.com</a></li><li><a href="https://www.slideshare.net/slideshow/region-splitting-and-merging-technique-for-image-segmentation/145148571?utm_source=chatgpt.com">slideshare.net</a></li><li><a href="https://www.mdpi.com/1424-8220/25/6/1838?utm_source=chatgpt.com">mdpi.com</a></li><li><a href="https://www.slideserve.com/dasan/grouping-and-segmentation-powerpoint-ppt-presentation?utm_source=chatgpt.com">slideserve.com</a></li></ol></div></div></div>
+        </article>
+    </main>
+    <script>
+    function toggleDarkMode() {
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+        localStorage.setItem('theme', isDark ? 'light' : 'dark');
+    }
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    </script>
+</body>
+</html>
